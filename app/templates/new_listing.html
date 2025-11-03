@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Nieuwe listing</h1>
+  <form method="post">
+    <label>
+      Titel
+      <input name="title" required />
+    </label>
+    <label>
+      Prijs (€)
+      <input name="price" type="number" step="0.01" min="0" required />
+    </label>
+    <button type="submit">Aanmaken</button>
+  </form>
+{% endblock %}

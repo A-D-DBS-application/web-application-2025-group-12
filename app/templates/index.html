@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Alle listings</h1>
+  {% if listings %}
+    <table>
+      <thead><tr><th>Titel</th><th>Prijs</th><th>Door</th><th>Wanneer</th></tr></thead>
+      <tbody>
+      {% for l in listings %}
+        <tr>
+          <td>{{ l.title }}</td>
+          <td>€ {{ '%.2f'|format(l.price) }}</td>
+          <td>{{ l.owner.email }}</td>
+          <td>{{ l.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Nog geen listings.</p>
+  {% endif %}
+{% endblock %}
