@@ -1,21 +1,21 @@
 <!doctype html>
-<html lang="nl">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>{{ title or "Flask Intro" }}</title>
+    <title>{{ title or "Ground Matching" }}</title>
     <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
   </head>
   <body class="container">
     <nav>
       <ul>
-        <li><strong>Listings</strong></li>
+        <li><strong>Ground App</strong></li>
       </ul>
       <ul>
         <li><a href="{{ url_for('main.home') }}">Home</a></li>
-        <li><a href="{{ url_for('main.create_listing') }}">Create</a></li>
-        <li><a href="{{ url_for('main.my_listings') }}">My listings</a></li>
+        <li><a href="{{ url_for('main.create_ground') }}">New parcel</a></li>
+        <li><a href="{{ url_for('main.my_company') }}">My company</a></li>
       </ul>
     </nav>
 

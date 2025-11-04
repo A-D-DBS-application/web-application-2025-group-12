@@ -1,15 +1,12 @@
 # app/config.py
 import os
-from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy.pool import NullPool
 
-# Zoek .env automatisch vanaf app/… omhoog
-env_path = (Path(__file__).resolve().parent.parent / ".env")
-load_dotenv(env_path, override=True)
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"), override=True)
 
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")  # geen [] -> geen KeyError
+    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret")
+    SQLALCHEMY_DATABASE_URI = os.environ["DATABASE_URL"]
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ENGINE_OPTIONS = {"poolclass": NullPool}  # aanbevolen met pooler
+    SQLALCHEMY_ENGINE_OPTIONS = {"poolclass": NullPool}  # goed voor Supabase pooler

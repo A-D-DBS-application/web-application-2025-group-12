@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Alle listings</h1>
-  {% if listings %}
+  <h1>All parcels</h1>
+  {% if grounds %}
     <table>
-      <thead><tr><th>Titel</th><th>Prijs</th><th>Door</th><th>Wanneer</th></tr></thead>
+      <thead><tr><th>Location</th><th>Area</th><th>Price</th><th>Status / Owner</th></tr></thead>
       <tbody>
-      {% for l in listings %}
+      {% for g in grounds %}
         <tr>
-          <td>{{ l.title }}</td>
-          <td>€ {{ '%.2f'|format(l.price) }}</td>
-          <td>{{ l.owner.email }}</td>
-          <td>{{ l.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td>{{ g.location }}</td>
+          <td>{{ g.m2|thousands }} m²</td>
+          <td>{{ g.budget|euro }}</td>
+          <td>{{ g.subdivision_type }} / {{ g.owner }}</td>
         </tr>
       {% endfor %}
       </tbody>
     </table>
   {% else %}
-    <p>Nog geen listings.</p>
+    <p>No parcels yet.</p>
   {% endif %}
 {% endblock %}
