@@ -1,46 +1,64 @@
 # app/routes.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from . import db
-from .models import Listing, User
+from .models import Ground, Company, Match
 
 bp = Blueprint("main", __name__)
 
-# Simuleer ingelogde user:
-CURRENT_USER_ID = 1
+# Simuleer ingelogde company:
+CURRENT_COMPANY_ID = 1
 
 @bp.route("/")
 def home():
-    listings = Listing.query.order_by(Listing.created_at.desc()).all()
-    return render_template("index.html", listings=listings)
+    # order by id desc (schema doesn't define a created_at column)
+    grounds = Ground.query.order_by(Ground.id.desc()).all()
+    return render_template("index.html", grounds=grounds)
 
-@bp.route("/listings/new", methods=["GET", "POST"])
-def create_listing():
+@bp.route("/grounds/new", methods=["GET", "POST"])
+def create_ground():
     if request.method == "POST":
-        title = request.form.get("title", "").strip()
-        price = request.form.get("price", "").strip()
+        # fields matching DB schema: location, m2, budget, subdivision_type, owner, soil
+        location = request.form.get("location", "").strip()
+        m2 = request.form.get("m2", "").strip()
+        budget = request.form.get("budget", "").strip()
+        subdivision_type = request.form.get("subdivision_type", "").strip() or "unknown"
+        owner = request.form.get("owner", "").strip() or ""
+        soil = request.form.get("soil", "").strip() or "unknown"
 
-        if not title or not price:
-            flash("Vul titel en prijs in.", "error")
-            return redirect(url_for("main.create_listing"))
+        if not location or not m2 or not budget:
+            flash("Please provide location, area (m2) and budget.", "error")
+            return redirect(url_for("main.create_ground"))
 
         try:
-            price_val = float(price)
+            m2_val = int(m2)
+            budget_val = float(budget)
         except ValueError:
-            flash("Prijs moet een getal zijn.", "error")
-            return redirect(url_for("main.create_listing"))
+            flash("Area and budget must be numeric.", "error")
+            return redirect(url_for("main.create_ground"))
 
-        listing = Listing(title=title, price=price_val, user_id=CURRENT_USER_ID)
-        db.session.add(listing)
+        ground = Ground(
+            location=location,
+            m2=m2_val,
+            budget=budget_val,
+            subdivision_type=subdivision_type,
+            owner=owner,
+            soil=soil,
+        )
+        db.session.add(ground)
         db.session.commit()
-        flash("Listing aangemaakt!", "success")
+        flash("Ground added!", "success")
         return redirect(url_for("main.home"))
 
     return render_template("new_listing.html")
 
-@bp.route("/my-listings")
-def my_listings():
-    my_items = Listing.query.filter_by(user_id=CURRENT_USER_ID)\
-                            .order_by(Listing.created_at.desc())\
-                            .all()
-    me = User.query.get(CURRENT_USER_ID)
-    return render_template("my_listings.html", listings=my_items, me=me)
+@bp.route("/my-company")
+def my_company():
+    company = Company.query.get(CURRENT_COMPANY_ID)
+    company_grounds = (
+        Ground.query.join(Match)
+        .filter(Match.company_id == CURRENT_COMPANY_ID)
+        # Ground model does not have created_at in the current schema — order by id instead
+        .order_by(Ground.id.desc())
+        .all()
+    )
+    return render_template("my_listings.html", grounds=company_grounds, company=company)

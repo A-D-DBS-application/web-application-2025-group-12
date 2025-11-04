@@ -1,29 +1,52 @@
 # app/__init__.py
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
-from .config import Config
-
-db = SQLAlchemy()
+from .config import Config       # ← HIER je Config ophalen
+from .models import db           # db = SQLAlchemy() staat in models.py
 
 def create_app():
     app = Flask(__name__)
+
+    # Jinja filters: euro formatting and thousands separator
+    def euro_format(value):
+        try:
+            num = float(value)
+        except Exception:
+            return value
+        s = f"{num:,.2f}"
+        s = s.replace(",", "X").replace(".", ",").replace("X", ".")
+        return f"€ {s}"
+
+    def thousands_format(value):
+        try:
+            n = int(value)
+        except Exception:
+            return value
+        s = f"{n:,}".replace(",", ".")
+        return s
+
+    app.jinja_env.filters["euro"] = euro_format
+    app.jinja_env.filters["thousands"] = thousands_format
+
+    # 1) Laad AL je settings (SECRET_KEY, SQLALCHEMY_DATABASE_URI, …)
     app.config.from_object(Config)
 
+    # 2) Koppel SQLAlchemy aan deze app
     db.init_app(app)
 
-    # DB check + tabellen aanmaken
+    # 3) (Optional) quick DB connectivity check — don't crash the app if remote DB is unreachable
     with app.app_context():
-        db.session.execute(text("select 1"))
-        from .models import User, Listing
-        db.create_all()
-        # Zorg voor een demo-user met id=1 (voor “ingelogd” simulatie)
-        if not User.query.get(1):
-            demo = User(id=1, email="demo@example.com")
-            db.session.add(demo)
-            db.session.commit()
+        try:
+            db.session.execute(text("select 1"))   # snelle connectivity check
+        except Exception as exc:
+            # Log and continue: in many dev setups the remote DB may be unavailable.
+            app.logger.warning("DB connectivity check failed: %s", exc)
+        # Do NOT call db.create_all() automatically against a remote DB (Supabase).
+        # If you need to create local/dev tables, run a separate script or
+        # uncomment the following line when running against a local DB only.
+        # db.create_all()
 
-    # Blueprints / routes
+    # 4) Register the blueprint
     from .routes import bp as main_bp
     app.register_blueprint(main_bp)
 

@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Mijn listings</h1>
-  <p><small>Ingelogd als: {{ me.email }}</small></p>
+  <h1>My company</h1>
+  <p><small>Company: {{ company.name if company else '—' }}</small></p>
 
-  {% if listings %}
+  {% if grounds %}
     <ul>
-      {% for l in listings %}
-        <li>{{ l.title }} — € {{ '%.2f'|format(l.price) }} ({{ l.created_at.strftime('%Y-%m-%d') }})</li>
+      {% for g in grounds %}
+        <li>{{ g.location }} — {{ g.m2|thousands }} m² — {{ g.budget|euro }}</li>
       {% endfor %}
     </ul>
   {% else %}
-    <p>Je hebt nog geen listings.</p>
+    <p>There are no parcels linked to this company yet.</p>
   {% endif %}
 {% endblock %}
