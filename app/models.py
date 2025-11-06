@@ -1,22 +1,21 @@
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
 
 db = SQLAlchemy()
 
 
 # ---------- Company ----------
-class Company(db.Model):
+class Company(UserMixin, db.Model):
     __tablename__ = "company"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
-    email = db.Column(db.String(320), nullable=False, unique=True)
+    name = db.Column(db.String(200), nullable=False, unique=True)
+    email = db.Column(db.String(320), nullable=True)
 
     # relaties
     clients = db.relationship("Client", back_populates="company", cascade="all, delete-orphan")
     matches = db.relationship("Match", back_populates="company", cascade="all, delete-orphan")
-
-    # created_at not present in DB schema for company: omit to match DB
 
     def __repr__(self):
         return f"<Company {self.id} {self.name}>"
