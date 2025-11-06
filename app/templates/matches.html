@@ -1,87 +1,119 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Grond matches</h1>
+<div class="container max-w-screen-lg">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 mb-0">Property Matches</h1>
+    <a href="{{ url_for('main.generate_matches') }}" class="btn btn-primary">
+      Find New Matches
+    </a>
+  </div>
   
-  <div class="grid">
-    <div>
-      <a href="{{ url_for('main.generate_matches') }}" role="button">
-        Zoek nieuwe matches
-      </a>
-    </div>
-    
-    <div>
-      <form method="GET" class="grid">
-        <label>
-          Filter op klant:
-          <select name="client_id" onchange="this.form.submit()">
-            <option value="">Alle klanten</option>
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="GET" class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Filter by Client</label>
+          <select name="client_id" class="form-select" onchange="this.form.submit()">
+            <option value="">All Clients</option>
             {% for client in clients %}
               <option value="{{ client.id }}" {% if request.args.get('client_id')|int == client.id %}selected{% endif %}>
                 {{ client.name }}
               </option>
             {% endfor %}
           </select>
-        </label>
+        </div>
         
-        <label>
-          Minimale score:
-          <select name="min_score" onchange="this.form.submit()">
-            <option value="">Geen minimum</option>
+        <div class="col-md-6">
+          <label class="form-label">Minimum Score</label>
+          <select name="min_score" class="form-select" onchange="this.form.submit()">
+            <option value="">No minimum</option>
             {% for score in range(1, 11) %}
               <option value="{{ score }}" {% if request.args.get('min_score')|int == score %}selected{% endif %}>
-                {{ score }} of hoger
+                {{ score }} or higher
               </option>
             {% endfor %}
           </select>
-        </label>
+        </div>
       </form>
     </div>
   </div>
 
   {% if matches %}
-    <table>
-      <thead>
-        <tr>
-          <th>Score</th>
-          <th>Klant</th>
-          <th>Locatie</th>
-          <th>Oppervlakte</th>
-          <th>Budget</th>
-          <th>Status</th>
-          <th>Details</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for match in matches %}
-          <tr>
-            <td>{{ "%.1f"|format(match.total_score) }}/10</td>
-            <td>{{ match.preferences.client.name }}</td>
-            <td>{{ match.ground.location }}</td>
-            <td>{{ match.ground.m2|thousands }} m²</td>
-            <td>{{ match.ground.budget|euro }}</td>
-            <td>
-              <form method="POST" action="{{ url_for('main.update_match_status', match_id=match.id) }}">
-                <select name="status" onchange="this.form.submit()">
-                  <option value="pending" {% if match.status == 'pending' %}selected{% endif %}>In behandeling</option>
-                  <option value="accepted" {% if match.status == 'accepted' %}selected{% endif %}>Geaccepteerd</option>
-                  <option value="rejected" {% if match.status == 'rejected' %}selected{% endif %}>Afgewezen</option>
-                </select>
-              </form>
-            </td>
-            <td>
-              <details>
-                <summary>Score details</summary>
-                <small>
-                  Oppervlakte score: {{ "%.1f"|format(match.m2_score) }}/10<br>
-                  Budget score: {{ "%.1f"|format(match.budget_score) }}/10
-                </small>
-              </details>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Score</th>
+              <th>Client</th>
+              <th>Location</th>
+              <th>Area</th>
+              <th>Budget</th>
+              <th>Status</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for match in matches %}
+              <tr>
+                <td>
+                  {% set score_class = {
+                    'high': 'bg-success-subtle text-success-emphasis',
+                    'medium': 'bg-warning-subtle text-warning-emphasis',
+                    'low': 'bg-danger-subtle text-danger-emphasis'
+                  }[match.total_score >= 7 and 'high' or match.total_score >= 5 and 'medium' or 'low'] %}
+                  <span class="badge rounded-pill {{ score_class }} px-2 py-1">
+                    {{ "%.1f"|format(match.total_score) }}/10
+                  </span>
+                </td>
+                <td>{{ match.preferences.client.name }}</td>
+                <td>{{ match.ground.location }}</td>
+                <td>{{ match.ground.m2|thousands }} m²</td>
+                <td class="fw-semibold">{{ match.ground.budget|euro }}</td>
+                <td>
+                  <form method="POST" action="{{ url_for('main.update_match_status', match_id=match.id) }}">
+                    {% set status_classes = {
+                      'pending': 'form-select-sm bg-light text-dark',
+                      'accepted': 'form-select-sm bg-success-subtle text-success',
+                      'rejected': 'form-select-sm bg-danger-subtle text-danger'
+                    } %}
+                    <select name="status" onchange="this.form.submit()" 
+                            class="form-select {{ status_classes[match.status] }}">
+                      <option value="pending" {% if match.status == 'pending' %}selected{% endif %}>Pending</option>
+                      <option value="accepted" {% if match.status == 'accepted' %}selected{% endif %}>Accepted</option>
+                      <option value="rejected" {% if match.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                  </form>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-light" type="button" 
+                          data-bs-toggle="collapse" 
+                          data-bs-target="#score-{{ match.id }}">
+                    View Details
+                  </button>
+                  <div class="collapse mt-2" id="score-{{ match.id }}">
+                    <div class="card card-body p-2 bg-light">
+                      <small class="d-block mb-1">
+                        Area score: <span class="fw-semibold">{{ "%.1f"|format(match.m2_score) }}/10</span>
+                      </small>
+                      <small class="d-block">
+                        Budget score: <span class="fw-semibold">{{ "%.1f"|format(match.budget_score) }}/10</span>
+                      </small>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   {% else %}
-    <p>Geen matches gevonden.</p>
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <p class="text-muted mb-0">No matches found.</p>
+      </div>
+    </div>
   {% endif %}
+</div>
 {% endblock %}

@@ -12,16 +12,16 @@ def login():
         return redirect(url_for("main.home"))
 
     if request.method == "POST":
-        email = request.form.get("email")
-        company = Company.query.filter_by(email=email).first()
+        company_name = request.form.get("company_name")
+        company = Company.query.filter_by(name=company_name).first()
 
         if company:
             login_user(company)
-            flash("Succesvol ingelogd!", "success")
+            flash("Successfully logged in!", "success")
             next_page = request.args.get("next")
             return redirect(next_page or url_for("main.home"))
         
-        flash("Email niet gevonden", "error")
+        flash("Company name not found", "error")
     
     return render_template("auth/login.html")
 
@@ -32,23 +32,27 @@ def register():
 
     if request.method == "POST":
         name = request.form.get("name")
-        email = request.form.get("email")
+        email = request.form.get("email", "")  # Email is now optional
 
-        if not all([name, email]):
-            flash("Alle velden zijn verplicht", "error")
+        if not name:
+            flash("Company name is required", "error")
             return redirect(url_for("main.register"))
 
-        if Company.query.filter_by(email=email).first():
-            flash("Dit emailadres is al geregistreerd", "error")
+        if Company.query.filter_by(name=name).first():
+            flash("This company name is already registered", "error")
             return redirect(url_for("main.register"))
 
-        company = Company(name=name, email=email)
-        db.session.add(company)
-        db.session.commit()
-
-        login_user(company)
-        flash("Account succesvol aangemaakt!", "success")
-        return redirect(url_for("main.home"))
+        try:
+            company = Company(name=name, email=email)
+            db.session.add(company)
+            db.session.commit()
+            login_user(company)
+            flash("Account successfully created!", "success")
+            return redirect(url_for("main.home"))
+        except Exception as e:
+            db.session.rollback()
+            flash("An error occurred while creating your account. Please try again.", "error")
+            return redirect(url_for("main.register"))
 
     return render_template("auth/register.html")
 
@@ -56,7 +60,7 @@ def register():
 @login_required
 def logout():
     logout_user()
-    flash("Je bent uitgelogd", "info")
+    flash("You have been logged out", "info")
     return redirect(url_for("main.home"))
 
 @bp.route("/")
@@ -80,12 +84,12 @@ def create_client():
         address = request.form.get("address")
 
         if not all([name, email, address]):
-            flash("Alle velden zijn verplicht", "error")
+            flash("All fields are required", "error")
             return redirect(url_for("main.create_client"))
 
         # Check if email is already used
         if Client.query.filter_by(email=email).first():
-            flash("Dit emailadres is al geregistreerd", "error")
+            flash("This email address is already registered", "error")
             return redirect(url_for("main.create_client"))
 
         client = Client(
@@ -97,7 +101,7 @@ def create_client():
         db.session.add(client)
         db.session.commit()
 
-        flash("Klant succesvol toegevoegd!", "success")
+        flash("Client added successfully!", "success")
         return redirect(url_for("main.manage_clients"))
 
     return render_template("clients/form.html", client=None)
@@ -109,7 +113,7 @@ def edit_client(client_id):
     
     # Security check
     if client.company_id != current_user.id:
-        flash("Je hebt geen toegang tot deze klant", "error")
+        flash("You do not have access to this client", "error")
         return redirect(url_for("main.manage_clients"))
 
     if request.method == "POST":
@@ -118,13 +122,13 @@ def edit_client(client_id):
         address = request.form.get("address")
 
         if not all([name, email, address]):
-            flash("Alle velden zijn verplicht", "error")
+            flash("All fields are required", "error")
             return redirect(url_for("main.edit_client", client_id=client.id))
 
         # Check if email is already used by another client
         existing_client = Client.query.filter_by(email=email).first()
         if existing_client and existing_client.id != client.id:
-            flash("Dit emailadres is al geregistreerd", "error")
+            flash("This email address is already registered", "error")
             return redirect(url_for("main.edit_client", client_id=client.id))
 
         client.name = name
@@ -132,7 +136,7 @@ def edit_client(client_id):
         client.address = address
         db.session.commit()
 
-        flash("Klant succesvol bijgewerkt!", "success")
+        flash("Client updated successfully!", "success")
         return redirect(url_for("main.manage_clients"))
 
     return render_template("clients/form.html", client=client)
@@ -144,13 +148,13 @@ def delete_client(client_id):
     
     # Security check
     if client.company_id != current_user.id:
-        flash("Je hebt geen toegang tot deze klant", "error")
+        flash("You do not have access to this client", "error")
         return redirect(url_for("main.manage_clients"))
 
     db.session.delete(client)
     db.session.commit()
 
-    flash("Klant succesvol verwijderd!", "success")
+    flash("Client deleted successfully!", "success")
     return redirect(url_for("main.manage_clients"))
 
 @bp.route("/clients/<int:client_id>/preferences/new", methods=["GET", "POST"])
@@ -160,11 +164,11 @@ def create_preferences(client_id):
     
     # Security check
     if client.company_id != current_user.id:
-        flash("Je hebt geen toegang tot deze klant", "error")
+        flash("You do not have access to this client", "error")
         return redirect(url_for("main.manage_clients"))
 
     if client.preferences:
-        flash("Deze klant heeft al voorkeuren", "error")
+        flash("This client already has preferences", "error")
         return redirect(url_for("main.manage_clients"))
 
     if request.method == "POST":
@@ -181,7 +185,7 @@ def create_preferences(client_id):
         db.session.add(preferences)
         db.session.commit()
 
-        flash("Voorkeuren succesvol toegevoegd!", "success")
+        flash("Preferences added successfully!", "success")
         return redirect(url_for("main.manage_clients"))
 
     return render_template("clients/preferences.html", client=client, preferences=None)
@@ -193,12 +197,12 @@ def edit_preferences(client_id):
     
     # Security check
     if client.company_id != current_user.id:
-        flash("Je hebt geen toegang tot deze klant", "error")
+        flash("You do not have access to this client", "error")
         return redirect(url_for("main.manage_clients"))
 
     preferences = client.preferences
     if not preferences:
-        flash("Deze klant heeft nog geen voorkeuren", "error")
+        flash("This client has no preferences yet", "error")
         return redirect(url_for("main.manage_clients"))
 
     if request.method == "POST":
@@ -212,7 +216,7 @@ def edit_preferences(client_id):
         
         db.session.commit()
 
-        flash("Voorkeuren succesvol bijgewerkt!", "success")
+        flash("Preferences updated successfully!", "success")
         return redirect(url_for("main.manage_clients"))
 
     return render_template("clients/preferences.html", client=client, preferences=preferences)
@@ -251,9 +255,9 @@ def generate_matches():
     new_matches = generate_matches_for_company(current_user)
     
     if new_matches:
-        flash(f"{len(new_matches)} nieuwe matches gevonden!", "success")
+        flash(f"{len(new_matches)} new matches found!", "success")
     else:
-        flash("Geen nieuwe matches gevonden.", "info")
+        flash("No new matches found.", "info")
     
     return redirect(url_for("main.view_matches"))
 
@@ -264,14 +268,14 @@ def update_match_status(match_id):
     
     # Security check
     if match.company_id != current_user.id:
-        flash("Je hebt geen toegang tot deze match", "error")
+        flash("You do not have access to this match", "error")
         return redirect(url_for("main.view_matches"))
     
     status = request.form.get("status")
     if status in ["pending", "accepted", "rejected"]:
         match.status = status
         db.session.commit()
-        flash("Match status bijgewerkt", "success")
+        flash("Match status updated", "success")
     
     return redirect(url_for("main.view_matches"))
 

@@ -1,58 +1,60 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>{{ 'Voorkeuren bewerken' if preferences else 'Voorkeuren toevoegen' }} voor {{ client.name }}</h1>
+  <h1>{{ 'Edit preferences' if preferences else 'Add preferences' }} for {{ client.name }}</h1>
   <form method="POST">
-    <div class="grid">
-      <label>
-        Locatie
-        <input type="text" name="location" value="{{ preferences.location if preferences else '' }}">
-      </label>
-      <label>
-        Grondsoort
-        <select name="soil">
-          <option value="">Geen voorkeur</option>
-          <option value="leem" {% if preferences and preferences.soil == 'leem' %}selected{% endif %}>Leem</option>
-          <option value="zand" {% if preferences and preferences.soil == 'zand' %}selected{% endif %}>Zand</option>
-          <option value="klei" {% if preferences and preferences.soil == 'klei' %}selected{% endif %}>Klei</option>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Location</label>
+        <input type="text" name="location" class="form-control" value="{{ preferences.location if preferences else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Soil type</label>
+        <select name="soil" class="form-select">
+          <option value="">No preference</option>
+          <option value="leem" {% if preferences and preferences.soil == 'leem' %}selected{% endif %}>Loam</option>
+          <option value="zand" {% if preferences and preferences.soil == 'zand' %}selected{% endif %}>Sand</option>
+          <option value="klei" {% if preferences and preferences.soil == 'klei' %}selected{% endif %}>Clay</option>
         </select>
-      </label>
+      </div>
     </div>
 
-    <div class="grid">
-      <label>
-        Minimum oppervlakte (m²)
-        <input type="number" name="min_m2" min="0" value="{{ preferences.min_m2 if preferences else '' }}">
-      </label>
-      <label>
-        Maximum oppervlakte (m²)
-        <input type="number" name="max_m2" min="0" value="{{ preferences.max_m2 if preferences else '' }}">
-      </label>
+    <div class="row g-3 mt-2">
+      <div class="col-md-6">
+        <label class="form-label">Minimum area (m²)</label>
+        <input type="number" name="min_m2" class="form-control" min="0" value="{{ preferences.min_m2 if preferences else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Maximum area (m²)</label>
+        <input type="number" name="max_m2" class="form-control" min="0" value="{{ preferences.max_m2 if preferences else '' }}">
+      </div>
     </div>
 
-    <div class="grid">
-      <label>
-        Minimum budget (€)
-        <input type="number" name="min_budget" min="0" step="0.01" value="{{ preferences.min_budget if preferences else '' }}">
-      </label>
-      <label>
-        Maximum budget (€)
-        <input type="number" name="max_budget" min="0" step="0.01" value="{{ preferences.max_budget if preferences else '' }}">
-      </label>
+    <div class="row g-3 mt-2">
+      <div class="col-md-6">
+        <label class="form-label">Minimum budget (€)</label>
+        <input type="number" name="min_budget" class="form-control" min="0" step="0.01" value="{{ preferences.min_budget if preferences else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Maximum budget (€)</label>
+        <input type="number" name="max_budget" class="form-control" min="0" step="0.01" value="{{ preferences.max_budget if preferences else '' }}">
+      </div>
     </div>
 
-    <label>
-      Type verkaveling
-      <select name="subdivision_type">
-        <option value="">Geen voorkeur</option>
-        <option value="Woongebied - open" {% if preferences and preferences.subdivision_type == 'Woongebied - open' %}selected{% endif %}>Woongebied - open</option>
-        <option value="Woongebied - halfopen" {% if preferences and preferences.subdivision_type == 'Woongebied - halfopen' %}selected{% endif %}>Woongebied - halfopen</option>
-        <option value="Woongebied - gesloten" {% if preferences and preferences.subdivision_type == 'Woongebied - gesloten' %}selected{% endif %}>Woongebied - gesloten</option>
-        <option value="Landelijk wonen" {% if preferences and preferences.subdivision_type == 'Landelijk wonen' %}selected{% endif %}>Landelijk wonen</option>
-        <option value="Woonuitbreidingsgebied" {% if preferences and preferences.subdivision_type == 'Woonuitbreidingsgebied' %}selected{% endif %}>Woonuitbreidingsgebied</option>
+    <div class="mt-3">
+      <label class="form-label">Subdivision type</label>
+      <select name="subdivision_type" class="form-select">
+        <option value="">No preference</option>
+        <option value="Woongebied - open" {% if preferences and preferences.subdivision_type == 'Woongebied - open' %}selected{% endif %}>Residential - open</option>
+        <option value="Woongebied - halfopen" {% if preferences and preferences.subdivision_type == 'Woongebied - halfopen' %}selected{% endif %}>Residential - semi-open</option>
+        <option value="Woongebied - gesloten" {% if preferences and preferences.subdivision_type == 'Woongebied - gesloten' %}selected{% endif %}>Residential - closed</option>
+        <option value="Landelijk wonen" {% if preferences and preferences.subdivision_type == 'Landelijk wonen' %}selected{% endif %}>Rural living</option>
+        <option value="Woonuitbreidingsgebied" {% if preferences and preferences.subdivision_type == 'Woonuitbreidingsgebied' %}selected{% endif %}>Residential expansion</option>
       </select>
-    </label>
+    </div>
 
-    <button type="submit">{{ 'Opslaan' if preferences else 'Toevoegen' }}</button>
-    <a href="{{ url_for('main.manage_clients') }}" role="button" class="secondary">Annuleren</a>
+    <div class="mt-3 d-flex gap-2">
+      <button type="submit" class="btn btn-primary">{{ 'Save' if preferences else 'Add' }}</button>
+      <a href="{{ url_for('main.manage_clients') }}" class="btn btn-light">Cancel</a>
+    </div>
   </form>
 {% endblock %}

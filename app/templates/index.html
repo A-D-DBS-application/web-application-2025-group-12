@@ -1,21 +1,87 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>All parcels</h1>
+<section class="hero text-center py-5 mb-5">
+  <div class="container">
+    <h1 class="display-4 fw-bold mb-3">Smart property matching for modern brokers</h1>
+    <p class="lead text-muted mb-4">Streamline your property matching process with intelligent algorithms and modern tools.</p>
+    {% if not current_user.is_authenticated %}
+      <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+        <a href="{{ url_for('main.register') }}" class="btn btn-primary btn-lg px-4 gap-3">Get Started</a>
+        <a href="{{ url_for('main.login') }}" class="btn btn-outline-secondary btn-lg px-4">Login</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<div class="container max-w-screen-lg">
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Grounds</h5>
+          <p class="card-text">Manage your property listings and track their details in one place.</p>
+          <a href="{{ url_for('main.create_ground') }}" class="btn btn-primary">View Grounds</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Clients</h5>
+          <p class="card-text">Keep track of client preferences and requirements efficiently.</p>
+          <a href="{{ url_for('main.manage_clients') }}" class="btn btn-primary">Manage Clients</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Matches</h5>
+          <p class="card-text">View and manage intelligent property matches for your clients.</p>
+          <a href="{{ url_for('main.view_matches') }}" class="btn btn-primary">View Matches</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   {% if grounds %}
-    <table>
-      <thead><tr><th>Location</th><th>Area</th><th>Price</th><th>Status / Owner</th></tr></thead>
-      <tbody>
-      {% for g in grounds %}
-        <tr>
-          <td>{{ g.location }}</td>
-          <td>{{ g.m2|thousands }} m²</td>
-          <td>{{ g.budget|euro }}</td>
-          <td>{{ g.subdivision_type }} / {{ g.owner }}</td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>No parcels yet.</p>
+  <div class="card mt-5">
+    <div class="card-header bg-white">
+      <h5 class="card-title mb-0">Recent Properties</h5>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Location</th>
+            <th>Area</th>
+            <th>Price</th>
+            <th>Status / Owner</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for g in grounds[:5] %}
+          <tr>
+            <td>{{ g.location }}</td>
+            <td>{{ g.m2|thousands }} m²</td>
+            <td>{{ g.budget|euro }}</td>
+            <td>
+              <span class="badge bg-light text-dark">{{ g.subdivision_type }}</span>
+              <span class="text-muted">/ {{ g.owner }}</span>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if grounds|length > 5 %}
+    <div class="card-footer bg-white text-center">
+      <a href="{{ url_for('main.create_ground') }}" class="btn btn-link">View All Properties</a>
+    </div>
+    {% endif %}
+  </div>
   {% endif %}
+</div>
 {% endblock %}
