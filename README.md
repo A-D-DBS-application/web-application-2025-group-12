@@ -106,4 +106,9 @@ flask_app/
 ├── data/              # Data bestanden
 ├── db/                # Database scripts
 └── scripts/          # Utility scripts
+└── docs/             # Project documentation (user stories, specs)
+
+## 📄 User stories
+
+De finale versie van de user stories staat in `docs/user-stories.md`. Zie dat bestand voor alle user stories en acceptatiecriteria.
 ```
