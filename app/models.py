@@ -10,8 +10,8 @@ class Company(UserMixin, db.Model):
     __tablename__ = "company"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
-    email = db.Column(db.String(320), nullable=False, unique=True)
+    name = db.Column(db.String(200), nullable=False, unique=True)
+    email = db.Column(db.String(320), nullable=True)
 
     # relaties
     clients = db.relationship("Client", back_populates="company", cascade="all, delete-orphan")
