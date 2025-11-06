@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ 'Klant bewerken' if client else 'Nieuwe klant' }}</h1>
+  <form method="POST">
+    <label>
+      Naam
+      <input type="text" name="name" value="{{ client.name if client else '' }}" required>
+    </label>
+    <label>
+      Email
+      <input type="email" name="email" value="{{ client.email if client else '' }}" required>
+    </label>
+    <label>
+      Adres
+      <input type="text" name="address" value="{{ client.address if client else '' }}" required>
+    </label>
+    <button type="submit">{{ 'Opslaan' if client else 'Toevoegen' }}</button>
+    <a href="{{ url_for('main.manage_clients') }}" role="button" class="secondary">Annuleren</a>
+  </form>
+{% endblock %}

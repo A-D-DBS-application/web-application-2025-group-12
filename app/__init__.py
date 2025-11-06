@@ -1,11 +1,23 @@
 # app/__init__.py
 from flask import Flask
+from flask_login import LoginManager
 from sqlalchemy import text
 from .config import Config       # ← HIER je Config ophalen
-from .models import db           # db = SQLAlchemy() staat in models.py
+from .models import db, Company  # db = SQLAlchemy() staat in models.py
+
+login_manager = LoginManager()
 
 def create_app():
     app = Flask(__name__)
+    
+    # Initialize Flask-Login
+    login_manager.init_app(app)
+    login_manager.login_view = 'main.login'
+    login_manager.login_message = 'Log in om deze pagina te bekijken.'
+    
+    @login_manager.user_loader
+    def load_user(id):
+        return Company.query.get(int(id))
 
     # Jinja filters: euro formatting and thousands separator
     def euro_format(value):

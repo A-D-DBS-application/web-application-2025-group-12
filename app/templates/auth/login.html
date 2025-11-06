@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Login</h1>
+  <form method="POST">
+    <label>
+      Email
+      <input type="email" name="email" required>
+    </label>
+    <button type="submit">Login</button>
+  </form>
+  <p>
+    Nog geen account? <a href="{{ url_for('main.register') }}">Registreer hier</a>
+  </p>
+{% endblock %}

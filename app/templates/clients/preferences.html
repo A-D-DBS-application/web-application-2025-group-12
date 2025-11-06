@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ 'Voorkeuren bewerken' if preferences else 'Voorkeuren toevoegen' }} voor {{ client.name }}</h1>
+  <form method="POST">
+    <div class="grid">
+      <label>
+        Locatie
+        <input type="text" name="location" value="{{ preferences.location if preferences else '' }}">
+      </label>
+      <label>
+        Grondsoort
+        <select name="soil">
+          <option value="">Geen voorkeur</option>
+          <option value="leem" {% if preferences and preferences.soil == 'leem' %}selected{% endif %}>Leem</option>
+          <option value="zand" {% if preferences and preferences.soil == 'zand' %}selected{% endif %}>Zand</option>
+          <option value="klei" {% if preferences and preferences.soil == 'klei' %}selected{% endif %}>Klei</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="grid">
+      <label>
+        Minimum oppervlakte (m²)
+        <input type="number" name="min_m2" min="0" value="{{ preferences.min_m2 if preferences else '' }}">
+      </label>
+      <label>
+        Maximum oppervlakte (m²)
+        <input type="number" name="max_m2" min="0" value="{{ preferences.max_m2 if preferences else '' }}">
+      </label>
+    </div>
+
+    <div class="grid">
+      <label>
+        Minimum budget (€)
+        <input type="number" name="min_budget" min="0" step="0.01" value="{{ preferences.min_budget if preferences else '' }}">
+      </label>
+      <label>
+        Maximum budget (€)
+        <input type="number" name="max_budget" min="0" step="0.01" value="{{ preferences.max_budget if preferences else '' }}">
+      </label>
+    </div>
+
+    <label>
+      Type verkaveling
+      <select name="subdivision_type">
+        <option value="">Geen voorkeur</option>
+        <option value="Woongebied - open" {% if preferences and preferences.subdivision_type == 'Woongebied - open' %}selected{% endif %}>Woongebied - open</option>
+        <option value="Woongebied - halfopen" {% if preferences and preferences.subdivision_type == 'Woongebied - halfopen' %}selected{% endif %}>Woongebied - halfopen</option>
+        <option value="Woongebied - gesloten" {% if preferences and preferences.subdivision_type == 'Woongebied - gesloten' %}selected{% endif %}>Woongebied - gesloten</option>
+        <option value="Landelijk wonen" {% if preferences and preferences.subdivision_type == 'Landelijk wonen' %}selected{% endif %}>Landelijk wonen</option>
+        <option value="Woonuitbreidingsgebied" {% if preferences and preferences.subdivision_type == 'Woonuitbreidingsgebied' %}selected{% endif %}>Woonuitbreidingsgebied</option>
+      </select>
+    </label>
+
+    <button type="submit">{{ 'Opslaan' if preferences else 'Toevoegen' }}</button>
+    <a href="{{ url_for('main.manage_clients') }}" role="button" class="secondary">Annuleren</a>
+  </form>
+{% endblock %}

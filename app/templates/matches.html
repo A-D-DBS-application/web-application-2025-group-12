@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Grond matches</h1>
+  
+  <div class="grid">
+    <div>
+      <a href="{{ url_for('main.generate_matches') }}" role="button">
+        Zoek nieuwe matches
+      </a>
+    </div>
+    
+    <div>
+      <form method="GET" class="grid">
+        <label>
+          Filter op klant:
+          <select name="client_id" onchange="this.form.submit()">
+            <option value="">Alle klanten</option>
+            {% for client in clients %}
+              <option value="{{ client.id }}" {% if request.args.get('client_id')|int == client.id %}selected{% endif %}>
+                {{ client.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+        
+        <label>
+          Minimale score:
+          <select name="min_score" onchange="this.form.submit()">
+            <option value="">Geen minimum</option>
+            {% for score in range(1, 11) %}
+              <option value="{{ score }}" {% if request.args.get('min_score')|int == score %}selected{% endif %}>
+                {{ score }} of hoger
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+      </form>
+    </div>
+  </div>
+
+  {% if matches %}
+    <table>
+      <thead>
+        <tr>
+          <th>Score</th>
+          <th>Klant</th>
+          <th>Locatie</th>
+          <th>Oppervlakte</th>
+          <th>Budget</th>
+          <th>Status</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for match in matches %}
+          <tr>
+            <td>{{ "%.1f"|format(match.total_score) }}/10</td>
+            <td>{{ match.preferences.client.name }}</td>
+            <td>{{ match.ground.location }}</td>
+            <td>{{ match.ground.m2|thousands }} m²</td>
+            <td>{{ match.ground.budget|euro }}</td>
+            <td>
+              <form method="POST" action="{{ url_for('main.update_match_status', match_id=match.id) }}">
+                <select name="status" onchange="this.form.submit()">
+                  <option value="pending" {% if match.status == 'pending' %}selected{% endif %}>In behandeling</option>
+                  <option value="accepted" {% if match.status == 'accepted' %}selected{% endif %}>Geaccepteerd</option>
+                  <option value="rejected" {% if match.status == 'rejected' %}selected{% endif %}>Afgewezen</option>
+                </select>
+              </form>
+            </td>
+            <td>
+              <details>
+                <summary>Score details</summary>
+                <small>
+                  Oppervlakte score: {{ "%.1f"|format(match.m2_score) }}/10<br>
+                  Budget score: {{ "%.1f"|format(match.budget_score) }}/10
+                </small>
+              </details>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Geen matches gevonden.</p>
+  {% endif %}
+{% endblock %}

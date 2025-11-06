@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Klanten</h1>
+  <a href="{{ url_for('main.create_client') }}" role="button">Nieuwe klant</a>
+
+  {% if clients %}
+    <table>
+      <thead>
+        <tr>
+          <th>Naam</th>
+          <th>Email</th>
+          <th>Adres</th>
+          <th>Voorkeuren</th>
+          <th>Acties</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for client in clients %}
+          <tr>
+            <td>{{ client.name }}</td>
+            <td>{{ client.email }}</td>
+            <td>{{ client.address }}</td>
+            <td>
+              {% if client.preferences %}
+                <a href="{{ url_for('main.edit_preferences', client_id=client.id) }}">Bewerk voorkeuren</a>
+              {% else %}
+                <a href="{{ url_for('main.create_preferences', client_id=client.id) }}">Voeg voorkeuren toe</a>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('main.edit_client', client_id=client.id) }}">Bewerk</a>
+              <form method="POST" action="{{ url_for('main.delete_client', client_id=client.id) }}" style="display: inline;">
+                <button type="submit" onclick="return confirm('Weet je zeker dat je deze klant wilt verwijderen?')">
+                  Verwijder
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Je hebt nog geen klanten toegevoegd.</p>
+  {% endif %}
+{% endblock %}
