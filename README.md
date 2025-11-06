@@ -110,5 +110,23 @@ flask_app/
 
 ## 📄 User stories
 
-De finale versie van de user stories staat in `docs/user-stories.md`. Zie dat bestand voor alle user stories en acceptatiecriteria.
+De finale versie van de user stories staat in `docs/User story.pdf. Zie dat bestand voor alle user stories en acceptatiecriteria.
+
+## 📎 Project Resources & Links
+
+### Extra Installatie & Gebruik
+- [Extra installatie-instructies] _(nog toe te voegen)_
+- [Gebruikershandleiding] _(nog toe te voegen)_
+
+### Design & Planning
+- [UI Prototype] _(nog toe te voegen)_
+- [Kanban Board] _(nog toe te voegen)_
+
+### Feedback & Documentation
+- [Feedback Sessie Opnames] _(nog toe te voegen)_
+- [Partner Meetings] _(nog toe te voegen)_
+
+### Extra Resources
+- [API Documentation] _(nog toe te voegen)_
+- [Database Schema] _(nog toe te voegen)_
 ```
