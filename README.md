@@ -105,12 +105,17 @@ flask_app/
 │   └── templates/     # HTML templates
 ├── data/              # Data bestanden
 ├── db/                # Database scripts
-└── scripts/          # Utility scripts
-└── docs/             # Project documentation (user stories, specs)
+├── scripts/           # Utility scripts
+└── docs/              # Project documentation (user stories, specs)
+```
 
-## 📄 User stories
+## 📄 User Stories & Requirements
 
-De finale versie van de user stories staat in `docs/User story.pdf. Zie dat bestand voor alle user stories en acceptatiecriteria.
+De finale versie van de user stories staat in [`docs/User story.pdf`](docs/assets/User story.pdf). Dit document bevat:
+- Alle user stories en acceptatiecriteria
+- Functionele requirements
+- Non-functionele requirements
+- Technische requirements
 
 ## 📎 Project Resources & Links
 
