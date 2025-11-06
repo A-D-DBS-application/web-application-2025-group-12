@@ -36,9 +36,8 @@ _(To be added)_
 
 ## Link to audio/video recording of feedback sessions
 - Partner Meeting 1 _(To be added)_
-- Sprint Review 1 _(To be added)_
-- Technical Feedback Session _(To be added)_
-- Final Demo Recording _(To be added)_
+- Partner Meeting 2 _(To be added)_
+- Partner Meeting 3 _(To be added)_
 
 ## Other links/info
 
