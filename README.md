@@ -1,137 +1,81 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/DxqGQVx4)
+# GroundMatch Web Application
 
-# Flask Applicatie - Groepswerk
+## Extra information how to install/use the app
 
-## 🚀 Aan de slag
-
-### Vereisten
-- Python 3.8 of hoger
+### Installation Requirements
+- Python 3.8 or higher
 - PostgreSQL
 - pip
 
-### Lokale ontwikkelomgeving opzetten
-
-1. Clone de repository
+### Setup Instructions
+1. Clone and setup virtual environment:
 ```bash
 git clone https://github.com/A-D-DBS-application/web-application-2025-group-12.git
 cd web-application-2025-group-12
-```
-
-2. Maak een virtual environment aan
-```bash
 python -m venv venv
-source venv/bin/activate  # Op Windows gebruik: venv\Scripts\activate
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
 ```
 
-3. Installeer dependencies
+2. Install and configure:
 ```bash
 pip install -r requirements.txt
+cp .env.example .env     # Update with your database settings
+psql -U your_username < db/schema.sql
 ```
 
-4. Configureer je lokale omgeving
-```bash
-cp .env.example .env
-# Pas de waardes in .env aan met je lokale database gegevens
-```
-
-5. Initialiseer de database
-```bash
-psql -U je_gebruikersnaam < db/schema.sql
-```
-
-6. Start de development server
+3. Run the application:
 ```bash
 flask run
 ```
 
-## 📝 Workflow voor teamleden
+## Link to UI prototype
+_(To be added)_
 
-### Branch Strategie
-- `main` - productie code
-- `development` - integratie branch
-- Feature branches: `feature/naam-van-feature`
-- Bugfix branches: `bugfix/naam-van-bug`
+## Link to Kanban board
+[Miro Board](https://miro.com/app/board/uXjVJ0CcO8w=/) ![Miro](https://img.shields.io/badge/Miro-050038?style=for-the-badge&logo=Miro&logoColor=white)
 
-### Voordat je begint met ontwikkelen
-1. Pull de laatste wijzigingen
-```bash
-git pull origin main
-```
+## Link to audio/video recording of feedback sessions
+- Partner Meeting 1 _(To be added)_
+- Sprint Review 1 _(To be added)_
+- Technical Feedback Session _(To be added)_
+- Final Demo Recording _(To be added)_
 
-2. Maak een nieuwe branch
-```bash
-git checkout -b feature/jouw-feature
-```
+## Other links/info
 
-3. Commit regelmatig
-```bash
-git add .
-git commit -m "Beschrijvende commit message"
-```
+### Development Workflow
+- Branch Strategy:
+  - `main` - production code
+  - `development` - integration branch
+  - Feature branches: `feature/name-of-feature`
+  - Bugfix branches: `bugfix/name-of-bug`
 
-4. Push je wijzigingen
-```bash
-git push origin feature/jouw-feature
-```
+### Code Guidelines
+- Follow PEP 8 for Python code style
+- Use meaningful variable and function names
+- Add comments where needed
+- Keep functions small and focused
 
-5. Maak een Pull Request aan op GitHub
+### Database Management
+- Update `db/schema.sql` for schema changes
+- Communicate changes to the team
+- Team members apply changes with: `psql -U username < db/schema.sql`
 
-### Code Conventies
-- Volg PEP 8 voor Python code-stijl
-- Gebruik betekenisvolle variabele- en functienamen
-- Voeg commentaar toe waar nodig
-- Houd functies klein en gefocust
-
-## 🔄 Database Updates
-Als je schema wijzigingen hebt:
-1. Update `db/schema.sql`
-2. Communiceer de wijzigingen met het team
-3. Team members moeten de nieuwe schema toepassen:
-```bash
-psql -U je_gebruikersnaam < db/schema.sql
-```
-
-## 🐛 Bekende Issues
-- Check de GitHub Issues tab voor bekende problemen
-- Maak nieuwe issues aan voor bugs die je tegenkomt
-
-## 📚 Projectstructuur
+### Project Structure
 ```
 flask_app/
-├── app/                # Applicatie code
-│   ├── __init__.py    # App initialisatie
+├── app/                # Application code
+│   ├── __init__.py    # App initialization
 │   ├── models.py      # Database models
 │   ├── routes.py      # URL routing
 │   └── templates/     # HTML templates
-├── data/              # Data bestanden
+├── data/              # Data files
 ├── db/                # Database scripts
 ├── scripts/           # Utility scripts
-└── docs/              # Project documentation (user stories, specs)
+└── docs/              # Documentation
 ```
 
-## 📄 User Stories & Requirements
+### Documentation
+- User Stories: [`docs/User story.pdf`](docs/assets/User story.pdf)
+- [Known Issues](https://github.com/A-D-DBS-application/web-application-2025-group-12/issues)
+- API Documentation _(To be added)_
 
-De finale versie van de user stories staat in [`docs/User story.pdf`](docs/assets/User story.pdf). Dit document bevat:
-- Alle user stories en acceptatiecriteria
-- Functionele requirements
-- Non-functionele requirements
-- Technische requirements
-
-## 📎 Project Resources & Links
-
-### Extra Installatie & Gebruik
-- [Extra installatie-instructies] _(nog toe te voegen)_
-- [Gebruikershandleiding] _(nog toe te voegen)_
-
-### Design & Planning
-- [UI Prototype] _(nog toe te voegen)_
-- [Kanban Board] _(nog toe te voegen)_
-
-### Feedback & Documentation
-- [Feedback Sessie Opnames] _(nog toe te voegen)_
-- [Partner Meetings] _(nog toe te voegen)_
-
-### Extra Resources
-- [API Documentation] _(nog toe te voegen)_
-- [Database Schema] _(nog toe te voegen)_
-```
