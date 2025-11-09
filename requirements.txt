@@ -22,8 +22,6 @@ pytest==8.0.0              # Testing framework
 pytest-cov==4.1.0          # Test coverage
 black==24.1.1              # Code formatting
 flake8==7.0.0             # Code linting
-HEAD
 
 # Optional but recommended
 flask-debugtoolbar==0.14.0  # Debug toolbar voor development
-0b99e37006f65a9991eaecaab4fefaf94f0d9211
