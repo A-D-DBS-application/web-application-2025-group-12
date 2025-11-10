@@ -1,0 +1,175 @@
+<!-- Preferences screen stores ranges for each client; expects clients list and optional preference object. -->
+{% extends 'base.html' %}
+
+{% block title %}GroundMatch • Preferences{% endblock %}
+
+{% block content %}
+{% set readonly = preferences_readonly if preferences_readonly is defined else False %}
+{% set selected_id = selected_client_id if selected_client_id is defined else '' %}
+{% set has_selection = selected_id %}
+{% set client_name = client.name if client is defined and client.name is not none else (client['name'] if client is mapping else '') %}
+{% set client_email = client.email if client is defined and client.email is not none else (client['email'] if client is mapping else '') %}
+{% set client_address = client.address if client is defined and client.address is not none else (client['address'] if client is mapping else '—') %}
+{% set pref_exists = pref is defined and pref %}
+{% set location_options = ['Antwerpen', 'Gent', 'Brussel', 'Leuven', 'Hasselt', 'Brugge', 'Mechelen', 'Kortrijk', 'Oostende'] %}
+{% set subdivision_options = ['Residential', 'Mixed-use', 'Commercial', 'Industrial', 'Logistics', 'Agricultural'] %}
+{% set soil_options = ['Clay', 'Sand', 'Loam', 'Peat', 'Silt'] %}
+{% set controls_disabled = readonly or not has_selection %}
+<section class="stack">
+  {% if readonly %}
+    <div class="section-note">Voorbeelddata wordt getoond. Voeg een echte client toe om voorkeuren te kunnen wijzigen.</div>
+  {% endif %}
+  <header class="page-header">
+    <div>
+      <h1>Client Preferences</h1>
+      <p class="text-muted">Configure search preferences for matching building plots.</p>
+    </div>
+  </header>
+
+  <article class="preference-card">
+    <h2>Preference Settings</h2>
+    <p class="text-muted">Select a client and adjust their matching filters.</p>
+    <div class="stack">
+      <div class="stack">
+        <label for="client_id">Select Client</label>
+        {% set pref_base_url = url_for('main.preferences_dashboard') %}
+        <select id="client_id" name="client_id" required onchange="if(this.value){ window.location='{{ pref_base_url }}?client_id='+this.value; }">
+          <option value="" disabled {% if not selected_id %}selected{% endif %}>Choose client</option>
+          {% for c in clients %}
+            {% set cid = c.id if c.id is defined else c['id'] %}
+            {% set cid_str = cid|string %}
+            <option value="{{ cid }}" {% if selected_id == cid_str %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+        {% if client %}
+          <div class="select-card">
+            <div class="select-card__info">
+              <p style="font-weight:600; margin:0;">{{ client_name }}</p>
+              <p class="text-muted" style="margin:0;">{{ client_email }}</p>
+              <p class="text-muted" style="margin:0;">{{ client_address }}</p>
+            </div>
+            <span class="badge-status {{ 'success' if pref_exists else 'warning' }}">{{ 'Has Preferences' if pref_exists else 'No Preferences' }}</span>
+          </div>
+        {% else %}
+          <p class="text-muted">Selecteer een client om de velden te ontgrendelen.</p>
+        {% endif %}
+      </div>
+    </div>
+    <form class="stack" method="post" action="{{ request.path }}">
+      <!-- csrf token placeholder -->
+      <input type="hidden" name="client_id" value="{{ selected_id }}">
+      <fieldset class="stack" {% if controls_disabled %}disabled{% endif %}>
+        <div class="preference-grid">
+          <div class="stack">
+            <label for="location">Preferred Location</label>
+            <select class="select" id="location" name="location" {% if controls_disabled %}disabled{% endif %}>
+              <option value="" disabled {% if not pref_exists or not pref.location %}selected{% endif %}>Select location</option>
+              {% for option in location_options %}
+                <option value="{{ option }}" {% if pref_exists and pref.location == option %}selected{% endif %}>{{ option }}</option>
+              {% endfor %}
+              {% if pref_exists and pref.location and pref.location not in location_options %}
+                <option value="{{ pref.location }}" selected>{{ pref.location }}</option>
+              {% endif %}
+            </select>
+          </div>
+          <div class="stack">
+            <label for="subdivision_type">Subdivision Type</label>
+            <select class="select" id="subdivision_type" name="subdivision_type" {% if controls_disabled %}disabled{% endif %}>
+              <option value="" disabled {% if not pref_exists or not pref.subdivision_type %}selected{% endif %}>Select type</option>
+              {% for option in subdivision_options %}
+                <option value="{{ option }}" {% if pref_exists and pref.subdivision_type == option %}selected{% endif %}>{{ option }}</option>
+              {% endfor %}
+              {% if pref_exists and pref.subdivision_type and pref.subdivision_type not in subdivision_options %}
+                <option value="{{ pref.subdivision_type }}" selected>{{ pref.subdivision_type }}</option>
+              {% endif %}
+            </select>
+          </div>
+          <div class="stack">
+            <label for="soil_type">Preferred Soil Type</label>
+            <select class="select" id="soil_type" name="soil" {% if controls_disabled %}disabled{% endif %}>
+              <option value="" disabled {% if not pref_exists or not pref.soil %}selected{% endif %}>Select soil</option>
+              {% set soil_match = namespace(found=false) %}
+              {% for option in soil_options %}
+                {% if pref_exists and pref.soil and pref.soil|lower == option|lower %}
+                  {% set soil_match.found = true %}
+                {% endif %}
+                <option value="{{ option|lower }}" {% if pref_exists and pref.soil and pref.soil|lower == option|lower %}selected{% endif %}>{{ option }}</option>
+              {% endfor %}
+              {% if pref_exists and pref.soil and not soil_match.found %}
+                <option value="{{ pref.soil }}" selected>{{ pref.soil }}</option>
+              {% endif %}
+            </select>
+          </div>
+        </div>
+
+        <div class="preference-grid">
+          <div class="stack">
+            <label>Surface Area Range (m²)</label>
+            <div class="preference-summary">
+              <p>Minimum</p>
+              <input class="input" type="number" min="0" name="min_m2" value="{{ pref.min_m2 if pref_exists and pref.min_m2 is not none else '' }}">
+              <p>Maximum</p>
+              <input class="input" type="number" min="0" name="max_m2" value="{{ pref.max_m2 if pref_exists and pref.max_m2 is not none else '' }}">
+            </div>
+            <div class="range-card">
+              <p class="text-muted">Selected Range</p>
+              <div class="range-values">{{ pref.min_m2 or '—' }} m²<span>{{ pref.max_m2 or '—' }} m²</span></div>
+            </div>
+          </div>
+          <div class="stack">
+            <label>Budget Range (€)</label>
+            <div class="preference-summary">
+              <p>Minimum</p>
+              <input class="input" type="number" min="0" step="0.01" name="min_budget" value="{{ pref.min_budget if pref_exists and pref.min_budget is not none else '' }}">
+              <p>Maximum</p>
+              <input class="input" type="number" min="0" step="0.01" name="max_budget" value="{{ pref.max_budget if pref_exists and pref.max_budget is not none else '' }}">
+            </div>
+            <div class="range-card">
+              <p class="text-muted">Selected Range</p>
+              <div class="range-values">€{{ pref.min_budget or '—' }}<span>€{{ pref.max_budget or '—' }}</span></div>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+      <div class="action-row">
+        <a class="btn btn-outline" href="{{ url_for('main.manage_clients') }}">Cancel</a>
+        <button class="btn btn-primary" type="submit" {% if controls_disabled %}disabled{% endif %}>Update Preferences</button>
+        {% if pref_exists and not controls_disabled %}
+          <form method="post" action="{{ url_for('main.delete_preferences', client_id=client.id if client.id is defined else client['id']) }}" onsubmit="return confirm('Delete preferences for {{ client_name }}?');">
+            <!-- csrf token placeholder -->
+            <button class="btn btn-danger" type="submit">Delete</button>
+          </form>
+        {% endif %}
+      </div>
+    </form>
+  </article>
+
+  {% if has_selection %}
+    <article class="profile-card">
+      <h2>Preference Summary</h2>
+      {% if pref_exists %}
+        <div class="summary-grid">
+          <div>
+            <p class="text-muted">Location</p>
+            <p>{{ pref.location or '—' }}</p>
+          </div>
+          <div>
+            <p class="text-muted">Surface</p>
+            <p>{{ pref.min_m2 or '—' }} – {{ pref.max_m2 or '—' }} m²</p>
+          </div>
+          <div>
+            <p class="text-muted">Budget</p>
+            <p>€{{ pref.min_budget or '—' }} – €{{ pref.max_budget or '—' }}</p>
+          </div>
+          <div>
+            <p class="text-muted">Type</p>
+            <p>{{ pref.subdivision_type or '—' }} • {{ pref.soil or '—' }}</p>
+          </div>
+        </div>
+      {% else %}
+        <p class="text-muted">No saved preferences for {{ client_name or 'this client' }} yet.</p>
+      {% endif %}
+    </article>
+  {% endif %}
+</section>
+{% endblock %}

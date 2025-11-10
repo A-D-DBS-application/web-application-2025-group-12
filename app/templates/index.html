@@ -1,87 +1,81 @@
-{% extends "base.html" %}
+<!-- Landing page assumes separate Flask auth routes for login/register; both forms submit company_name for Supabase auth. -->
+{% extends 'base.html' %}
+
+{% block title %}GroundMatch • Broker Login{% endblock %}
+
 {% block content %}
-<section class="hero text-center py-5 mb-5">
-  <div class="container">
-    <h1 class="display-4 fw-bold mb-3">Smart property matching for modern brokers</h1>
-    <p class="lead text-muted mb-4">Streamline your property matching process with intelligent algorithms and modern tools.</p>
-    {% if not current_user.is_authenticated %}
-      <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-        <a href="{{ url_for('main.register') }}" class="btn btn-primary btn-lg px-4 gap-3">Get Started</a>
-        <a href="{{ url_for('main.login') }}" class="btn btn-outline-secondary btn-lg px-4">Login</a>
-      </div>
-    {% endif %}
+{% set default_mode = 'login' if auth_mode == 'login' else 'register' %}
+
+<section class="auth-hero stack">
+  <div class="hero-icon" aria-hidden="true">
+    <i class="bi bi-geo-alt"></i>
+  </div>
+  <p class="text-muted">Welcome to GroundMatch</p>
+  <h1>Connect your clients with the perfect building plots.</h1>
+  <p class="hero-subtitle">Streamline your construction business with intelligent matching.</p>
+</section>
+
+<section class="auth-layout">
+  <div class="auth-photo">
+    <img src="https://images.unsplash.com/photo-1465804575741-338df8554e02?auto=format&fit=crop&w=1200&q=80" alt="Building site with crane" loading="lazy">
+  </div>
+  <div class="card auth-panel">
+    <p class="text-muted" style="font-weight:600;">Get Started</p>
+    <p class="text-muted">Login to your account or create a new one</p>
+    <div class="auth-toggle" role="tablist">
+      <button class="auth-toggle__tab {{ 'is-active' if default_mode == 'register' else '' }}" type="button" data-mode="register" role="tab" aria-selected="{{ 'true' if default_mode == 'register' else 'false' }}">Register</button>
+      <button class="auth-toggle__tab {{ 'is-active' if default_mode == 'login' else '' }}" type="button" data-mode="login" role="tab" aria-selected="{{ 'true' if default_mode == 'login' else 'false' }}">Login</button>
+    </div>
+
+    <form class="stack auth-form {{ 'is-active' if default_mode == 'register' else '' }}" data-mode="register" method="post" action="{{ url_for('main.register') }}">
+      <!-- csrf token placeholder -->
+      <label for="company_username">Company Username</label>
+      <input class="input" type="text" id="company_username" name="company_name" placeholder="Choose a username" required>
+      <p class="text-muted">Create a username for your company account</p>
+      <button class="btn btn-primary" type="submit">Create Account</button>
+    </form>
+
+    <form class="stack auth-form {{ 'is-active' if default_mode == 'login' else '' }}" data-mode="login" method="post" action="{{ url_for('main.login') }}">
+      <!-- csrf token placeholder -->
+      <label for="company_username_login">Company Username</label>
+      <input class="input" type="text" id="company_username_login" name="company_name" placeholder="Enter your username" required>
+      <p class="text-muted">Login with your existing account</p>
+      <button class="btn btn-outline" type="submit">Login</button>
+    </form>
   </div>
 </section>
 
-<div class="container max-w-screen-lg">
-  <div class="row g-4">
-    <div class="col-md-4">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="card-title">Grounds</h5>
-          <p class="card-text">Manage your property listings and track their details in one place.</p>
-          <a href="{{ url_for('main.create_ground') }}" class="btn btn-primary">View Grounds</a>
-        </div>
-      </div>
-    </div>
-    
-    <div class="col-md-4">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="card-title">Clients</h5>
-          <p class="card-text">Keep track of client preferences and requirements efficiently.</p>
-          <a href="{{ url_for('main.manage_clients') }}" class="btn btn-primary">Manage Clients</a>
-        </div>
-      </div>
-    </div>
-    
-    <div class="col-md-4">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="card-title">Matches</h5>
-          <p class="card-text">View and manage intelligent property matches for your clients.</p>
-          <a href="{{ url_for('main.view_matches') }}" class="btn btn-primary">View Matches</a>
-        </div>
-      </div>
-    </div>
-  </div>
+<section class="feature-cards grid">
+  <article class="card feature-card">
+    <div class="feature-icon"><i class="bi bi-people"></i></div>
+    <h3>Manage Clients</h3>
+    <p>Keep track of every client and their building preferences in one place.</p>
+  </article>
+  <article class="card feature-card">
+    <div class="feature-icon"><i class="bi bi-geo"></i></div>
+    <h3>Browse Plots</h3>
+    <p>Search through available building plots with detailed specifications.</p>
+  </article>
+  <article class="card feature-card">
+    <div class="feature-icon"><i class="bi bi-graph-up-arrow"></i></div>
+    <h3>Smart Matching</h3>
+    <p>Get intelligent matches based on client preferences and plot data.</p>
+  </article>
+</section>
+{% endblock %}
 
-  {% if grounds %}
-  <div class="card mt-5">
-    <div class="card-header bg-white">
-      <h5 class="card-title mb-0">Recent Properties</h5>
-    </div>
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead>
-          <tr>
-            <th>Location</th>
-            <th>Area</th>
-            <th>Price</th>
-            <th>Status / Owner</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for g in grounds[:5] %}
-          <tr>
-            <td>{{ g.location }}</td>
-            <td>{{ g.m2|thousands }} m²</td>
-            <td>{{ g.budget|euro }}</td>
-            <td>
-              <span class="badge bg-light text-dark">{{ g.subdivision_type }}</span>
-              <span class="text-muted">/ {{ g.owner }}</span>
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% if grounds|length > 5 %}
-    <div class="card-footer bg-white text-center">
-      <a href="{{ url_for('main.create_ground') }}" class="btn btn-link">View All Properties</a>
-    </div>
-    {% endif %}
-  </div>
-  {% endif %}
-</div>
+{% block scripts %}
+<script>
+  const toggleTabs = document.querySelectorAll(".auth-toggle__tab");
+  const authForms = document.querySelectorAll(".auth-form");
+
+  toggleTabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      const mode = tab.dataset.mode;
+      toggleTabs.forEach(t => t.classList.toggle("is-active", t === tab));
+      toggleTabs.forEach(t => t.setAttribute("aria-selected", t === tab ? "true" : "false"));
+      authForms.forEach(form => form.classList.toggle("is-active", form.dataset.mode === mode));
+    });
+  });
+</script>
 {% endblock %}

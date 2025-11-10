@@ -1,60 +1,63 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>{{ 'Edit preferences' if preferences else 'Add preferences' }} for {{ client.name }}</h1>
-  <form method="POST">
-    <div class="row g-3">
-      <div class="col-md-6">
-        <label class="form-label">Location</label>
-        <input type="text" name="location" class="form-control" value="{{ preferences.location if preferences else '' }}">
-      </div>
-      <div class="col-md-6">
-        <label class="form-label">Soil type</label>
-        <select name="soil" class="form-select">
-          <option value="">No preference</option>
-          <option value="leem" {% if preferences and preferences.soil == 'leem' %}selected{% endif %}>Loam</option>
-          <option value="zand" {% if preferences and preferences.soil == 'zand' %}selected{% endif %}>Sand</option>
-          <option value="klei" {% if preferences and preferences.soil == 'klei' %}selected{% endif %}>Clay</option>
-        </select>
-      </div>
+<section class="stack">
+  <header class="page-header">
+    <div>
+      <a class="text-muted" href="{{ url_for('main.manage_clients') }}">&larr; Back to clients</a>
+      <h1>{{ 'Edit Preferences' if preferences else 'Add Preferences' }} for {{ client.name }}</h1>
+      <p class="text-muted">Configure search settings for this client.</p>
     </div>
+  </header>
 
-    <div class="row g-3 mt-2">
-      <div class="col-md-6">
-        <label class="form-label">Minimum area (m²)</label>
-        <input type="number" name="min_m2" class="form-control" min="0" value="{{ preferences.min_m2 if preferences else '' }}">
+  <article class="profile-card">
+    <form class="stack" method="POST">
+      <div class="preference-grid">
+        <div class="stack">
+          <label for="pref_location">Location</label>
+          <input class="input" id="pref_location" type="text" name="location" value="{{ preferences.location if preferences else '' }}">
+        </div>
+        <div class="stack">
+          <label for="pref_soil">Soil Type</label>
+          <select class="select" id="pref_soil" name="soil">
+            {% set soil_val = preferences.soil if preferences else '' %}
+            <option value="" {% if not soil_val %}selected{% endif %}>No preference</option>
+            {% for soil in ['Clay', 'Sand', 'Loam'] %}
+              <option value="{{ soil.lower() }}" {% if soil_val and soil_val|lower == soil|lower %}selected{% endif %}>{{ soil }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="stack">
+          <label for="pref_type">Subdivision Type</label>
+          <input class="input" id="pref_type" type="text" name="subdivision_type" value="{{ preferences.subdivision_type if preferences else '' }}" placeholder="Residential, Mixed-use">
+        </div>
       </div>
-      <div class="col-md-6">
-        <label class="form-label">Maximum area (m²)</label>
-        <input type="number" name="max_m2" class="form-control" min="0" value="{{ preferences.max_m2 if preferences else '' }}">
-      </div>
-    </div>
 
-    <div class="row g-3 mt-2">
-      <div class="col-md-6">
-        <label class="form-label">Minimum budget (€)</label>
-        <input type="number" name="min_budget" class="form-control" min="0" step="0.01" value="{{ preferences.min_budget if preferences else '' }}">
+      <div class="preference-grid">
+        <div class="stack">
+          <label>Surface Area Range (m²)</label>
+          <div class="preference-summary">
+            <p>Minimum</p>
+            <input class="input" type="number" min="0" name="min_m2" value="{{ preferences.min_m2 if preferences else '' }}">
+            <p>Maximum</p>
+            <input class="input" type="number" min="0" name="max_m2" value="{{ preferences.max_m2 if preferences else '' }}">
+          </div>
+        </div>
+        <div class="stack">
+          <label>Budget Range (€)</label>
+          <div class="preference-summary">
+            <p>Minimum</p>
+            <input class="input" type="number" min="0" step="0.01" name="min_budget" value="{{ preferences.min_budget if preferences else '' }}">
+            <p>Maximum</p>
+            <input class="input" type="number" min="0" step="0.01" name="max_budget" value="{{ preferences.max_budget if preferences else '' }}">
+          </div>
+        </div>
       </div>
-      <div class="col-md-6">
-        <label class="form-label">Maximum budget (€)</label>
-        <input type="number" name="max_budget" class="form-control" min="0" step="0.01" value="{{ preferences.max_budget if preferences else '' }}">
+
+      <div class="action-row">
+        <a class="btn btn-outline" href="{{ url_for('main.manage_clients') }}">Cancel</a>
+        <button class="btn btn-primary" type="submit">{{ 'Save Preferences' if preferences else 'Add Preferences' }}</button>
       </div>
-    </div>
-
-    <div class="mt-3">
-      <label class="form-label">Subdivision type</label>
-      <select name="subdivision_type" class="form-select">
-        <option value="">No preference</option>
-        <option value="Woongebied - open" {% if preferences and preferences.subdivision_type == 'Woongebied - open' %}selected{% endif %}>Residential - open</option>
-        <option value="Woongebied - halfopen" {% if preferences and preferences.subdivision_type == 'Woongebied - halfopen' %}selected{% endif %}>Residential - semi-open</option>
-        <option value="Woongebied - gesloten" {% if preferences and preferences.subdivision_type == 'Woongebied - gesloten' %}selected{% endif %}>Residential - closed</option>
-        <option value="Landelijk wonen" {% if preferences and preferences.subdivision_type == 'Landelijk wonen' %}selected{% endif %}>Rural living</option>
-        <option value="Woonuitbreidingsgebied" {% if preferences and preferences.subdivision_type == 'Woonuitbreidingsgebied' %}selected{% endif %}>Residential expansion</option>
-      </select>
-    </div>
-
-    <div class="mt-3 d-flex gap-2">
-      <button type="submit" class="btn btn-primary">{{ 'Save' if preferences else 'Add' }}</button>
-      <a href="{{ url_for('main.manage_clients') }}" class="btn btn-light">Cancel</a>
-    </div>
-  </form>
+    </form>
+  </article>
+</section>
 {% endblock %}

@@ -1,0 +1,95 @@
+<!-- Building plots inventory view mapped from Supabase grounds table. -->
+{% extends 'base.html' %}
+
+{% block title %}GroundMatch • Building Plots{% endblock %}
+
+{% block content %}
+<section class="stack">
+  {% if sample_plots %}
+    <div class="section-note">Er worden fictieve bouwgronden getoond. Voeg echte plots toe om deze lijst te vervangen.</div>
+  {% endif %}
+  <header class="page-header">
+    <div>
+      <h1>Building Plots</h1>
+      <p class="text-muted">Search and filter every available ground before assigning it to clients.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('main.create_ground') }}"><i class="bi bi-plus-lg"></i> Add Plot</a>
+  </header>
+
+  <form class="card stack" method="get" action="{{ url_for('main.view_plots') }}">
+    <div class="filter-row">
+      <div>
+        <label for="plot_search" class="text-muted">Search</label>
+        <input class="input" type="search" id="plot_search" name="q" placeholder="Search by location, type, owner" value="{{ request.args.get('q', '') }}">
+      </div>
+      <div>
+        <label for="filter_location">Location</label>
+        <select id="filter_location" name="location">
+          <option value="">All locations</option>
+          {% for location in locations if locations is defined %}
+            <option value="{{ location }}" {% if request.args.get('location') == location %}selected{% endif %}>{{ location }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="filter_type">Type</label>
+        <select id="filter_type" name="type">
+          <option value="">All types</option>
+          {% for type in subdivision_types if subdivision_types is defined %}
+            <option value="{{ type }}" {% if request.args.get('type') == type %}selected{% endif %}>{{ type }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="filter_soil">Soil type</label>
+        <select id="filter_soil" name="soil">
+          <option value="">All soil types</option>
+          {% for soil in soils if soils is defined %}
+            <option value="{{ soil }}" {% if request.args.get('soil') == soil %}selected{% endif %}>{{ soil }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Apply filters</button>
+  </form>
+
+  <div class="table-card">
+    <div class="page-header" style="padding-bottom:1rem;">
+      <div>
+        <h3>Available Building Plots</h3>
+        <p class="text-muted">{{ grounds|length }} plots found</p>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="table" aria-label="Building plots table">
+        <thead>
+          <tr>
+            <th>Location</th>
+            <th>Surface Area</th>
+            <th>Type</th>
+            <th>Soil</th>
+            <th>Owner</th>
+            <th>Budget (€)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ground in grounds %}
+            <tr>
+              <td>{{ ground.location }}</td>
+              <td>{{ ground.m2 }} m²</td>
+              <td>{{ ground.subdivision_type }}</td>
+              <td>{{ ground.soil }}</td>
+              <td>{{ ground.owner }}</td>
+              <td>{{ '{:,.0f}'.format(ground.budget) if ground.budget is not none else '—' }}</td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="6">No plots match your filters.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

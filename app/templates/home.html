@@ -1,0 +1,101 @@
+<!-- Dashboard uses placeholder stats when Supabase metrics are missing to keep layout populated. -->
+{% extends 'base.html' %}
+
+{% block title %}GroundMatch • Dashboard{% endblock %}
+
+{% block content %}
+<section class="stack">
+  {% if sample_dashboard %}
+    <div class="section-note">We gebruiken voorbeelddata om het dashboard te tonen. Voeg echte clients en matches toe om deze kaart te vullen.</div>
+  {% endif %}
+  <div class="dashboard-hero">
+    <p class="pill pill-info">Welcome back</p>
+    <h1>Welcome back, {{ company.name if company is defined else 'GroundMatch Partner' }}!</h1>
+    <p class="text-muted">Here's an overview of your construction matching platform.</p>
+  </div>
+
+  {% set stat_cards = [
+    {'label': 'Total Clients', 'value': total_clients if total_clients is defined else (clients|length if clients is defined else 0), 'icon': 'bi-people'},
+    {'label': 'Building Plots', 'value': total_plots if total_plots is defined else (grounds|length if grounds is defined else 0), 'icon': 'bi-building'},
+    {'label': 'Active Matches', 'value': active_matches if active_matches is defined else 0, 'icon': 'bi-lightning-charge'},
+    {'label': 'Pending Matches', 'value': pending_matches if pending_matches is defined else 0, 'icon': 'bi-hourglass-split'}
+  ] %}
+  <div class="grid stat-grid">
+    {% for stat in stat_cards %}
+      <article class="card stat-card">
+        <span class="stat-icon"><i class="bi {{ stat.icon }}"></i></span>
+        <div class="stat-card__content">
+          <p class="text-muted">{{ stat.label }}</p>
+          <p class="stat-card__value">{{ stat.value }}</p>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+
+  <div class="grid metrics-grid">
+    <article class="card">
+      <h3>Performance Metrics</h3>
+      <p class="text-muted">Key indicators across your platform.</p>
+      <div class="preference-grid">
+        <div>
+          <p class="text-muted">Avg. Match Score</p>
+          <p class="stat-card__value">{{ avg_match_score if avg_match_score is defined else '82%' }}</p>
+        </div>
+        <div>
+          <p class="text-muted">Success Rate</p>
+          <p class="stat-card__value">{{ success_rate if success_rate is defined else '68%' }}</p>
+        </div>
+        <div>
+          <p class="text-muted">Pending Reviews</p>
+          <p class="stat-card__value">{{ pending_reviews if pending_reviews is defined else 5 }}</p>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <section class="stack">
+    <header class="page-header">
+      <div>
+        <h2>Recent Matches</h2>
+        <p class="text-muted">Track the latest recommendations across your portfolio.</p>
+      </div>
+      <a class="btn btn-outline" href="{{ url_for('main.view_matches') }}">View all matches</a>
+    </header>
+
+    {% set recent = recent_matches if recent_matches is defined else (matches if matches is defined else []) %}
+    <div class="stack">
+      {% for match in recent %}
+        {% set status = (match.status or 'pending') | lower %}
+        {% if status in ['accepted', 'won'] %}
+          {% set pill_class = 'pill-success' %}
+        {% elif status in ['pending', 'review'] %}
+          {% set pill_class = 'pill-warning' %}
+        {% elif status in ['rejected'] %}
+          {% set pill_class = 'pill-danger' %}
+        {% else %}
+          {% set pill_class = 'pill-info' %}
+        {% endif %}
+        <article class="match-card">
+          <div class="match-card__header">
+            <div>
+              <h3>{{ match.client.name if match.client is defined else 'Client' }}</h3>
+              <p class="text-muted">{{ match.ground.location if match.ground is defined else 'Location TBD' }}</p>
+            </div>
+            <span class="badge-status {{ 'success' if pill_class == 'pill-success' else 'warning' if pill_class == 'pill-warning' else 'danger' if pill_class == 'pill-danger' else 'info' }}">{{ match.status|title if match.status is defined else 'Pending' }}</span>
+          </div>
+          <div class="match-card__meta">
+            <span>{{ match.ground.m2 if match.ground is defined else '—' }} m²</span>
+            <span>€ {{ '{:,.0f}'.format(match.ground.budget) if match.ground is defined and match.ground.budget is not none else '—' }}</span>
+            <span>{{ match.ground.subdivision_type if match.ground is defined else '—' }} • {{ match.ground.soil if match.ground is defined else '—' }}</span>
+            <span><strong>{{ match.total_score if match.total_score is defined else '0' }}%</strong> overall</span>
+          </div>
+        </article>
+      {% else %}
+        <div class="card">
+          <p>No matches available yet. Generate new matches to populate this section.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+</section>
+{% endblock %}

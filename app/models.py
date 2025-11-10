@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from sqlalchemy import func
 
 db = SQLAlchemy()
 
@@ -113,7 +114,9 @@ class Match(db.Model):
     m2_score = db.Column(db.Float, nullable=True)
     budget_score = db.Column(db.Float, nullable=True)
     # optioneel: totale score
-    total_score = db.Column(db.Float, nullable=True)
+    total_score = db.column_property(
+        (func.coalesce(m2_score, 0) + func.coalesce(budget_score, 0)) / 2.0
+    )
 
     company = db.relationship("Company", back_populates="matches")
     ground = db.relationship("Ground", back_populates="matches")

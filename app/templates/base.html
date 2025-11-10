@@ -1,81 +1,56 @@
-<!doctype html>
+<!-- Base layout assumes current_user context from Flask-Login for conditional nav items. -->
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>{{ title or "GroundMatch" }}</title>
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Inter font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  </head>
-  <body>
-    <nav class="navbar navbar-expand-lg sticky-top">
-      <div class="container">
-        <a class="navbar-brand" href="{{ url_for('main.home') }}">GroundMatch</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('main.home') }}">Home</a>
-            </li>
-            {% if current_user.is_authenticated %}
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('main.create_ground') }}">New Ground</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('main.my_company') }}">My Company</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('main.manage_clients') }}">Clients</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('main.view_matches') }}">Matches</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('main.logout') }}">Logout</a>
-              </li>
-            {% else %}
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('main.login') }}">Login</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('main.register') }}">Register</a>
-              </li>
-            {% endif %}
-          </ul>
-        </div>
-      </div>
-    </nav>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}GroundMatch{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a class="brand" href="{{ url_for('main.home') }}"><i class="bi bi-geo-alt"></i>GroundMatch</a>
+      <nav aria-label="Primary">
+        <ul class="nav-links">
+          {% if current_user.is_authenticated %}
+            <li><a class="nav-link {{ 'active' if request.endpoint == 'main.home' else '' }}" href="{{ url_for('main.home') }}"><i class="bi bi-house-door"></i>Home</a></li>
+            <li><a class="nav-link {{ 'active' if request.endpoint in ['main.manage_clients', 'main.create_client', 'main.edit_client'] else '' }}" href="{{ url_for('main.manage_clients') }}"><i class="bi bi-people"></i>Clients</a></li>
+            <li><a class="nav-link {{ 'active' if request.endpoint in ['main.preferences_dashboard', 'main.create_preferences', 'main.edit_preferences'] else '' }}" href="{{ url_for('main.preferences_dashboard') }}"><i class="bi bi-gear"></i>Preferences</a></li>
+            <li><a class="nav-link {{ 'active' if request.endpoint in ['main.view_plots'] else '' }}" href="{{ url_for('main.view_plots') }}"><i class="bi bi-geo"></i>Building Plots</a></li>
+            <li><a class="nav-link {{ 'active' if request.endpoint == 'main.view_matches' else '' }}" href="{{ url_for('main.view_matches') }}"><i class="bi bi-link-45deg"></i>Matches</a></li>
+            <li><a class="nav-link {{ 'active' if request.endpoint == 'main.profile' else '' }}" href="{{ url_for('main.profile') }}"><i class="bi bi-person-badge"></i>My Profile</a></li>
+            <li><a class="nav-link" href="{{ url_for('main.logout') }}"><i class="bi bi-box-arrow-right"></i>Logout</a></li>
+          {% else %}
+            <li><a class="nav-link {{ 'active' if request.endpoint == 'main.home' else '' }}" href="{{ url_for('main.home') }}"><i class="bi bi-house-door"></i>Home</a></li>
+            <li><a class="nav-link" href="{{ url_for('main.register') }}"><i class="bi bi-person-plus"></i>Register</a></li>
+            <li><a class="nav-link" href="{{ url_for('main.login') }}"><i class="bi bi-box-arrow-in-right"></i>Login</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </header>
 
-    <main class="container py-4">
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          {% for category, msg in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show mb-4" role="alert">
-              {{ msg }}
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
-
+  <main class="site-main">
+    <div class="container">
+      <section class="alerts" aria-live="polite">
+        {% with messages = get_flashed_messages(with_categories=True) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+      </section>
       {% block content %}{% endblock %}
-    </main>
+    </div>
+  </main>
 
-    <footer class="footer mt-5 py-3">
-      <div class="container text-center">
-        <span class="text-muted">© 2025 GroundMatch. All rights reserved.</span>
-      </div>
-    </footer>
+  <footer class="container" style="padding: 2rem 0; text-align: center; color: var(--color-muted);">
+    © 2025 GroundMatch • Built for construction brokers
+  </footer>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  </body>
+  {% block scripts %}{% endblock %}
+</body>
 </html>

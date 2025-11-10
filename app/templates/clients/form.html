@@ -1,22 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>{{ 'Edit client' if client else 'New client' }}</h1>
-  <form method="POST">
-    <div class="mb-3">
-      <label class="form-label">Name</label>
-      <input type="text" name="name" class="form-control" value="{{ client.name if client else '' }}" required>
+<section class="stack">
+  <header class="page-header">
+    <div>
+      <a class="text-muted" href="{{ url_for('main.manage_clients') }}">&larr; Back to clients</a>
+      <h1>{{ 'Edit Client' if client else 'Add New Client' }}</h1>
+      <p class="text-muted">Enter the client's information to add them to your list.</p>
     </div>
-    <div class="mb-3">
-      <label class="form-label">Email</label>
-      <input type="email" name="email" class="form-control" value="{{ client.email if client else '' }}">
-    </div>
-    <div class="mb-3">
-      <label class="form-label">Address</label>
-      <input type="text" name="address" class="form-control" value="{{ client.address if client else '' }}">
-    </div>
-    <div class="d-flex gap-2">
-      <button type="submit" class="btn btn-primary">{{ 'Save' if client else 'Add' }}</button>
-      <a href="{{ url_for('main.manage_clients') }}" class="btn btn-light">Cancel</a>
-    </div>
-  </form>
+  </header>
+
+  <article class="profile-card">
+    <form class="stack" method="POST">
+      <div class="preference-grid">
+        <div class="stack">
+          <label for="client_name">Name</label>
+          <input class="input" id="client_name" type="text" name="name" value="{{ client.name if client else '' }}" required>
+        </div>
+        <div class="stack">
+          <label for="client_email">Email</label>
+          <input class="input" id="client_email" type="email" name="email" value="{{ client.email if client else '' }}" required>
+        </div>
+        <div class="stack">
+          <label for="client_address">Address</label>
+          <input class="input" id="client_address" type="text" name="address" value="{{ client.address if client else '' }}" required>
+        </div>
+      </div>
+      <div class="action-row">
+        <a class="btn btn-outline" href="{{ url_for('main.manage_clients') }}">Cancel</a>
+        <button class="btn btn-primary" type="submit">{{ 'Save Client' if client else 'Add Client' }}</button>
+      </div>
+    </form>
+  </article>
+</section>
 {% endblock %}
