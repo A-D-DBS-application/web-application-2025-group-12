@@ -1,15 +1,123 @@
-{% extends "base.html" %}
-{% block content %}
-  <h1>My company</h1>
-  <p><small>Company: {{ company.name if company else '—' }}</small></p>
+<!-- Aanname: Ground management gebruikt hetzelfde formulier als /grounds/new via POST actie en toont lokale validatieberichten via errors dict. -->
+{% extends 'base.html' %}
 
-  {% if grounds %}
-    <ul>
-      {% for g in grounds %}
-        <li>{{ g.location }} — {{ g.m2|thousands }} m² — {{ g.budget|euro }}</li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>There are no parcels linked to this company yet.</p>
-  {% endif %}
+{% block content %}
+  {% set form_errors = errors if errors is defined else {} %}
+
+  <section class="stack" aria-labelledby="listings-title">
+    <header class="flex-between">
+      <div>
+        <h1 id="listings-title">My Grounds</h1>
+        <p class="text-muted">Overzicht van alle beschikbare percelen binnen je brokerage.</p>
+      </div>
+      <a class="btn btn-primary" href="{{ url_for('main.create_ground') }}">Add Ground</a>
+    </header>
+
+    <article class="card">
+      <header class="card-header">
+        <h2>Voeg een nieuwe ground toe</h2>
+        <p class="text-muted">Vul minimaal locatie, bodem en budget in; overige velden zijn optioneel.</p>
+      </header>
+      <div class="card-body">
+        <form class="stack" method="post" action="{{ url_for('main.create_ground') }}">
+          <!-- csrf token placeholder -->
+          <div class="grid">
+            <div class="form-control">
+              <label for="location">Locatie</label>
+              <input class="input" type="text" id="location" name="location" required aria-describedby="location_hint location_error" value="{{ request.form.get('location', '') }}">
+              <p class="form-hint" id="location_hint">Bijv. provincie + gemeente.</p>
+              <p class="form-error" id="location_error" role="alert">{% if form_errors.get('location') %}{{ form_errors.get('location') }}{% endif %}</p>
+            </div>
+            <div class="form-control">
+              <label for="soil">Soil</label>
+              <input class="input" type="text" id="soil" name="soil" required aria-describedby="soil_hint soil_error" value="{{ request.form.get('soil', '') }}">
+              <p class="form-hint" id="soil_hint">Zand, klei, veen, etc.</p>
+              <p class="form-error" id="soil_error" role="alert">{% if form_errors.get('soil') %}{{ form_errors.get('soil') }}{% endif %}</p>
+            </div>
+            <div class="form-control">
+              <label for="m2">Oppervlakte (m²)</label>
+              <input class="input" type="number" id="m2" name="m2" min="0" required aria-describedby="m2_hint m2_error" value="{{ request.form.get('m2', '') }}">
+              <p class="form-hint" id="m2_hint">Minimaal bruto oppervlak.</p>
+              <p class="form-error" id="m2_error" role="alert">{% if form_errors.get('m2') %}{{ form_errors.get('m2') }}{% endif %}</p>
+            </div>
+            <div class="form-control">
+              <label for="budget">Budget (€)</label>
+              <input class="input" type="number" step="0.01" id="budget" name="budget" min="0" required aria-describedby="budget_hint budget_error" value="{{ request.form.get('budget', '') }}">
+              <p class="form-hint" id="budget_hint">Vraagprijs of target.</p>
+              <p class="form-error" id="budget_error" role="alert">{% if form_errors.get('budget') %}{{ form_errors.get('budget') }}{% endif %}</p>
+            </div>
+            <div class="form-control">
+              <label for="subdivision_type">Subdivision type</label>
+              <input class="input" type="text" id="subdivision_type" name="subdivision_type" aria-describedby="subdivision_hint subdivision_error" value="{{ request.form.get('subdivision_type', '') }}">
+              <p class="form-hint" id="subdivision_hint">Bijv. residentieel, gemengd.</p>
+              <p class="form-error" id="subdivision_error" role="alert">{% if form_errors.get('subdivision_type') %}{{ form_errors.get('subdivision_type') }}{% endif %}</p>
+            </div>
+            <div class="form-control">
+              <label for="owner">Owner</label>
+              <input class="input" type="text" id="owner" name="owner" aria-describedby="owner_hint owner_error" value="{{ request.form.get('owner', '') }}">
+              <p class="form-hint" id="owner_hint">Naam of organisatie.</p>
+              <p class="form-error" id="owner_error" role="alert">{% if form_errors.get('owner') %}{{ form_errors.get('owner') }}{% endif %}</p>
+            </div>
+          </div>
+          <div class="form-control">
+            <label for="notes">Notities</label>
+            <textarea id="notes" name="notes" aria-describedby="notes_hint notes_error">{{ request.form.get('notes', '') }}</textarea>
+            <p class="form-hint" id="notes_hint">Interne toelichting voor het sales-team.</p>
+            <p class="form-error" id="notes_error" role="alert">{% if form_errors.get('notes') %}{{ form_errors.get('notes') }}{% endif %}</p>
+          </div>
+          <div class="flex-wrap">
+            <button class="btn btn-primary" type="submit">Opslaan</button>
+            <button class="btn btn-ghost" type="reset">Reset</button>
+          </div>
+        </form>
+      </div>
+    </article>
+
+    <article class="card">
+      <header class="card-header">
+        <h2>Grounds lijst</h2>
+        <p class="text-muted">Actuele portfolio met edit- en archive-acties.</p>
+      </header>
+      {% if grounds %}
+        <div class="table-responsive">
+          <table class="table" aria-label="Overzicht van grounds">
+            <thead>
+              <tr>
+                <th scope="col">Location</th>
+                <th scope="col">Soil</th>
+                <th scope="col">m²</th>
+                <th scope="col">Budget</th>
+                <th scope="col">Subdivision</th>
+                <th scope="col">Owner</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ground in grounds %}
+                <tr>
+                  <td>{{ ground.location }}</td>
+                  <td>{{ ground.soil }}</td>
+                  <td>{{ ground.m2 }}</td>
+                  <td>€ {{ '%.0f'|format(ground.budget) }}</td>
+                  <td>{{ ground.subdivision_type }}</td>
+                  <td>{{ ground.owner }}</td>
+                  <td>
+                    <div class="table__actions">
+                      <button class="btn btn-ghost" type="button" title="Bewerk {{ ground.location }}">Edit</button>
+                      <button class="btn btn-danger" type="button" title="Archiveer {{ ground.location }}">Archive</button>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <p>Er zijn nog geen grounds beschikbaar.</p>
+          <a class="btn btn-primary" href="{{ url_for('main.create_ground') }}">Voeg je eerste ground toe</a>
+        </div>
+      {% endif %}
+    </article>
+  </section>
 {% endblock %}

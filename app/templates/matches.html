@@ -1,119 +1,102 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="container max-w-screen-lg">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h2 mb-0">Property Matches</h1>
-    <a href="{{ url_for('main.generate_matches') }}" class="btn btn-primary">
-      Find New Matches
-    </a>
-  </div>
-  
-  <div class="card mb-4">
-    <div class="card-body">
-      <form method="GET" class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Filter by Client</label>
-          <select name="client_id" class="form-select" onchange="this.form.submit()">
-            <option value="">All Clients</option>
-            {% for client in clients %}
-              <option value="{{ client.id }}" {% if request.args.get('client_id')|int == client.id %}selected{% endif %}>
-                {{ client.name }}
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-        
-        <div class="col-md-6">
-          <label class="form-label">Minimum Score</label>
-          <select name="min_score" class="form-select" onchange="this.form.submit()">
-            <option value="">No minimum</option>
-            {% for score in range(1, 11) %}
-              <option value="{{ score }}" {% if request.args.get('min_score')|int == score %}selected{% endif %}>
-                {{ score }} or higher
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-      </form>
-    </div>
-  </div>
+<!-- Match overview renders cards grouped by client and building plot with surface/budget scores. -->
+{% extends 'base.html' %}
 
-  {% if matches %}
-    <div class="card">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead>
-            <tr>
-              <th>Score</th>
-              <th>Client</th>
-              <th>Location</th>
-              <th>Area</th>
-              <th>Budget</th>
-              <th>Status</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for match in matches %}
-              <tr>
-                <td>
-                  {% set score_class = {
-                    'high': 'bg-success-subtle text-success-emphasis',
-                    'medium': 'bg-warning-subtle text-warning-emphasis',
-                    'low': 'bg-danger-subtle text-danger-emphasis'
-                  }[match.total_score >= 7 and 'high' or match.total_score >= 5 and 'medium' or 'low'] %}
-                  <span class="badge rounded-pill {{ score_class }} px-2 py-1">
-                    {{ "%.1f"|format(match.total_score) }}/10
-                  </span>
-                </td>
-                <td>{{ match.preferences.client.name }}</td>
-                <td>{{ match.ground.location }}</td>
-                <td>{{ match.ground.m2|thousands }} m²</td>
-                <td class="fw-semibold">{{ match.ground.budget|euro }}</td>
-                <td>
-                  <form method="POST" action="{{ url_for('main.update_match_status', match_id=match.id) }}">
-                    {% set status_classes = {
-                      'pending': 'form-select-sm bg-light text-dark',
-                      'accepted': 'form-select-sm bg-success-subtle text-success',
-                      'rejected': 'form-select-sm bg-danger-subtle text-danger'
-                    } %}
-                    <select name="status" onchange="this.form.submit()" 
-                            class="form-select {{ status_classes[match.status] }}">
-                      <option value="pending" {% if match.status == 'pending' %}selected{% endif %}>Pending</option>
-                      <option value="accepted" {% if match.status == 'accepted' %}selected{% endif %}>Accepted</option>
-                      <option value="rejected" {% if match.status == 'rejected' %}selected{% endif %}>Rejected</option>
-                    </select>
-                  </form>
-                </td>
-                <td>
-                  <button class="btn btn-sm btn-light" type="button" 
-                          data-bs-toggle="collapse" 
-                          data-bs-target="#score-{{ match.id }}">
-                    View Details
-                  </button>
-                  <div class="collapse mt-2" id="score-{{ match.id }}">
-                    <div class="card card-body p-2 bg-light">
-                      <small class="d-block mb-1">
-                        Area score: <span class="fw-semibold">{{ "%.1f"|format(match.m2_score) }}/10</span>
-                      </small>
-                      <small class="d-block">
-                        Budget score: <span class="fw-semibold">{{ "%.1f"|format(match.budget_score) }}/10</span>
-                      </small>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  {% else %}
-    <div class="card">
-      <div class="card-body text-center py-5">
-        <p class="text-muted mb-0">No matches found.</p>
-      </div>
-    </div>
+{% block title %}GroundMatch • Matches{% endblock %}
+
+{% block content %}
+<section class="stack">
+  {% if sample_matches %}
+    <div class="section-note">Voorbeeldmatches in beeld. Zodra er echte matches zijn worden ze hier getoond.</div>
   {% endif %}
-</div>
+  <header class="page-header">
+    <div>
+      <h1>All Matches</h1>
+      <p class="text-muted">Review every recommendation and move fast on high scoring opportunities.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('main.generate_matches') }}"><i class="bi bi-stars"></i> Generate Matches</a>
+  </header>
+
+  <form class="card stack" method="get" action="{{ url_for('main.view_matches') }}">
+    <div class="filter-row">
+      <div>
+        <label for="match_search" class="text-muted">Search matches</label>
+        <input class="input" type="search" id="match_search" name="q" placeholder="Search clients or plots" value="{{ request.args.get('q', '') }}" {% if filters_disabled %}disabled{% endif %}>
+      </div>
+      <div>
+        <label for="filter_status">Status</label>
+        <select id="filter_status" name="status" {% if filters_disabled %}disabled{% endif %}>
+          <option value="">All statuses</option>
+          {% for status in ['new', 'pending', 'accepted', 'rejected', 'in progress'] %}
+            <option value="{{ status }}" {% if request.args.get('status') == status %}selected{% endif %}>{{ status.title() }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="filter_client">Client</label>
+        <select id="filter_client" name="client_id" {% if filters_disabled %}disabled{% endif %}>
+          <option value="">All clients</option>
+          {% for c in clients %}
+            {% set cid = c.id if c.id is defined else c['id'] %}
+            <option value="{{ cid }}" {% if request.args.get('client_id') == cid|string %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary" type="submit" {% if filters_disabled %}disabled{% endif %}>Apply filters</button>
+  </form>
+
+  <div class="stack">
+    {% for match in matches %}
+      {% set status = (match.status or 'pending') | lower %}
+      {% if status in ['accepted', 'won'] %}
+        {% set status_class = 'success' %}
+      {% elif status in ['pending', 'new'] %}
+        {% set status_class = 'warning' %}
+      {% elif status in ['rejected'] %}
+        {% set status_class = 'danger' %}
+      {% else %}
+        {% set status_class = 'info' %}
+      {% endif %}
+      <article class="match-card">
+        <div class="match-card__header">
+          <div>
+            <h3>{{ match.client.name if match.client is defined else (match.preferences.client.name if match.preferences is defined and match.preferences.client is defined else 'Client') }}</h3>
+            <p class="text-muted">{{ match.ground.location if match.ground is defined else 'Ground TBD' }}</p>
+          </div>
+          <div style="text-align:right;">
+            <p class="stat-card__value">{{ match.total_score if match.total_score is defined else '0' }}%</p>
+            <span class="badge-status {{ status_class }}">{{ match.status|title if match.status else 'Pending' }}</span>
+          </div>
+        </div>
+        <div class="match-card__meta">
+          <span>{{ match.ground.m2 if match.ground is defined else '—' }} m²</span>
+          <span>€ {{ '{:,.0f}'.format(match.ground.budget) if match.ground is defined and match.ground.budget is not none else '—' }}</span>
+          <span>{{ match.ground.subdivision_type if match.ground is defined else '—' }}</span>
+          <span>{{ match.ground.soil if match.ground is defined else '—' }} soil</span>
+        </div>
+        <div class="match-card__meta">
+          <span>Surface Score {{ match.m2_score if match.m2_score is defined else '—' }}%</span>
+          <span>Budget Score {{ match.budget_score if match.budget_score is defined else '—' }}%</span>
+        </div>
+        {% if not sample_matches %}
+          <div class="client-actions">
+            <a class="btn btn-outline" href="{{ url_for('main.view_matches') }}">View</a>
+            <form method="post" action="{{ url_for('main.update_match_status', match_id=match.id) }}">
+              <!-- csrf token placeholder -->
+              <select name="status" onchange="this.form.submit();">
+                {% for status_option in ['pending', 'accepted', 'rejected'] %}
+                  <option value="{{ status_option }}" {% if match.status == status_option %}selected{% endif %}>{{ status_option.title() }}</option>
+                {% endfor %}
+              </select>
+            </form>
+          </div>
+        {% endif %}
+      </article>
+    {% else %}
+      <article class="card">
+        <p>No matches found. Adjust your filters or generate new matches.</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
 {% endblock %}
