@@ -1,101 +1,57 @@
-<!-- Dashboard uses placeholder stats when Supabase metrics are missing to keep layout populated. -->
-{% extends 'base.html' %}
-
-{% block title %}GroundMatch • Dashboard{% endblock %}
-
+{% extends "base.html" %}
 {% block content %}
-<section class="stack">
-  {% if sample_dashboard %}
-    <div class="section-note">We gebruiken voorbeelddata om het dashboard te tonen. Voeg echte clients en matches toe om deze kaart te vullen.</div>
-  {% endif %}
-  <div class="dashboard-hero">
-    <p class="pill pill-info">Welcome back</p>
-    <h1>Welcome back, {{ company.name if company is defined else 'GroundMatch Partner' }}!</h1>
-    <p class="text-muted">Here's an overview of your construction matching platform.</p>
-  </div>
+<div style="text-align: center; padding: 40px 20px;">
+    <h1 style="font-size: 3em; margin-bottom: 10px;">🏗️ GroundMatch</h1>
+    <p style="font-size: 1.2em; color: #666; margin-bottom: 40px;">
+        Intelligent matching platform connecting building plots with client preferences
+    </p>
+</div>
 
-  {% set stat_cards = [
-    {'label': 'Total Clients', 'value': total_clients if total_clients is defined else (clients|length if clients is defined else 0), 'icon': 'bi-people'},
-    {'label': 'Building Plots', 'value': total_plots if total_plots is defined else (grounds|length if grounds is defined else 0), 'icon': 'bi-building'},
-    {'label': 'Active Matches', 'value': active_matches if active_matches is defined else 0, 'icon': 'bi-lightning-charge'},
-    {'label': 'Pending Matches', 'value': pending_matches if pending_matches is defined else 0, 'icon': 'bi-hourglass-split'}
-  ] %}
-  <div class="grid stat-grid">
-    {% for stat in stat_cards %}
-      <article class="card stat-card">
-        <span class="stat-icon"><i class="bi {{ stat.icon }}"></i></span>
-        <div class="stat-card__content">
-          <p class="text-muted">{{ stat.label }}</p>
-          <p class="stat-card__value">{{ stat.value }}</p>
-        </div>
-      </article>
-    {% endfor %}
-  </div>
-
-  <div class="grid metrics-grid">
-    <article class="card">
-      <h3>Performance Metrics</h3>
-      <p class="text-muted">Key indicators across your platform.</p>
-      <div class="preference-grid">
-        <div>
-          <p class="text-muted">Avg. Match Score</p>
-          <p class="stat-card__value">{{ avg_match_score if avg_match_score is defined else '82%' }}</p>
-        </div>
-        <div>
-          <p class="text-muted">Success Rate</p>
-          <p class="stat-card__value">{{ success_rate if success_rate is defined else '68%' }}</p>
-        </div>
-        <div>
-          <p class="text-muted">Pending Reviews</p>
-          <p class="stat-card__value">{{ pending_reviews if pending_reviews is defined else 5 }}</p>
-        </div>
-      </div>
-    </article>
-  </div>
-
-  <section class="stack">
-    <header class="page-header">
-      <div>
-        <h2>Recent Matches</h2>
-        <p class="text-muted">Track the latest recommendations across your portfolio.</p>
-      </div>
-      <a class="btn btn-outline" href="{{ url_for('main.view_matches') }}">View all matches</a>
-    </header>
-
-    {% set recent = recent_matches if recent_matches is defined else (matches if matches is defined else []) %}
-    <div class="stack">
-      {% for match in recent %}
-        {% set status = (match.status or 'pending') | lower %}
-        {% if status in ['accepted', 'won'] %}
-          {% set pill_class = 'pill-success' %}
-        {% elif status in ['pending', 'review'] %}
-          {% set pill_class = 'pill-warning' %}
-        {% elif status in ['rejected'] %}
-          {% set pill_class = 'pill-danger' %}
-        {% else %}
-          {% set pill_class = 'pill-info' %}
-        {% endif %}
-        <article class="match-card">
-          <div class="match-card__header">
-            <div>
-              <h3>{{ match.client.name if match.client is defined else 'Client' }}</h3>
-              <p class="text-muted">{{ match.ground.location if match.ground is defined else 'Location TBD' }}</p>
-            </div>
-            <span class="badge-status {{ 'success' if pill_class == 'pill-success' else 'warning' if pill_class == 'pill-warning' else 'danger' if pill_class == 'pill-danger' else 'info' }}">{{ match.status|title if match.status is defined else 'Pending' }}</span>
-          </div>
-          <div class="match-card__meta">
-            <span>{{ match.ground.m2 if match.ground is defined else '—' }} m²</span>
-            <span>€ {{ '{:,.0f}'.format(match.ground.budget) if match.ground is defined and match.ground.budget is not none else '—' }}</span>
-            <span>{{ match.ground.subdivision_type if match.ground is defined else '—' }} • {{ match.ground.soil if match.ground is defined else '—' }}</span>
-            <span><strong>{{ match.total_score if match.total_score is defined else '0' }}%</strong> overall</span>
-          </div>
-        </article>
-      {% else %}
-        <div class="card">
-          <p>No matches available yet. Generate new matches to populate this section.</p>
-        </div>
-      {% endfor %}
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px;">
+    <div class="card">
+        <h2>👔 For Companies</h2>
+        <p>Manage your clients, ground inventory, and match them automatically using our intelligent algorithm.</p>
+        <ul style="text-align: left; margin: 20px 0;">
+            <li>Manage clients & their preferences</li>
+            <li>Maintain ground inventory</li>
+            <li>Run automated matching algorithm</li>
+            <li>Track match status (pending/accepted/rejected)</li>
+            <li>Integrate with scrapers for new grounds</li>
+        </ul>
+        <a href="{{ url_for('company_register') }}" class="btn">Register Company</a>
+        <a href="{{ url_for('company_login') }}" class="btn">Login</a>
     </div>
-  </section>
-</section>
+
+    <div class="card">
+        <h2>👤 For Clients</h2>
+        <p>View your preferences and matched building plots, all sorted by compatibility score.</p>
+        <ul style="text-align: left; margin: 20px 0;">
+            <li>Set your building preferences</li>
+            <li>View matched grounds</li>
+            <li>See compatibility scores</li>
+            <li>Track match status</li>
+        </ul>
+        <a href="{{ url_for('client_login') }}" class="btn btn-success">Client Login</a>
+    </div>
+</div>
+
+<div class="card" style="text-align: center; background: #f8f9fa;">
+    <h3>🎯 Matching Algorithm</h3>
+    <p>Our intelligent algorithm scores matches based on three criteria:</p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 20px;">
+        <div>
+            <strong>💰 Budget Score</strong><br>
+            How well does the price match the client's budget range?
+        </div>
+        <div>
+            <strong>📏 Size Score</strong><br>
+            Does the plot size fit within the desired m² range?
+        </div>
+        <div>
+            <strong>📍 Location Score</strong><br>
+            How closely does the location match preferences?
+        </div>
+    </div>
+    <p style="margin-top: 20px; color: #666;">Total scores range from 0-300, with higher scores indicating better matches.</p>
+</div>
 {% endblock %}

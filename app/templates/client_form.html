@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>{% if client %}Edit{% else %}Add{% endif %} Client</h2>
+    <form method="POST">
+        <input type="text" name="name" placeholder="Name" required value="{{ client.name if client else '' }}">
+        <input type="email" name="email" placeholder="Email" required value="{{ client.email if client else '' }}">
+        <input type="text" name="address" placeholder="Address" value="{{ client.address if client else '' }}">
+        <button type="submit" class="btn">{% if client %}Update{% else %}Add{% endif %}</button>
+        <a href="{{ url_for('clients_list') }}" class="btn">Cancel</a>
+    </form>
+</div>
+{% endblock %}

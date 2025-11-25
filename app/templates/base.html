@@ -1,56 +1,30 @@
-<!-- Base layout assumes current_user context from Flask-Login for conditional nav items. -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}GroundMatch{% endblock %}</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>GroundMatch</title>
+    <style>
+        body { font-family: Arial; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .btn { background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block; border: none; cursor: pointer; }
+        .btn-success { background: #28a745; }
+        .card { border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #f8f9fa; }
+        input, select { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        .flash { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .flash-success { background: #d4edda; border: 1px solid #c3e6cb; }
+        .flash-danger { background: #f8d7da; border: 1px solid #f5c6cb; }
+    </style>
 </head>
 <body>
-  <header class="navbar">
-    <div class="container nav-inner">
-      <a class="brand" href="{{ url_for('main.home') }}"><i class="bi bi-geo-alt"></i>GroundMatch</a>
-      <nav aria-label="Primary">
-        <ul class="nav-links">
-          {% if current_user.is_authenticated %}
-            <li><a class="nav-link {{ 'active' if request.endpoint == 'main.home' else '' }}" href="{{ url_for('main.home') }}"><i class="bi bi-house-door"></i>Home</a></li>
-            <li><a class="nav-link {{ 'active' if request.endpoint in ['main.manage_clients', 'main.create_client', 'main.edit_client'] else '' }}" href="{{ url_for('main.manage_clients') }}"><i class="bi bi-people"></i>Clients</a></li>
-            <li><a class="nav-link {{ 'active' if request.endpoint in ['main.preferences_dashboard', 'main.create_preferences', 'main.edit_preferences'] else '' }}" href="{{ url_for('main.preferences_dashboard') }}"><i class="bi bi-gear"></i>Preferences</a></li>
-            <li><a class="nav-link {{ 'active' if request.endpoint in ['main.view_plots'] else '' }}" href="{{ url_for('main.view_plots') }}"><i class="bi bi-geo"></i>Building Plots</a></li>
-            <li><a class="nav-link {{ 'active' if request.endpoint == 'main.view_matches' else '' }}" href="{{ url_for('main.view_matches') }}"><i class="bi bi-link-45deg"></i>Matches</a></li>
-            <li><a class="nav-link {{ 'active' if request.endpoint == 'main.profile' else '' }}" href="{{ url_for('main.profile') }}"><i class="bi bi-person-badge"></i>My Profile</a></li>
-            <li><a class="nav-link" href="{{ url_for('main.logout') }}"><i class="bi bi-box-arrow-right"></i>Logout</a></li>
-          {% else %}
-            <li><a class="nav-link {{ 'active' if request.endpoint == 'main.home' else '' }}" href="{{ url_for('main.home') }}"><i class="bi bi-house-door"></i>Home</a></li>
-            <li><a class="nav-link" href="{{ url_for('main.register') }}"><i class="bi bi-person-plus"></i>Register</a></li>
-            <li><a class="nav-link" href="{{ url_for('main.login') }}"><i class="bi bi-box-arrow-in-right"></i>Login</a></li>
-          {% endif %}
-        </ul>
-      </nav>
-    </div>
-  </header>
-
-  <main class="site-main">
-    <div class="container">
-      <section class="alerts" aria-live="polite">
-        {% with messages = get_flashed_messages(with_categories=True) %}
-          {% if messages %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
             {% for category, message in messages %}
-              <div class="alert alert-{{ category }}">{{ message }}</div>
+                <div class="flash flash-{{ category }}">{{ message }}</div>
             {% endfor %}
-          {% endif %}
-        {% endwith %}
-      </section>
-      {% block content %}{% endblock %}
-    </div>
-  </main>
-
-  <footer class="container" style="padding: 2rem 0; text-align: center; color: var(--color-muted);">
-    © 2025 GroundMatch • Built for construction brokers
-  </footer>
-
-  {% block scripts %}{% endblock %}
+        {% endif %}
+    {% endwith %}
+    
+    {% block content %}{% endblock %}
 </body>
 </html>

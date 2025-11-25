@@ -118,7 +118,6 @@ def scrape_vansweevelt() -> list[dict]:
         record = {
             "location": location_val,
             "m2": m2_val,
-            "soil": "unknown",  # geen info in scrape
             "budget": budget_val,
             "subdivision_type": grond_type or "onbekend",
             "owner": "Vansweevelt",

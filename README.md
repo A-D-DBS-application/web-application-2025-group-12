@@ -1,80 +1,135 @@
-# GroundMatch Web Application
+# 🏗️ GroundMatch - Building Plot Matching Platform
 
-## Extra information how to install/use the app
+Intelligent matching system connecting construction companies with their clients' ideal building plots using a 3-score algorithm.
 
-### Installation Requirements
-- Python 3.8 or higher
-- PostgreSQL
-- pip
+## 🚀 Quick Start
 
-### Setup Instructions
-1. Clone and setup virtual environment:
+### Prerequisites
+- Python 3.12+
+- Supabase account (PostgreSQL database)
+
+### Installation
 ```bash
+# 1. Clone repository
 git clone https://github.com/A-D-DBS-application/web-application-2025-group-12.git
 cd web-application-2025-group-12
-python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
-```
 
-2. Install and configure:
-```bash
+# 2. Setup virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# 3. Install dependencies
 pip install -r requirements.txt
-cp .env.example .env     # Update with your database settings
-psql -U your_username < db/schema.sql
+
+# 4. Configure database
+cp .env.example .env
+# Edit .env with your Supabase DATABASE_URL
+
+# 5. Initialize database
+python scripts/reset_database.py
+
+# 6. Run application
+python run.py
+# Visit: http://127.0.0.1:5000
 ```
 
-3. Run the application:
+## ✨ Features
+
+### For Companies (Brokers)
+- 👥 **Client Management** - Add, edit, delete clients with search
+- 🏗️ **Ground Inventory** - Manage building plots with filtering
+- ⚙️ **Preference Settings** - Configure client requirements
+- 🎯 **Smart Matching** - AI-powered 3-score algorithm (Budget + Size + Location)
+- 📊 **Match Dashboard** - View and update match status
+- 🌐 **Web Scraper** - Automatically import new plots
+
+### For Clients
+- 🔍 **View Preferences** - See your configured requirements
+- 📋 **Browse Matches** - View compatible plots sorted by score (0-300)
+- ✅ **Match Status** - Track pending/accepted/rejected status
+
+## 📁 Project Structure
+
+```
+web-application-2025-group-12/
+├── app/                    # Flask application
+│   ├── __init__.py        # App factory
+│   ├── config.py          # Database config
+│   ├── models.py          # SQLAlchemy models (5 tables)
+│   ├── routes.py          # All routes (25+ endpoints)
+│   ├── matching.py        # 3-score algorithm
+│   ├── templates/         # HTML templates (16 files)
+│   └── static/            # CSS/JS (currently empty, uses inline styles)
+├── db/
+│   ├── schema.sql         # Database schema
+│   └── dumps/             # Database backups
+├── docs/                  # Project documentation
+│   ├── ERD.png           # Entity Relationship Diagram
+│   ├── User story.pdf    # User stories
+│   └── Logo              # Project logo
+├── scripts/               # Utility scripts
+│   ├── reset_database.py # Database initialization
+│   └── check_db_schema.py # Schema verification
+├── scraper.py            # Web scraper for grounds
+├── run.py                # Application entry point
+├── requirements.txt      # Python dependencies
+└── README.md            # This file
+```
+
+## 🗄️ Database Schema
+
+5 core tables in PostgreSQL (Supabase):
+- **Company** - Construction companies/brokers
+- **Client** - Company clients seeking land
+- **Ground** - Available building plots
+- **Preferences** - Client requirements (1-to-1 with Client)
+- **Match** - Ground-to-Preference matches (many-to-many)
+
+## 🎯 Matching Algorithm
+
+3-score system (each 0-100, total 0-300):
+1. **Budget Score** - How well ground price fits budget range
+2. **Size Score** - How well m² matches size requirements  
+3. **Location Score** - Location string matching (exact/partial/none)
+
+Higher total scores = better matches (displayed first)
+
+## 🔗 Project Links
+
+- **Kanban Board**: [Miro Board](https://miro.com/app/board/uXjVJ0CcO8w=/)
+- **User Stories**: See `docs/User story.pdf`
+- **Database ERD**: See `docs/ERD.png`
+
+## 🛠️ Development Commands
+
 ```bash
-flask run
+# Database management
+python scripts/reset_database.py    # Initialize/reset database
+python scripts/check_db_schema.py  # Verify schema
+
+# Run application
+python run.py                       # Start Flask server (port 5000)
+
+# Code quality (optional)
+pytest                              # Run tests
+flake8 app/                        # Lint code
+black app/                         # Format code
 ```
 
-## Link to UI prototype
-_(To be added)_
+## ⚠️ Troubleshooting
 
-## Link to Kanban board
-[Miro Board](https://miro.com/app/board/uXjVJ0CcO8w=/) ![Miro](https://img.shields.io/badge/Miro-050038?style=for-the-badge&logo=Miro&logoColor=white)
+| Problem | Solution |
+|---------|----------|
+| Database connection error | Check `.env` DATABASE_URL, run `python scripts/check_db_schema.py` |
+| Port 5000 already in use | Run `lsof -ti:5000 \| xargs kill -9` |
+| Module not found | Run `pip install -r requirements.txt` |
+| Import errors | Activate venv: `source .venv/bin/activate` |
 
-## Link to audio/video recording of feedback sessions
-- Partner Meeting 1 _(To be added)_
-- Partner Meeting 2 _(To be added)_
-- Partner Meeting 3 _(To be added)_
+## 👥 Contributors
 
-## Other links/info
+Database Systems Course - Group 12 - 2025
 
-### Development Workflow
-- Branch Strategy:
-  - `main` - production code
-  - `development` - integration branch
-  - Feature branches: `feature/name-of-feature`
-  - Bugfix branches: `bugfix/name-of-bug`
+## 📄 License
 
-### Code Guidelines
-- Follow PEP 8 for Python code style
-- Use meaningful variable and function names
-- Add comments where needed
-- Keep functions small and focused
-
-### Database Management
-- Update `db/schema.sql` for schema changes
-- Communicate changes to the team
-- Team members apply changes with: `psql -U username < db/schema.sql`
-
-### Project Structure
-```
-flask_app/
-├── app/                # Application code
-│   ├── __init__.py    # App initialization
-│   ├── models.py      # Database models
-│   ├── routes.py      # URL routing
-│   └── templates/     # HTML templates
-├── data/              # Data files
-├── db/                # Database scripts
-├── scripts/           # Utility scripts
-└── docs/              # Documentation
-```
-
-### Documentation
-- User Stories: [`docs/User story.pdf`](docs/assets/User story.pdf)
-- [Known Issues](https://github.com/A-D-DBS-application/web-application-2025-group-12/issues)
-- API Documentation _(To be added)_
+University course assignment
 

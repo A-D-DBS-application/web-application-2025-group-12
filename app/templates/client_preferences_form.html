@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>Edit Your Preferences</h2>
+    <form method="POST">
+        <input type="text" name="location" placeholder="Location" value="{{ pref.location if pref else '' }}">
+        <input type="text" name="subdivision_type" placeholder="Subdivision Type" value="{{ pref.subdivision_type if pref else '' }}">
+        <input type="number" name="min_m2" placeholder="Min m²" value="{{ pref.min_m2 if pref else '' }}">
+        <input type="number" name="max_m2" placeholder="Max m²" value="{{ pref.max_m2 if pref else '' }}">
+        <input type="number" step="0.01" name="min_budget" placeholder="Min Budget" value="{{ pref.min_budget if pref else '' }}">
+        <input type="number" step="0.01" name="max_budget" placeholder="Max Budget" value="{{ pref.max_budget if pref else '' }}">
+        <button type="submit" class="btn btn-success">Save</button>
+        <a href="{{ url_for('client_dashboard') }}" class="btn">Cancel</a>
+    </form>
+</div>
+{% endblock %}
