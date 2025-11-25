@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Clients</h1>
+<a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a>
+<a href="{{ url_for('client_add') }}" class="btn btn-success">Add Client</a>
+
+<div class="card">
+    <form method="GET" style="margin-bottom: 20px;">
+        <input type="text" name="search" placeholder="Search by name, email, or address" value="{{ search }}">
+        <button type="submit" class="btn">Search</button>
+    </form>
+
+    <table>
+        <tr><th>Name</th><th>Email</th><th>Address</th><th>Actions</th></tr>
+        {% for client in clients %}
+        <tr>
+            <td>{{ client.name }}</td>
+            <td>{{ client.email }}</td>
+            <td>{{ client.address }}</td>
+            <td>
+                <a href="{{ url_for('preferences_edit', client_id=client.id) }}" class="btn">Preferences</a>
+                <a href="{{ url_for('client_edit', client_id=client.id) }}" class="btn">Edit</a>
+                <form method="POST" action="{{ url_for('client_delete', client_id=client.id) }}" style="display:inline;">
+                    <button type="submit" class="btn" onclick="return confirm('Delete this client?')">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

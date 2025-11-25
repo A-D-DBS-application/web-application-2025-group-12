@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Grounds</h1>
+<a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a>
+{% if session.role == 'company' %}
+<a href="{{ url_for('ground_add') }}" class="btn btn-success">Add Ground</a>
+<form method="POST" action="{{ url_for('scrape') }}" style="display:inline;">
+    <button type="submit" class="btn">Run Scraper</button>
+</form>
+{% endif %}
+
+<div class="card">
+    <h3>Filter Grounds</h3>
+    <form method="GET" style="margin-bottom: 20px;">
+        <input type="text" name="location" placeholder="Location" value="{{ request.args.get('location', '') }}">
+        <input type="number" name="min_price" placeholder="Min Price" value="{{ request.args.get('min_price', '') }}">
+        <input type="number" name="max_price" placeholder="Max Price" value="{{ request.args.get('max_price', '') }}">
+        <input type="number" name="min_m2" placeholder="Min m²" value="{{ request.args.get('min_m2', '') }}">
+        <input type="number" name="max_m2" placeholder="Max m²" value="{{ request.args.get('max_m2', '') }}">
+        <input type="text" name="subdivision_type" placeholder="Type" value="{{ request.args.get('subdivision_type', '') }}">
+        <button type="submit" class="btn">Filter</button>
+    </form>
+
+    <table>
+        <tr><th>Location</th><th>Size (m²)</th><th>Budget</th><th>Type</th><th>Owner</th>
+        {% if session.role == 'company' %}<th>Actions</th>{% endif %}</tr>
+        {% for ground in grounds %}
+        <tr>
+            <td>{{ ground.location }}</td>
+            <td>{{ ground.m2 }}</td>
+            <td>€{{ ground.budget }}</td>
+            <td>{{ ground.subdivision_type }}</td>
+            <td>{{ ground.owner }}</td>
+            {% if session.role == 'company' %}
+            <td>
+                <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn">Edit</a>
+                <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}" style="display:inline;">
+                    <button type="submit" class="btn" onclick="return confirm('Delete this ground?')">Delete</button>
+                </form>
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

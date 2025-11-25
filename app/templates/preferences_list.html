@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Preferences</h1>
+<a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a>
+
+<div class="card">
+    <table>
+        <tr><th>Client</th><th>Location</th><th>Budget Range</th><th>Size Range (m²)</th><th>Type</th><th>Actions</th></tr>
+        {% for pref in preferences %}
+        <tr>
+            <td>{{ pref.client.name }}</td>
+            <td>{{ pref.location or 'Any' }}</td>
+            <td>€{{ pref.min_budget or '?' }} - €{{ pref.max_budget or '?' }}</td>
+            <td>{{ pref.min_m2 or '?' }} - {{ pref.max_m2 or '?' }}</td>
+            <td>{{ pref.subdivision_type or 'Any' }}</td>
+            <td>
+                <a href="{{ url_for('preferences_edit', client_id=pref.client_id) }}" class="btn">Edit</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

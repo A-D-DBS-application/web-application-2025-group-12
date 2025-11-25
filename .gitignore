@@ -1,15 +1,40 @@
 # Python/Flask
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
 
-# Venvs
+# Virtual Environments
 .venv/
 venv/
+env/
+ENV/
 
-# Env/secrets
+# Environment Variables & Secrets
 .env
 .env.*
+!.env.example
 instance/
 
-# DB lokale artefacten
+# Database
 *.sqlite3
+*.db
+db/dumps/*.sql
+!db/dumps/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
