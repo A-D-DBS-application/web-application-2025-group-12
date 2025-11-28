@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Client Dashboard - {{ client.name }}</h1>
+<a href="{{ url_for('logout') }}" class="btn">Logout</a>
+
+<div class="card">
+    <h2>Your Preferences</h2>
+    {% if preferences %}
+    <p><strong>Location:</strong> {{ preferences.location or 'Not set' }}</p>
+    <p><strong>Budget:</strong> €{{ preferences.min_budget or '?' }} - €{{ preferences.max_budget or '?' }}</p>
+    <p><strong>Size:</strong> {{ preferences.min_m2 or '?' }} - {{ preferences.max_m2 or '?' }} m²</p>
+    <p><strong>Type:</strong> {{ preferences.subdivision_type or 'Not set' }}</p>
+    <a href="{{ url_for('client_preferences_edit') }}" class="btn">Edit Preferences</a>
+    {% else %}
+    <p>No preferences set yet.</p>
+    <a href="{{ url_for('client_preferences_edit') }}" class="btn btn-success">Set Preferences</a>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Your Matches ({{ matches|length }})</h2>
+    {% if matches %}
+    <table>
+        <tr><th>Location</th><th>Size</th><th>Budget</th><th>Total Score</th><th>Status</th></tr>
+        {% for match in matches %}
+        <tr>
+            <td>{{ match.ground.location }}</td>
+            <td>{{ match.ground.m2 }} m²</td>
+            <td>€{{ match.ground.budget }}</td>
+            <td><strong>{{ ((match.budget_score or 0) + (match.m2_score or 0) + (match.location_score or 0))|round(2) }}</strong></td>
+            <td><strong>{{ match.status }}</strong></td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No matches yet. Ask your company to run the matching algorithm.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Quick Links</h2>
+    <a href="{{ url_for('matches_list') }}" class="btn">View All My Matches</a>
+    <a href="{{ url_for('client_preferences_edit') }}" class="btn">Update My Preferences</a>
+</div>
+{% endblock %}

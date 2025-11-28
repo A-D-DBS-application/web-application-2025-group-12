@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>Your Preferences</h2>
+    {% if pref %}
+    <p><strong>Location:</strong> {{ pref.location or 'Not set' }}</p>
+    <p><strong>Subdivision Type:</strong> {{ pref.subdivision_type or 'Not set' }}</p>
+    <p><strong>Budget Range:</strong> €{{ pref.min_budget or '?' }} - €{{ pref.max_budget or '?' }}</p>
+    <p><strong>Size Range:</strong> {{ pref.min_m2 or '?' }} - {{ pref.max_m2 or '?' }} m²</p>
+    <a href="{{ url_for('client_preferences_edit') }}" class="btn btn-success">Edit Preferences</a>
+    {% else %}
+    <p>No preferences set yet.</p>
+    <a href="{{ url_for('client_preferences_edit') }}" class="btn btn-success">Set Preferences</a>
+    {% endif %}
+    <a href="{{ url_for('client_dashboard') }}" class="btn">Back to Dashboard</a>
+</div>
+{% endblock %}

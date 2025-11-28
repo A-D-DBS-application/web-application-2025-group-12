@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Matches</h1>
+<a href="{{ url_for('dashboard') if session.role == 'company' else url_for('client_dashboard') }}" class="btn">Back to Dashboard</a>
+
+{% if session.role == 'company' %}
+<form method="POST" action="{{ url_for('match_run') }}" style="display:inline;">
+    <button type="submit" class="btn btn-success">Run Matching Algorithm</button>
+</form>
+{% endif %}
+
+<div class="card">
+    <h3>Filter by Status</h3>
+    <a href="{{ url_for('matches_list') }}" class="btn">All</a>
+    <a href="{{ url_for('matches_list', status='pending') }}" class="btn">Pending</a>
+    <a href="{{ url_for('matches_list', status='accepted') }}" class="btn">Accepted</a>
+    <a href="{{ url_for('matches_list', status='rejected') }}" class="btn">Rejected</a>
+
+    <table>
+        <tr><th>Ground Location</th><th>Client</th><th>Budget Score</th><th>M² Score</th><th>Location Score</th><th>Total Score</th><th>Status</th>
+        {% if session.role == 'company' %}<th>Actions</th>{% endif %}</tr>
+        {% for match in matches %}
+        <tr>
+            <td>{{ match.ground.location }}</td>
+            <td>{{ match.client.name if match.client else 'N/A' }}</td>
+            <td>{{ match.budget_score }}</td>
+            <td>{{ match.m2_score }}</td>
+            <td>{{ match.location_score }}</td>
+            <td><strong>{{ match.total_score }}</strong></td>
+            <td><strong>{{ match.status }}</strong></td>
+            {% if session.role == 'company' %}
+            <td>
+                <form method="POST" action="{{ url_for('match_update_status', match_id=match.id) }}" style="display:inline;">
+                    <select name="status">
+                        <option value="pending" {% if match.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="accepted" {% if match.status == 'accepted' %}selected{% endif %}>Accepted</option>
+                        <option value="rejected" {% if match.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                    <button type="submit" class="btn">Update</button>
+                </form>
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

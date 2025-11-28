@@ -1,744 +1,531 @@
-# app/routes.py
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_user, logout_user, login_required, current_user
-from sqlalchemy import or_, func, cast
-from . import db
-from .models import Ground, Company, Match, Client, Preferences
+from flask import render_template, request, redirect, url_for, flash, session
+from .models import db, Company, Client, Ground, Preferences, Match
+from .matching import compute_match_scores
+from functools import wraps
 
+def requires_company(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'company_id' not in session or session.get('role') != 'company':
+            flash('Access denied', 'danger')
+            return redirect(url_for('home'))
+        return f(*args, **kwargs)
+    return decorated
 
-SAMPLE_CLIENTS = [
-    {
-        "id": "sample-client-1",
-        "name": "Jan Peeters",
-        "email": "jan.peeters@email.be",
-        "address": "Grote Markt 15, 2000 Antwerpen",
-        "match_count": 2,
-        "active_matches": 1,
-        "preferences": {
-            "location": "Antwerpen",
-            "subdivision_type": "Residential",
-            "soil": "Clay",
-            "min_m2": 400,
-            "max_m2": 500,
-            "min_budget": 300000,
-            "max_budget": 400000,
-        },
-    },
-    {
-        "id": "sample-client-2",
-        "name": "Emma Vandenberghe",
-        "email": "emma.vandenberghe@email.be",
-        "address": "Kerkstraat 45, 9000 Gent",
-        "match_count": 1,
-        "active_matches": 1,
-        "preferences": {
-            "location": "Gent",
-            "subdivision_type": "Residential",
-            "soil": "Sand",
-            "min_m2": 550,
-            "max_m2": 650,
-            "min_budget": 400000,
-            "max_budget": 520000,
-        },
-    },
-    {
-        "id": "sample-client-3",
-        "name": "Pieter De Smet",
-        "email": "pieter.desmet@email.be",
-        "address": "Meir 78, 2000 Antwerpen",
-        "match_count": 1,
-        "active_matches": 0,
-        "preferences": {
-            "location": "Brussel",
-            "subdivision_type": "Mixed-Use",
-            "soil": "Loam",
-            "min_m2": 350,
-            "max_m2": 450,
-            "min_budget": 250000,
-            "max_budget": 360000,
-        },
-    },
-]
+def requires_client(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'client_id' not in session or session.get('role') != 'client':
+            flash('Access denied', 'danger')
+            return redirect(url_for('home'))
+        return f(*args, **kwargs)
+    return decorated
 
-SAMPLE_GROUNDS = [
-    {
-        "id": "sample-ground-1",
-        "location": "Antwerpen Noord",
-        "m2": 450,
-        "subdivision_type": "Residential",
-        "soil": "Clay",
-        "owner": "Stad Antwerpen",
-        "budget": 350000,
-    },
-    {
-        "id": "sample-ground-2",
-        "location": "Gent Oost",
-        "m2": 600,
-        "subdivision_type": "Residential",
-        "soil": "Sand",
-        "owner": "Private Developer",
-        "budget": 425000,
-    },
-    {
-        "id": "sample-ground-3",
-        "location": "Brussel Zuid",
-        "m2": 380,
-        "subdivision_type": "Mixed-Use",
-        "soil": "Loam",
-        "owner": "Ontwikkelaar XY",
-        "budget": 290000,
-    },
-]
-
-SAMPLE_MATCHES = [
-    {
-        "id": "sample-match-1",
-        "client": SAMPLE_CLIENTS[0],
-        "ground": SAMPLE_GROUNDS[0],
-        "status": "accepted",
-        "m2_score": 95,
-        "budget_score": 88,
-        "total_score": 92,
-        "preferences": {"client": SAMPLE_CLIENTS[0]},
-    },
-    {
-        "id": "sample-match-2",
-        "client": SAMPLE_CLIENTS[1],
-        "ground": SAMPLE_GROUNDS[1],
-        "status": "in progress",
-        "m2_score": 90,
-        "budget_score": 85,
-        "total_score": 88,
-        "preferences": {"client": SAMPLE_CLIENTS[1]},
-    },
-    {
-        "id": "sample-match-3",
-        "client": SAMPLE_CLIENTS[2],
-        "ground": SAMPLE_GROUNDS[2],
-        "status": "pending",
-        "m2_score": 82,
-        "budget_score": 88,
-        "total_score": 85,
-        "preferences": {"client": SAMPLE_CLIENTS[2]},
-    },
-]
-
-bp = Blueprint("main", __name__)
-
-@bp.route("/login", methods=["GET", "POST"])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for("main.home"))
-
-    if request.method == "POST":
-        company_name = request.form.get("company_name")
-        company = Company.query.filter_by(name=company_name).first()
-
-        if company:
-            login_user(company)
-            flash("Successfully logged in!", "success")
-            next_page = request.args.get("next")
-            return redirect(next_page or url_for("main.home"))
-        
-        flash("Company name not found", "error")
+def init_routes(app):
     
-    return render_template("auth/login.html")
-
-@bp.route("/register", methods=["GET", "POST"])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for("main.home"))
-
-    if request.method == "POST":
-        name = request.form.get("name")
-        email = request.form.get("email", "")  # Email is now optional
-
-        if not name:
-            flash("Company name is required", "error")
-            return redirect(url_for("main.register"))
-
-        if Company.query.filter_by(name=name).first():
-            flash("This company name is already registered", "error")
-            return redirect(url_for("main.register"))
-
-        try:
-            company = Company(name=name, email=email)
-            db.session.add(company)
-            db.session.commit()
-            login_user(company)
-            flash("Account successfully created!", "success")
-            return redirect(url_for("main.home"))
-        except Exception as e:
-            db.session.rollback()
-            flash("An error occurred while creating your account. Please try again.", "error")
-            return redirect(url_for("main.register"))
-
-    return render_template("auth/register.html")
-
-@bp.route("/logout")
-@login_required
-def logout():
-    logout_user()
-    flash("You have been logged out", "info")
-    return redirect(url_for("main.home"))
-
-@bp.route("/")
-def home():
-    if current_user.is_authenticated:
-        clients = (
-            Client.query.filter_by(company_id=current_user.id)
-            .order_by(Client.name.asc())
-            .all()
-        )
-        grounds = Ground.query.order_by(Ground.id.desc()).all()
-        matches = (
-            Match.query.filter_by(company_id=current_user.id)
-            .order_by(Match.id.desc())
-            .all()
-        )
-
-        clients_sample = not bool(clients)
-        grounds_sample = not bool(grounds)
-        matches_sample = not bool(matches)
-
-        clients = clients or SAMPLE_CLIENTS
-        grounds = grounds or SAMPLE_GROUNDS
-        matches = matches or SAMPLE_MATCHES
-
-        def status_lookup(match):
-            if isinstance(match, dict):
-                return (match.get("status") or "pending").lower()
-            return (match.status or "pending").lower()
-
-        active_statuses = {"accepted", "matched", "won", "contacted", "shortlisted"}
-        pending_statuses = {"pending", "new", "review", "reviewing", "in progress"}
-
-        total_clients = len(clients)
-        total_plots = len(grounds)
-        active_matches = sum(1 for m in matches if status_lookup(m) in active_statuses)
-        pending_matches = sum(1 for m in matches if status_lookup(m) in pending_statuses)
-
-        def match_total(match):
-            if isinstance(match, dict):
-                return match.get("total_score")
-            return match.total_score
-
-        score_values = [match_total(m) for m in matches if match_total(m) is not None]
-        avg_match_score = f"{(sum(score_values) / len(score_values)):.0f}%" if score_values else "0%"
-
-        decision_matches = [m for m in matches if status_lookup(m) in {"accepted", "rejected"}]
-        success_rate = (
-            f"{(sum(1 for m in decision_matches if status_lookup(m) == 'accepted') / len(decision_matches)) * 100:.0f}%"
-            if decision_matches
-            else "0%"
-        )
-        pending_reviews = sum(1 for m in matches if status_lookup(m) in {"pending", "review", "reviewing"})
-
-        recent_matches = matches[:5]
-
-        return render_template(
-            "home.html",
-            company=current_user,
-            clients=clients,
-            grounds=grounds,
-            matches=matches,
-            recent_matches=recent_matches,
-            total_clients=total_clients,
-            total_plots=total_plots,
-            active_matches=active_matches,
-            pending_matches=pending_matches,
-            avg_match_score=avg_match_score,
-            success_rate=success_rate,
-            pending_reviews=pending_reviews,
-            sample_dashboard=clients_sample or grounds_sample or matches_sample,
-        )
-
-    auth_mode = request.args.get("mode", "register")
-    if auth_mode not in {"register", "login"}:
-        auth_mode = "register"
-    return render_template("index.html", auth_mode=auth_mode)
-
-@bp.route("/clients")
-@login_required
-def manage_clients():
-    search = request.args.get("q", "").strip()
-    query = Client.query.filter_by(company_id=current_user.id)
-    if search:
-        like_pattern = f"%{search}%"
-        query = query.filter(or_(Client.name.ilike(like_pattern), Client.email.ilike(like_pattern)))
-    clients = query.order_by(Client.name.asc()).all()
-
-    match_counts = dict(
-        db.session.query(Client.id, func.count(Match.id))
-        .outerjoin(Preferences, Preferences.client_id == Client.id)
-        .outerjoin(Match, Match.preferences_id == Preferences.id)
-        .filter(Client.company_id == current_user.id)
-        .group_by(Client.id)
-        .all()
-    )
-
-    active_statuses = ["accepted", "in progress", "contacted"]
-
-    active_counts = dict(
-        db.session.query(Client.id, func.count(Match.id))
-        .join(Preferences, Preferences.id == Match.preferences_id)
-        .join(Client, Client.id == Preferences.client_id)
-        .filter(
-            Client.company_id == current_user.id,
-            func.lower(cast(Match.status, db.Text)).in_(active_statuses),
-        )
-        .group_by(Client.id)
-        .all()
-    )
-
-    for client in clients:
-        client.match_count = match_counts.get(client.id, 0)
-        client.active_matches = active_counts.get(client.id, 0)
-
-    sample_clients = not bool(clients)
-    if sample_clients:
-        clients = [dict(client, matches=[{"status": "accepted"}] * client["match_count"]) for client in SAMPLE_CLIENTS]
-
-    return render_template("clients.html", clients=clients, search=search, sample_clients=sample_clients)
-
-@bp.route("/clients/new", methods=["GET", "POST"])
-@login_required
-def create_client():
-    if request.method == "POST":
-        name = request.form.get("name")
-        email = request.form.get("email")
-        address = request.form.get("address")
-
-        if not all([name, email, address]):
-            flash("All fields are required", "error")
-            return redirect(url_for("main.create_client"))
-
-        # Check if email is already used
-        if Client.query.filter_by(email=email).first():
-            flash("This email address is already registered", "error")
-            return redirect(url_for("main.create_client"))
-
-        client = Client(
-            company=current_user,
-            name=name,
-            email=email,
-            address=address
-        )
-        db.session.add(client)
-        db.session.commit()
-
-        flash("Client added successfully!", "success")
-        return redirect(url_for("main.manage_clients"))
-
-    return render_template("clients/form.html", client=None, sample_mode=False)
-
-@bp.route("/clients/<int:client_id>/edit", methods=["GET", "POST"])
-@login_required
-def edit_client(client_id):
-    client = Client.query.get_or_404(client_id)
+    @app.route('/')
+    def home():
+        return render_template('home.html')
     
-    # Security check
-    if client.company_id != current_user.id:
-        flash("You do not have access to this client", "error")
-        return redirect(url_for("main.manage_clients"))
-
-    if request.method == "POST":
-        name = request.form.get("name")
-        email = request.form.get("email")
-        address = request.form.get("address")
-
-        if not all([name, email, address]):
-            flash("All fields are required", "error")
-            return redirect(url_for("main.edit_client", client_id=client.id))
-
-        # Check if email is already used by another client
-        existing_client = Client.query.filter_by(email=email).first()
-        if existing_client and existing_client.id != client.id:
-            flash("This email address is already registered", "error")
-            return redirect(url_for("main.edit_client", client_id=client.id))
-
-        client.name = name
-        client.email = email
-        client.address = address
-        db.session.commit()
-
-        flash("Client updated successfully!", "success")
-        return redirect(url_for("main.manage_clients"))
-
-    return render_template("clients/form.html", client=client, sample_mode=False)
-
-@bp.route("/clients/<int:client_id>/delete", methods=["POST"])
-@login_required
-def delete_client(client_id):
-    client = Client.query.get_or_404(client_id)
-    
-    # Security check
-    if client.company_id != current_user.id:
-        flash("You do not have access to this client", "error")
-        return redirect(url_for("main.manage_clients"))
-
-    db.session.delete(client)
-    db.session.commit()
-
-    flash("Client deleted successfully!", "success")
-    return redirect(url_for("main.manage_clients"))
-
-@bp.route("/clients/<int:client_id>/preferences/new", methods=["GET", "POST"])
-@login_required
-def create_preferences(client_id):
-    client = Client.query.get_or_404(client_id)
-    
-    # Security check
-    if client.company_id != current_user.id:
-        flash("You do not have access to this client", "error")
-        return redirect(url_for("main.manage_clients"))
-
-    if client.preferences:
-        flash("This client already has preferences", "error")
-        return redirect(url_for("main.manage_clients"))
-
-    if request.method == "POST":
-        preferences = Preferences(
-            client=client,
-            location=request.form.get("location"),
-            soil=request.form.get("soil"),
-            subdivision_type=request.form.get("subdivision_type"),
-            min_m2=request.form.get("min_m2") or None,
-            max_m2=request.form.get("max_m2") or None,
-            min_budget=request.form.get("min_budget") or None,
-            max_budget=request.form.get("max_budget") or None
-        )
-        db.session.add(preferences)
-        db.session.commit()
-
-        flash("Preferences added successfully!", "success")
-        return redirect(url_for("main.manage_clients"))
-
-    return render_template("preferences.html", client=client, pref=None, clients=[client], preferences_readonly=False, selected_client_id=str(client.id))
-
-@bp.route("/clients/<int:client_id>/preferences/edit", methods=["GET", "POST"])
-@login_required
-def edit_preferences(client_id):
-    client = Client.query.get_or_404(client_id)
-    
-    # Security check
-    if client.company_id != current_user.id:
-        flash("You do not have access to this client", "error")
-        return redirect(url_for("main.manage_clients"))
-
-    preferences = client.preferences
-    if not preferences:
-        flash("This client has no preferences yet", "error")
-        return redirect(url_for("main.manage_clients"))
-
-    if request.method == "POST":
-        preferences.location = request.form.get("location")
-        preferences.soil = request.form.get("soil")
-        preferences.subdivision_type = request.form.get("subdivision_type")
-        preferences.min_m2 = request.form.get("min_m2") or None
-        preferences.max_m2 = request.form.get("max_m2") or None
-        preferences.min_budget = request.form.get("min_budget") or None
-        preferences.max_budget = request.form.get("max_budget") or None
-        
-        db.session.commit()
-
-        flash("Preferences updated successfully!", "success")
-        return redirect(url_for("main.manage_clients"))
-
-    return render_template("preferences.html", client=client, pref=preferences, clients=[client], preferences_readonly=False, selected_client_id=str(client.id))
-
-
-@bp.route("/clients/<int:client_id>/preferences/delete", methods=["POST"])
-@login_required
-def delete_preferences(client_id):
-    client = Client.query.get_or_404(client_id)
-
-    if client.company_id != current_user.id:
-        flash("You do not have access to this client", "error")
-        return redirect(url_for("main.manage_clients"))
-
-    preferences = client.preferences
-    if not preferences:
-        flash("No preferences to delete.", "info")
-        return redirect(url_for("main.manage_clients"))
-
-    db.session.delete(preferences)
-    db.session.commit()
-    flash("Preferences removed for this client.", "success")
-    return redirect(url_for("main.preferences_dashboard", client_id=client.id))
-
-
-@bp.route("/preferences", methods=["GET", "POST"])
-@login_required
-def preferences_dashboard():
-    clients = (
-        Client.query.filter_by(company_id=current_user.id)
-        .order_by(Client.name.asc())
-        .all()
-    )
-
-    has_real_clients = bool(clients)
-    clients = clients or SAMPLE_CLIENTS
-
-    selected_client_id = request.values.get("client_id")
-    client = None
-    pref = None
-
-    def find_sample_client(cid):
-        return next((c for c in clients if str(c.get("id")) == str(cid)), None)
-
-    if request.method == "POST":
-        selected_client_id = request.form.get("client_id")
-
-    if selected_client_id:
-        if has_real_clients:
+    @app.route('/company/register', methods=['GET', 'POST'])
+    def company_register():
+        if request.method == 'POST':
+            name = request.form.get('name', '').strip()
+            email = request.form.get('email', '').strip()
+            
+            # Basic validation
+            if not name or not email:
+                flash('Name and email are required', 'danger')
+                return render_template('company_register.html')
+            
+            # Check for duplicate email
+            existing = Company.query.filter_by(email=email).first()
+            if existing:
+                flash('Email already registered', 'danger')
+                return render_template('company_register.html')
+            
             try:
-                selected_int = int(selected_client_id)
-            except (TypeError, ValueError):
-                selected_int = None
-
-            if selected_int:
-                client = Client.query.filter_by(id=selected_int, company_id=current_user.id).first()
-                if not client:
-                    flash("Client not found.", "error")
-                    return redirect(url_for("main.preferences_dashboard"))
-                pref = client.preferences
-        else:
-            client = find_sample_client(selected_client_id)
+                company = Company(name=name, email=email)
+                db.session.add(company)
+                db.session.commit()
+                
+                session['company_id'] = company.id
+                session['role'] = 'company'
+                
+                flash('Company registered!', 'success')
+                return redirect(url_for('dashboard'))
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Registration failed: {str(e)}', 'danger')
+                return render_template('company_register.html')
+        
+        return render_template('company_register.html')
+    
+    @app.route('/company/login', methods=['GET', 'POST'])
+    def company_login():
+        if request.method == 'POST':
+            email = request.form.get('email')
+            company = Company.query.filter_by(email=email).first()
+            
+            if company:
+                session['company_id'] = company.id
+                session['role'] = 'company'
+                flash('Logged in!', 'success')
+                return redirect(url_for('dashboard'))
+            
+            flash('Company not found', 'danger')
+        
+        return render_template('company_login.html')
+    
+    @app.route('/client/login', methods=['GET', 'POST'])
+    def client_login():
+        if request.method == 'POST':
+            email = request.form.get('email')
+            client = Client.query.filter_by(email=email).first()
+            
             if client:
-                pref = client.get("preferences")
-
-    if request.method == "POST":
-        if not selected_client_id:
-            flash("Select a client first.", "error")
-            return redirect(url_for("main.preferences_dashboard"))
-
-        if not has_real_clients:
-            flash("Add a client before saving real preferences.", "info")
-            return redirect(url_for("main.preferences_dashboard"))
-
-        if not client:
-            flash("Client not found.", "error")
-            return redirect(url_for("main.preferences_dashboard"))
-
+                session['client_id'] = client.id
+                session['role'] = 'client'
+                session['company_id'] = client.company_id
+                flash('Logged in!', 'success')
+                return redirect(url_for('client_dashboard'))
+            
+            flash('Client not found', 'danger')
+        
+        return render_template('client_login.html')
+    
+    @app.route('/dashboard')
+    @requires_company
+    def dashboard():
+        company_id = session['company_id']
+        clients = Client.query.filter_by(company_id=company_id).all()
+        grounds = Ground.query.all()
+        matches = Match.query.filter_by(company_id=company_id).all()
+        
+        return render_template('dashboard.html', 
+                             clients=clients, 
+                             grounds=grounds, 
+                             matches=matches)
+    
+    @app.route('/client/dashboard')
+    @requires_client
+    def client_dashboard():
+        client_id = session['client_id']
+        client = Client.query.get(client_id)
+        preferences = Preferences.query.filter_by(client_id=client_id).first()
+        
+        # Get matches for this client
+        if preferences:
+            matches = Match.query.filter_by(preferences_id=preferences.id).all()
+            # Load ground details and calculate total score
+            for m in matches:
+                m.ground = Ground.query.get(m.ground_id)
+                m.total_score = (m.budget_score or 0) + (m.m2_score or 0) + (m.location_score or 0)
+            # Sort by total score (highest first)
+            matches.sort(key=lambda m: m.total_score, reverse=True)
+        else:
+            matches = []
+        
+        return render_template('client_dashboard.html',
+                             client=client,
+                             preferences=preferences,
+                             matches=matches)
+    
+    @app.route('/clients')
+    @requires_company
+    def clients_list():
+        company_id = session['company_id']
+        search = request.args.get('search', '')
+        
+        query = Client.query.filter_by(company_id=company_id)
+        if search:
+            query = query.filter(
+                (Client.name.ilike(f'%{search}%')) |
+                (Client.email.ilike(f'%{search}%')) |
+                (Client.address.ilike(f'%{search}%'))
+            )
+        
+        clients = query.all()
+        return render_template('clients_list.html', clients=clients, search=search)
+    
+    @app.route('/clients/add', methods=['GET', 'POST'])
+    @requires_company
+    def client_add():
+        if request.method == 'POST':
+            name = request.form.get('name', '').strip()
+            email = request.form.get('email', '').strip()
+            address = request.form.get('address', '').strip()
+            
+            # Basic validation
+            if not name or not email:
+                flash('Name and email are required', 'danger')
+                return render_template('client_form.html', client=None)
+            
+            # Check for duplicate email
+            existing = Client.query.filter_by(email=email).first()
+            if existing:
+                flash('Email already exists', 'danger')
+                return render_template('client_form.html', client=None)
+            
+            try:
+                client = Client(
+                    company_id=session['company_id'],
+                    name=name,
+                    email=email,
+                    address=address
+                )
+                db.session.add(client)
+                db.session.commit()
+                
+                flash('Client added!', 'success')
+                return redirect(url_for('clients_list'))
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Failed to add client: {str(e)}', 'danger')
+                return render_template('client_form.html', client=None)
+        
+        return render_template('client_form.html', client=None)
+    
+    @app.route('/clients/<int:client_id>/edit', methods=['GET', 'POST'])
+    @requires_company
+    def client_edit(client_id):
+        client = Client.query.get_or_404(client_id)
+        
+        # Check authorization
+        if client.company_id != session['company_id']:
+            flash('Access denied', 'danger')
+            return redirect(url_for('clients_list'))
+        
+        if request.method == 'POST':
+            client.name = request.form.get('name')
+            client.email = request.form.get('email')
+            client.address = request.form.get('address', '')
+            db.session.commit()
+            
+            flash('Client updated!', 'success')
+            return redirect(url_for('clients_list'))
+        
+        return render_template('client_form.html', client=client)
+    
+    @app.route('/clients/<int:client_id>/delete', methods=['POST'])
+    @requires_company
+    def client_delete(client_id):
+        client = Client.query.get_or_404(client_id)
+        
+        # Check authorization
+        if client.company_id != session['company_id']:
+            flash('Access denied', 'danger')
+            return redirect(url_for('clients_list'))
+        
+        db.session.delete(client)
+        db.session.commit()
+        
+        flash('Client deleted!', 'success')
+        return redirect(url_for('clients_list'))
+    
+    @app.route('/grounds')
+    @requires_company
+    def grounds_list():
+        location = request.args.get('location', '')
+        min_price = request.args.get('min_price', '')
+        max_price = request.args.get('max_price', '')
+        min_m2 = request.args.get('min_m2', '')
+        max_m2 = request.args.get('max_m2', '')
+        subdivision_type = request.args.get('subdivision_type', '')
+        
+        query = Ground.query
+        
+        if location:
+            query = query.filter(Ground.location.ilike(f'%{location}%'))
+        if min_price:
+            query = query.filter(Ground.budget >= float(min_price))
+        if max_price:
+            query = query.filter(Ground.budget <= float(max_price))
+        if min_m2:
+            query = query.filter(Ground.m2 >= int(min_m2))
+        if max_m2:
+            query = query.filter(Ground.m2 <= int(max_m2))
+        if subdivision_type:
+            query = query.filter(Ground.subdivision_type.ilike(f'%{subdivision_type}%'))
+        
+        grounds = query.all()
+        return render_template('grounds_list.html', grounds=grounds)
+    
+    @app.route('/grounds/add', methods=['GET', 'POST'])
+    @requires_company
+    def ground_add():
+        if request.method == 'POST':
+            try:
+                location = request.form.get('location', '').strip()
+                m2 = int(request.form.get('m2', 0))
+                budget = float(request.form.get('budget', 0))
+                subdivision_type = request.form.get('subdivision_type', '').strip()
+                owner = request.form.get('owner', '').strip()
+                
+                # Validation
+                if not location or not subdivision_type or not owner:
+                    flash('Location, type and owner are required', 'danger')
+                    return render_template('ground_form.html', ground=None)
+                
+                if m2 <= 0:
+                    flash('Size must be positive', 'danger')
+                    return render_template('ground_form.html', ground=None)
+                
+                if budget <= 0:
+                    flash('Budget must be positive', 'danger')
+                    return render_template('ground_form.html', ground=None)
+                
+                ground = Ground(
+                    location=location,
+                    m2=m2,
+                    budget=budget,
+                    subdivision_type=subdivision_type,
+                    owner=owner
+                )
+                db.session.add(ground)
+                db.session.commit()
+                
+                flash('Ground added!', 'success')
+                return redirect(url_for('grounds_list'))
+            except ValueError:
+                flash('Invalid number format', 'danger')
+                return render_template('ground_form.html', ground=None)
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Failed to add ground: {str(e)}', 'danger')
+                return render_template('ground_form.html', ground=None)
+        
+        return render_template('ground_form.html', ground=None)
+    
+    @app.route('/grounds/<int:ground_id>/edit', methods=['GET', 'POST'])
+    @requires_company
+    def ground_edit(ground_id):
+        ground = Ground.query.get_or_404(ground_id)
+        
+        if request.method == 'POST':
+            ground.location = request.form.get('location')
+            ground.m2 = int(request.form.get('m2'))
+            ground.budget = float(request.form.get('budget'))
+            ground.subdivision_type = request.form.get('subdivision_type')
+            ground.owner = request.form.get('owner')
+            db.session.commit()
+            
+            flash('Ground updated!', 'success')
+            return redirect(url_for('grounds_list'))
+        
+        return render_template('ground_form.html', ground=ground)
+    
+    @app.route('/grounds/<int:ground_id>/delete', methods=['POST'])
+    @requires_company
+    def ground_delete(ground_id):
+        ground = Ground.query.get_or_404(ground_id)
+        db.session.delete(ground)
+        db.session.commit()
+        
+        flash('Ground deleted!', 'success')
+        return redirect(url_for('grounds_list'))
+    
+    @app.route('/preferences')
+    @requires_company
+    def preferences_list():
+        company_id = session['company_id']
+        clients = Client.query.filter_by(company_id=company_id).all()
+        client_ids = [c.id for c in clients]
+        preferences = Preferences.query.filter(Preferences.client_id.in_(client_ids)).all() if client_ids else []
+        
+        # Add client info to each preference
+        for pref in preferences:
+            pref.client = Client.query.get(pref.client_id)
+        
+        return render_template('preferences_list.html', preferences=preferences)
+    
+    @app.route('/preferences/<int:client_id>', methods=['GET', 'POST'])
+    @requires_company
+    def preferences_edit(client_id):
+        client = Client.query.get_or_404(client_id)
+        
+        # Check authorization
+        if client.company_id != session['company_id']:
+            flash('Access denied', 'danger')
+            return redirect(url_for('preferences_list'))
+        
+        pref = Preferences.query.filter_by(client_id=client_id).first()
+        
         if not pref:
-            pref = Preferences(client=client)
-
-        pref.location = request.form.get("location") or None
-        pref.soil = request.form.get("soil") or None
-        pref.subdivision_type = request.form.get("subdivision_type") or None
-        pref.min_m2 = request.form.get("min_m2") or None
-        pref.max_m2 = request.form.get("max_m2") or None
-        pref.min_budget = request.form.get("min_budget") or None
-        pref.max_budget = request.form.get("max_budget") or None
-
-        db.session.add(pref)
+            pref = Preferences(client_id=client_id)
+            db.session.add(pref)
+        
+        if request.method == 'POST':
+            pref.location = request.form.get('location')
+            pref.subdivision_type = request.form.get('subdivision_type')
+            pref.min_m2 = int(request.form.get('min_m2')) if request.form.get('min_m2') else None
+            pref.max_m2 = int(request.form.get('max_m2')) if request.form.get('max_m2') else None
+            pref.min_budget = float(request.form.get('min_budget')) if request.form.get('min_budget') else None
+            pref.max_budget = float(request.form.get('max_budget')) if request.form.get('max_budget') else None
+            
+            db.session.commit()
+            
+            flash('Preferences updated!', 'success')
+            return redirect(url_for('preferences_list'))
+        
+        return render_template('preferences_form.html', client=client, pref=pref)
+    
+    @app.route('/client/preferences')
+    @requires_client
+    def client_preferences_view():
+        client_id = session['client_id']
+        client = Client.query.get(client_id)
+        pref = Preferences.query.filter_by(client_id=client_id).first()
+        
+        return render_template('client_preferences.html', client=client, pref=pref)
+    
+    @app.route('/client/preferences/edit', methods=['GET', 'POST'])
+    @requires_client
+    def client_preferences_edit():
+        client_id = session['client_id']
+        client = Client.query.get(client_id)
+        pref = Preferences.query.filter_by(client_id=client_id).first()
+        
+        if not pref:
+            pref = Preferences(client_id=client_id)
+            db.session.add(pref)
+        
+        if request.method == 'POST':
+            pref.location = request.form.get('location')
+            pref.subdivision_type = request.form.get('subdivision_type')
+            pref.min_m2 = int(request.form.get('min_m2')) if request.form.get('min_m2') else None
+            pref.max_m2 = int(request.form.get('max_m2')) if request.form.get('max_m2') else None
+            pref.min_budget = float(request.form.get('min_budget')) if request.form.get('min_budget') else None
+            pref.max_budget = float(request.form.get('max_budget')) if request.form.get('max_budget') else None
+            
+            db.session.commit()
+            
+            flash('Preferences updated!', 'success')
+            return redirect(url_for('client_dashboard'))
+        
+        return render_template('client_preferences_form.html', client=client, pref=pref)
+    
+    @app.route('/matches')
+    def matches_list():
+        status_filter = request.args.get('status', '')
+        
+        if session.get('role') == 'company':
+            company_id = session['company_id']
+            query = Match.query.filter_by(company_id=company_id)
+        elif session.get('role') == 'client':
+            client_id = session['client_id']
+            pref = Preferences.query.filter_by(client_id=client_id).first()
+            if pref:
+                query = Match.query.filter_by(preferences_id=pref.id)
+            else:
+                query = Match.query.filter_by(id=-1)  # No matches
+        else:
+            return redirect(url_for('home'))
+        
+        if status_filter:
+            query = query.filter_by(status=status_filter)
+        
+        matches = query.all()
+        
+        # Load related data and calculate total score
+        for m in matches:
+            m.ground = Ground.query.get(m.ground_id)
+            pref = Preferences.query.get(m.preferences_id)
+            m.client = Client.query.get(pref.client_id) if pref else None
+            m.total_score = (m.budget_score or 0) + (m.m2_score or 0) + (m.location_score or 0)
+        
+        # Sort by total score (highest first)
+        matches.sort(key=lambda m: m.total_score, reverse=True)
+        
+        return render_template('matches_list.html', matches=matches, status_filter=status_filter)
+    
+    @app.route('/matches/<int:match_id>/status', methods=['POST'])
+    @requires_company
+    def match_update_status(match_id):
+        match = Match.query.get_or_404(match_id)
+        
+        # Check authorization
+        if match.company_id != session['company_id']:
+            flash('Access denied', 'danger')
+            return redirect(url_for('matches_list'))
+        
+        new_status = request.form.get('status')
+        if new_status in ['pending', 'accepted', 'rejected']:
+            match.status = new_status
+            db.session.commit()
+            flash(f'Match status updated to {new_status}!', 'success')
+        
+        return redirect(url_for('matches_list'))
+    
+    @app.route('/match/run', methods=['POST'])
+    @requires_company
+    def match_run():
+        company_id = session['company_id']
+        clients = Client.query.filter_by(company_id=company_id).all()
+        grounds = Ground.query.all()
+        
+        count = 0
+        for client in clients:
+            pref = Preferences.query.filter_by(client_id=client.id).first()
+            if not pref:
+                continue
+            
+            for ground in grounds:
+                # Check if match exists
+                existing = Match.query.filter_by(
+                    company_id=company_id,
+                    ground_id=ground.id,
+                    preferences_id=pref.id
+                ).first()
+                
+                if existing:
+                    continue
+                
+                scores = compute_match_scores(ground, pref)
+                
+                match = Match(
+                    company_id=company_id,
+                    ground_id=ground.id,
+                    preferences_id=pref.id,
+                    budget_score=scores['budget_score'],
+                    m2_score=scores['m2_score'],
+                    location_score=scores['location_score'],
+                    status='pending'
+                )
+                db.session.add(match)
+                count += 1
+        
         db.session.commit()
-
-        flash("Preferences saved.", "success")
-        return redirect(url_for("main.preferences_dashboard", client_id=client.id))
-
-    return render_template(
-        "preferences.html",
-        clients=clients,
-        pref=pref,
-        client=client,
-        preferences_readonly=not has_real_clients,
-        selected_client_id=str(selected_client_id) if selected_client_id else "",
-    )
-
-@bp.route("/matches")
-@login_required
-def view_matches():
-    client_id = request.args.get("client_id", type=int)
-    status_filter = request.args.get("status", "").lower()
-    search = request.args.get("q", "").strip()
-
-    query = (
-        Match.query.filter_by(company_id=current_user.id)
-        .outerjoin(Preferences, Match.preferences_id == Preferences.id)
-        .outerjoin(Client, Client.id == Preferences.client_id)
-        .outerjoin(Ground, Ground.id == Match.ground_id)
-    )
-
-    if client_id:
-        query = query.filter(Client.id == client_id)
-
-    if status_filter:
-        query = query.filter(func.lower(Match.status) == status_filter)
-
-    if search:
-        like_pattern = f"%{search}%"
-        query = query.filter(or_(Client.name.ilike(like_pattern), Ground.location.ilike(like_pattern)))
-
-    matches = query.order_by(Match.total_score.desc().nullslast(), Match.id.desc()).all()
-
-    clients = (
-        Client.query.filter_by(company_id=current_user.id)
-        .order_by(Client.name.asc())
-        .all()
-    )
-
-    sample_matches = not bool(matches)
-    sample_clients = not bool(clients)
-
-    matches = matches or SAMPLE_MATCHES
-    clients = clients or SAMPLE_CLIENTS
-
-    return render_template(
-        "matches.html",
-        matches=matches,
-        clients=clients,
-        sample_matches=sample_matches,
-        filters_disabled=sample_clients,
-    )
-
-@bp.route("/matches/generate")
-@login_required
-def generate_matches():
-    from .services import generate_matches_for_company
+        flash(f'{count} matches created!', 'success')
+        return redirect(url_for('matches_list'))
     
-    # Generate new matches
-    new_matches = generate_matches_for_company(current_user)
-    
-    if new_matches:
-        flash(f"{len(new_matches)} new matches found!", "success")
-    else:
-        flash("No new matches found.", "info")
-    
-    return redirect(url_for("main.view_matches"))
-
-
-@bp.route("/plots")
-@login_required
-def view_plots():
-    query = Ground.query
-
-    search = request.args.get("q", "").strip()
-    if search:
-        like_pattern = f"%{search}%"
-        query = query.filter(or_(Ground.location.ilike(like_pattern), Ground.owner.ilike(like_pattern)))
-
-    location_filter = request.args.get("location")
-    if location_filter:
-        query = query.filter(Ground.location == location_filter)
-
-    type_filter = request.args.get("type")
-    if type_filter:
-        query = query.filter(Ground.subdivision_type == type_filter)
-
-    soil_filter = request.args.get("soil")
-    if soil_filter:
-        query = query.filter(Ground.soil == soil_filter)
-
-    grounds = query.order_by(Ground.id.desc()).all()
-
-    location_rows = db.session.query(Ground.location).distinct().all()
-    locations = sorted({row[0] for row in location_rows if row[0]})
-
-    type_rows = db.session.query(Ground.subdivision_type).distinct().all()
-    subdivision_types = sorted({row[0] for row in type_rows if row[0]})
-
-    soil_rows = db.session.query(Ground.soil).distinct().all()
-    soils = sorted({row[0] for row in soil_rows if row[0]})
-
-    sample_plots = not bool(grounds)
-    if sample_plots:
-        grounds = SAMPLE_GROUNDS
-        locations = sorted({ground["location"] for ground in SAMPLE_GROUNDS})
-        subdivision_types = sorted({ground["subdivision_type"] for ground in SAMPLE_GROUNDS})
-        soils = sorted({ground["soil"] for ground in SAMPLE_GROUNDS})
-
-    return render_template(
-        "plots.html",
-        grounds=grounds,
-        locations=locations,
-        subdivision_types=subdivision_types,
-        soils=soils,
-        sample_plots=sample_plots,
-    )
-
-
-@bp.route("/my-company")
-@login_required
-def my_company():
-    return redirect(url_for("main.view_plots"))
-
-
-@bp.route("/profile", methods=["GET", "POST"])
-@login_required
-def profile():
-    edit_mode = request.args.get("mode") == "edit"
-
-    if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip()
-
-        if not name or not email:
-            flash("Name and email are required.", "error")
-            return redirect(url_for("main.profile", mode="edit"))
-
-        current_user.name = name
-        current_user.email = email
-        db.session.commit()
-
-        flash("Profile updated.", "success")
-        return redirect(url_for("main.profile"))
-
-    return render_template("profile.html", company=current_user, edit_mode=edit_mode)
-
-@bp.route("/matches/<int:match_id>/status", methods=["POST"])
-@login_required
-def update_match_status(match_id):
-    match = Match.query.get_or_404(match_id)
-    
-    # Security check
-    if match.company_id != current_user.id:
-        flash("You do not have access to this match", "error")
-        return redirect(url_for("main.view_matches"))
-    
-    status = request.form.get("status")
-    if status in ["pending", "accepted", "rejected"]:
-        match.status = status
-        db.session.commit()
-        flash("Match status updated", "success")
-    
-    return redirect(url_for("main.view_matches"))
-
-@bp.route("/grounds/new", methods=["GET", "POST"])
-@login_required
-def create_ground():
-    if request.method == "POST":
-        # fields matching DB schema: location, m2, budget, subdivision_type, owner, soil
-        location = request.form.get("location", "").strip()
-        m2 = request.form.get("m2", "").strip()
-        budget = request.form.get("budget", "").strip()
-        subdivision_type = request.form.get("subdivision_type", "").strip() or "unknown"
-        owner = request.form.get("owner", "").strip() or ""
-        soil = request.form.get("soil", "").strip() or "unknown"
-
-        if not location or not m2 or not budget:
-            flash("Please provide location, area (m2) and budget.", "error")
-            return redirect(url_for("main.create_ground"))
-
+    @app.route('/scrape', methods=['POST'])
+    @requires_company
+    def scrape():
         try:
-            m2_val = int(m2)
-            budget_val = float(budget)
-        except ValueError:
-            flash("Area and budget must be numeric.", "error")
-            return redirect(url_for("main.create_ground"))
-
-        ground = Ground(
-            location=location,
-            m2=m2_val,
-            budget=budget_val,
-            subdivision_type=subdivision_type,
-            owner=owner,
-            soil=soil,
-        )
-        db.session.add(ground)
-        db.session.commit()
-        flash("Ground added!", "success")
-        return redirect(url_for("main.home"))
-
-    return render_template("new_listing.html")
+            import scraper
+            plots = scraper.scrape_vansweevelt()
+            
+            count = 0
+            for plot in plots:
+                ground = Ground(
+                    location=plot.get('location', 'Unknown'),
+                    m2=plot.get('m2', 0),
+                    budget=plot.get('budget', 0),
+                    subdivision_type=plot.get('subdivision_type', 'Unknown'),
+                    owner='Vansweevelt'
+                )
+                db.session.add(ground)
+                count += 1
+            
+            db.session.commit()
+            flash(f'Scraper ran! {count} grounds added.', 'success')
+        except Exception as e:
+            flash(f'Scraper error: {str(e)}', 'danger')
+        
+        return redirect(url_for('grounds_list'))
+    
+    @app.route('/logout')
+    def logout():
+        session.clear()
+        return redirect(url_for('home'))

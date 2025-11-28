@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>{% if ground %}Edit{% else %}Add{% endif %} Ground</h2>
+    <form method="POST">
+        <input type="text" name="location" placeholder="Location" required value="{{ ground.location if ground else '' }}">
+        <input type="number" name="m2" placeholder="M²" required value="{{ ground.m2 if ground else '' }}">
+        <input type="number" step="0.01" name="budget" placeholder="Budget" required value="{{ ground.budget if ground else '' }}">
+        <input type="text" name="subdivision_type" placeholder="Subdivision Type" required value="{{ ground.subdivision_type if ground else '' }}">
+        <input type="text" name="owner" placeholder="Owner" required value="{{ ground.owner if ground else '' }}">
+        <button type="submit" class="btn">{% if ground %}Update{% else %}Add{% endif %}</button>
+        <a href="{{ url_for('grounds_list') }}" class="btn">Cancel</a>
+    </form>
+</div>
+{% endblock %}

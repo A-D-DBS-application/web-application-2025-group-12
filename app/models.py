@@ -1,14 +1,14 @@
 from datetime import datetime
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from sqlalchemy import func
+from sqlalchemy import func, Numeric
 
-db = SQLAlchemy()
+from . import db
 
 
 # ---------- Company ----------
 class Company(UserMixin, db.Model):
     __tablename__ = "company"
+    __table_args__ = {"schema": "public"}
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False, unique=True)
@@ -25,9 +25,10 @@ class Company(UserMixin, db.Model):
 # ---------- Client ----------
 class Client(db.Model):
     __tablename__ = "client"
+    __table_args__ = {"schema": "public"}
 
     id = db.Column(db.Integer, primary_key=True)
-    company_id = db.Column(db.Integer, db.ForeignKey("company.id"), nullable=True)
+    company_id = db.Column(db.Integer, db.ForeignKey("public.company.id"), nullable=True)
     name = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(320), nullable=False)
     address = db.Column(db.String(300), nullable=True)
@@ -42,20 +43,18 @@ class Client(db.Model):
         cascade="all, delete-orphan",
     )
 
-    # created_at not present in DB schema for client: omit to match DB
-
     def __repr__(self):
         return f"<Client {self.id} {self.name}>"
 
 
 # ---------- Ground ----------
 class Ground(db.Model):
-    # Match the existing DB schema: public.ground
     __tablename__ = "ground"
+    __table_args__ = {"schema": "public"}
 
     id = db.Column(db.Integer, primary_key=True)
 
-    # columns from db/schema.sql
+    # columns from db/schema.sql (no 'soil' column)
     location = db.Column(db.String(200), nullable=False)
     m2 = db.Column(db.Integer, nullable=False)              # area in m2
     budget = db.Column(db.Numeric(12, 2), nullable=False)
@@ -71,11 +70,12 @@ class Ground(db.Model):
 # ---------- Preferences (1-op-1 met Client) ----------
 class Preferences(db.Model):
     __tablename__ = "preferences"
+    __table_args__ = {"schema": "public"}
 
     id = db.Column(db.Integer, primary_key=True)
 
     # link naar client (uniek -> één voorkeurenrecord per client)
-    client_id = db.Column(db.Integer, db.ForeignKey("client.id", ondelete="CASCADE"), nullable=False, unique=True)
+    client_id = db.Column(db.Integer, db.ForeignKey("public.client.id", ondelete="CASCADE"), nullable=False, unique=True)
     client = db.relationship("Client", back_populates="preferences")
 
     # gewenste kenmerken
@@ -90,8 +90,6 @@ class Preferences(db.Model):
 
     matches = db.relationship("Match", back_populates="preferences", cascade="all, delete-orphan")
 
-    # created_at not present in DB schema for preferences: omit to match DB
-
     def __repr__(self):
         return f"<Preferences client={self.client_id}>"
 
@@ -99,19 +97,19 @@ class Preferences(db.Model):
 # ---------- Match ----------
 class Match(db.Model):
     __tablename__ = "match"
+    __table_args__ = {"schema": "public"}
 
     id = db.Column(db.Integer, primary_key=True)
 
-    company_id = db.Column(db.Integer, db.ForeignKey("company.id", ondelete="CASCADE"), nullable=False)
-    # foreign key to the 'ground' table (schema uses singular 'ground')
-    ground_id = db.Column(db.Integer, db.ForeignKey("ground.id", ondelete="CASCADE"), nullable=False)
-    preferences_id = db.Column(db.Integer, db.ForeignKey("preferences.id", ondelete="CASCADE"), nullable=False)
+    company_id = db.Column(db.Integer, db.ForeignKey("public.company.id", ondelete="CASCADE"), nullable=False)
+    ground_id = db.Column(db.Integer, db.ForeignKey("public.ground.id", ondelete="CASCADE"), nullable=False)
+    preferences_id = db.Column(db.Integer, db.ForeignKey("public.preferences.id", ondelete="CASCADE"), nullable=False)
 
     # status & (sub)scores zoals in ERD
     status = db.Column(db.String(30), nullable=False, default="pending")
     m2_score = db.Column(db.Float, nullable=True)
     budget_score = db.Column(db.Float, nullable=True)
-    # optioneel: totale score
+
     total_score = db.column_property(
         (func.coalesce(m2_score, 0) + func.coalesce(budget_score, 0)) / 2.0
     )
@@ -120,11 +118,9 @@ class Match(db.Model):
     ground = db.relationship("Ground", back_populates="matches")
     preferences = db.relationship("Preferences", back_populates="matches")
 
-    # created_at not present in DB schema for match: omit to match DB
-
-    # unieke combinatie kan handig zijn om dubbele matches te vermijden
     __table_args__ = (
         db.UniqueConstraint("company_id", "ground_id", "preferences_id", name="uq_match_triplet"),
+        {"schema": "public"},
     )
 
     def __repr__(self):
