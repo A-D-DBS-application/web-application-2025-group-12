@@ -56,7 +56,6 @@ class Ground(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # columns from db/schema.sql
-    soil = db.Column(db.String(100), nullable=False)
     location = db.Column(db.String(200), nullable=False)
     m2 = db.Column(db.Integer, nullable=False)              # area in m2
     budget = db.Column(db.Numeric(12, 2), nullable=False)
@@ -80,7 +79,6 @@ class Preferences(db.Model):
     client = db.relationship("Client", back_populates="preferences")
 
     # gewenste kenmerken
-    soil = db.Column(db.String(100), nullable=True)
     location = db.Column(db.String(200), nullable=True)
     subdivision_type = db.Column(db.String(120), nullable=True)
 
