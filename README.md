@@ -1,6 +1,6 @@
 # 🏗️ GroundMatch - Building Plot Matching Platform
 
-Intelligent matching system connecting construction companies with their clients' ideal building plots using a 3-score algorithm.
+Intelligent matching system that connects construction companies with ideal building plots that meet their clients' preferences.
 
 ## � Over GroundMatch
 
