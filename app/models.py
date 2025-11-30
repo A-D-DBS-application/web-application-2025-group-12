@@ -16,7 +16,7 @@ class Company(UserMixin, db.Model):
 
     # relaties
     clients = db.relationship("Client", back_populates="company", cascade="all, delete-orphan")
-    matches = db.relationship("Match", back_populates="company", cascade="all, delete-orphan")
+    # removed matches relationship: access matches via company.clients -> each client.matches
 
     def __repr__(self):
         return f"<Company {self.id} {self.name}>"
@@ -43,6 +43,9 @@ class Client(db.Model):
         cascade="all, delete-orphan",
     )
 
+    # matches: link between client and ground
+    matches = db.relationship("Match", back_populates="client", cascade="all, delete-orphan")
+
     def __repr__(self):
         return f"<Client {self.id} {self.name}>"
 
@@ -60,6 +63,7 @@ class Ground(db.Model):
     budget = db.Column(db.Numeric(12, 2), nullable=False)
     subdivision_type = db.Column(db.String(120), nullable=False)
     owner = db.Column(db.String(200), nullable=False)
+    image_url = db.Column(db.String(1024), nullable=True)
 
     matches = db.relationship("Match", back_populates="ground", cascade="all, delete-orphan")
 
@@ -88,7 +92,7 @@ class Preferences(db.Model):
     min_budget = db.Column(db.Numeric(12, 2), nullable=True)
     max_budget = db.Column(db.Numeric(12, 2), nullable=True)
 
-    matches = db.relationship("Match", back_populates="preferences", cascade="all, delete-orphan")
+    # removed matches relationship: a Match is between ground and client; access from preferences through preferences.client.matches
 
     def __repr__(self):
         return f"<Preferences client={self.client_id}>"
@@ -101,9 +105,9 @@ class Match(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    company_id = db.Column(db.Integer, db.ForeignKey("public.company.id", ondelete="CASCADE"), nullable=False)
+    # link to client instead of company or preferences
+    client_id = db.Column(db.Integer, db.ForeignKey("public.client.id", ondelete="CASCADE"), nullable=False)
     ground_id = db.Column(db.Integer, db.ForeignKey("public.ground.id", ondelete="CASCADE"), nullable=False)
-    preferences_id = db.Column(db.Integer, db.ForeignKey("public.preferences.id", ondelete="CASCADE"), nullable=False)
 
     # status & (sub)scores zoals in ERD
     status = db.Column(db.String(30), nullable=False, default="pending")
@@ -114,14 +118,13 @@ class Match(db.Model):
         (func.coalesce(m2_score, 0) + func.coalesce(budget_score, 0)) / 2.0
     )
 
-    company = db.relationship("Company", back_populates="matches")
+    client = db.relationship("Client", back_populates="matches")
     ground = db.relationship("Ground", back_populates="matches")
-    preferences = db.relationship("Preferences", back_populates="matches")
 
     __table_args__ = (
-        db.UniqueConstraint("company_id", "ground_id", "preferences_id", name="uq_match_triplet"),
+        db.UniqueConstraint("client_id", "ground_id", name="uq_match_pair"),
         {"schema": "public"},
     )
 
     def __repr__(self):
-        return f"<Match {self.id} pref={self.preferences_id} ground={self.ground_id} company={self.company_id}>"
+        return f"<Match {self.id} client={self.client_id} ground={self.ground_id}>"
