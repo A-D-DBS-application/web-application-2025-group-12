@@ -100,7 +100,8 @@ def init_routes(app):
         company_id = session['company_id']
         clients = Client.query.filter_by(company_id=company_id).all()
         grounds = Ground.query.all()
-        matches = Match.query.filter_by(company_id=company_id).all()
+        # Get all matches for clients of this company
+        matches = Match.query.join(Client).filter(Client.company_id == company_id).all()
         
         return render_template('dashboard.html', 
                              clients=clients, 
@@ -112,19 +113,12 @@ def init_routes(app):
     def client_dashboard():
         client_id = session['client_id']
         client = Client.query.get(client_id)
-        preferences = Preferences.query.filter_by(client_id=client_id).first()
+        preferences = client.preferences
         
-        # Get matches for this client
-        if preferences:
-            matches = Match.query.filter_by(preferences_id=preferences.id).all()
-            # Load ground details and calculate total score
-            for m in matches:
-                m.ground = Ground.query.get(m.ground_id)
-                m.total_score = (m.budget_score or 0) + (m.m2_score or 0) + (m.location_score or 0)
-            # Sort by total score (highest first)
-            matches.sort(key=lambda m: m.total_score, reverse=True)
-        else:
-            matches = []
+        # Get matches for this client (directly via relationship)
+        matches = client.matches
+        # Sort by total score (highest first) - total_score is computed column
+        matches = sorted(matches, key=lambda m: m.total_score or 0, reverse=True)
         
         return render_template('client_dashboard.html',
                              client=client,
@@ -411,14 +405,11 @@ def init_routes(app):
         
         if session.get('role') == 'company':
             company_id = session['company_id']
-            query = Match.query.filter_by(company_id=company_id)
+            # Get matches via client relationship
+            query = Match.query.join(Client).filter(Client.company_id == company_id)
         elif session.get('role') == 'client':
             client_id = session['client_id']
-            pref = Preferences.query.filter_by(client_id=client_id).first()
-            if pref:
-                query = Match.query.filter_by(preferences_id=pref.id)
-            else:
-                query = Match.query.filter_by(id=-1)  # No matches
+            query = Match.query.filter_by(client_id=client_id)
         else:
             return redirect(url_for('home'))
         
@@ -427,15 +418,8 @@ def init_routes(app):
         
         matches = query.all()
         
-        # Load related data and calculate total score
-        for m in matches:
-            m.ground = Ground.query.get(m.ground_id)
-            pref = Preferences.query.get(m.preferences_id)
-            m.client = Client.query.get(pref.client_id) if pref else None
-            m.total_score = (m.budget_score or 0) + (m.m2_score or 0) + (m.location_score or 0)
-        
-        # Sort by total score (highest first)
-        matches.sort(key=lambda m: m.total_score, reverse=True)
+        # Sort by total score (highest first) - total_score is computed column
+        matches = sorted(matches, key=lambda m: m.total_score or 0, reverse=True)
         
         return render_template('matches_list.html', matches=matches, status_filter=status_filter)
     
@@ -444,8 +428,8 @@ def init_routes(app):
     def match_update_status(match_id):
         match = Match.query.get_or_404(match_id)
         
-        # Check authorization
-        if match.company_id != session['company_id']:
+        # Check authorization - access company via client
+        if match.client.company_id != session['company_id']:
             flash('Access denied', 'danger')
             return redirect(url_for('matches_list'))
         
@@ -466,16 +450,16 @@ def init_routes(app):
         
         count = 0
         for client in clients:
-            pref = Preferences.query.filter_by(client_id=client.id).first()
+            # Access preferences via client relationship
+            pref = client.preferences
             if not pref:
                 continue
             
             for ground in grounds:
-                # Check if match exists
+                # Check if match exists (client_id + ground_id is unique)
                 existing = Match.query.filter_by(
-                    company_id=company_id,
-                    ground_id=ground.id,
-                    preferences_id=pref.id
+                    client_id=client.id,
+                    ground_id=ground.id
                 ).first()
                 
                 if existing:
@@ -484,12 +468,10 @@ def init_routes(app):
                 scores = compute_match_scores(ground, pref)
                 
                 match = Match(
-                    company_id=company_id,
+                    client_id=client.id,
                     ground_id=ground.id,
-                    preferences_id=pref.id,
                     budget_score=scores['budget_score'],
                     m2_score=scores['m2_score'],
-                    location_score=scores['location_score'],
                     status='pending'
                 )
                 db.session.add(match)
