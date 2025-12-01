@@ -1,4 +1,5 @@
-from flask import render_template, request, redirect, url_for, flash, session
+from flask import render_template, request, redirect, url_for, flash, session, Response, send_file
+import os
 from .models import db, Company, Client, Ground, Preferences, Match
 from .matching import compute_match_scores
 from functools import wraps
@@ -250,6 +251,50 @@ def init_routes(app):
         
         grounds = query.all()
         return render_template('grounds_list.html', grounds=grounds)
+
+    @app.route('/grounds/<int:ground_id>/image')
+    def ground_image(ground_id):
+        """Dynamically generate a placeholder SVG image for a ground.
+
+        This avoids broken <img> icons when no static JPG is available. The
+        SVG includes the location and a small caption with m2 and budget.
+        """
+        ground = Ground.query.get(ground_id)
+        if not ground:
+            # return a 404 transparent SVG
+            svg = """<svg xmlns='http://www.w3.org/2000/svg' width='800' height='400'></svg>"""
+            return Response(svg, mimetype='image/svg+xml')
+        # If a real JPG exists in static/images/grounds/<id>.jpg, serve it.
+        static_path = os.path.join(os.path.dirname(__file__), 'static', 'images', 'grounds', f"{ground_id}.jpg")
+        if os.path.exists(static_path):
+            return send_file(static_path, mimetype='image/jpeg')
+
+        # Safe text values
+        location = (ground.location or 'Unknown')
+        try:
+            m2 = int(ground.m2) if ground.m2 is not None else None
+        except Exception:
+            m2 = None
+        try:
+            budget_val = float(ground.budget) if ground.budget is not None else None
+        except Exception:
+            budget_val = None
+
+        budget_text = f"€{budget_val:,.0f}" if budget_val is not None else ''
+        m2_text = f"{m2} m²" if m2 is not None else ''
+
+        # Simple SVG composition
+        svg = f'''<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <rect width="100%" height="100%" fill="#f6fbf8" />
+  <rect x="24" y="24" width="752" height="352" rx="10" ry="10" fill="#ffffff" stroke="#e6f3ed"/>
+  <text x="50%" y="45%" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#193127">{location}</text>
+  <text x="50%" y="60%" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1f6f4a">{m2_text} {('•' if m2_text and budget_text else '')} {budget_text}</text>
+  <text x="50%" y="85%" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#6b7a71">Provided by local preview</text>
+</svg>
+'''
+
+        return Response(svg, mimetype='image/svg+xml')
     
     @app.route('/grounds/add', methods=['GET', 'POST'])
     @requires_company
@@ -297,6 +342,11 @@ def init_routes(app):
         
         return render_template('ground_form.html', ground=None)
     
+    @app.route('/grounds/<int:ground_id>')
+    def ground_detail(ground_id):
+        ground = Ground.query.get_or_404(ground_id)
+        return render_template('ground_detail.html', ground=ground)
+    
     @app.route('/grounds/<int:ground_id>/edit', methods=['GET', 'POST'])
     @requires_company
     def ground_edit(ground_id):
@@ -326,18 +376,31 @@ def init_routes(app):
         return redirect(url_for('grounds_list'))
     
     @app.route('/preferences')
-    @requires_company
     def preferences_list():
-        company_id = session['company_id']
-        clients = Client.query.filter_by(company_id=company_id).all()
-        client_ids = [c.id for c in clients]
-        preferences = Preferences.query.filter(Preferences.client_id.in_(client_ids)).all() if client_ids else []
-        
-        # Add client info to each preference
-        for pref in preferences:
-            pref.client = Client.query.get(pref.client_id)
-        
-        return render_template('preferences_list.html', preferences=preferences)
+        # Handle both company and client roles
+        print(f"DEBUG: /preferences accessed - role: {session.get('role')}, client_id: {session.get('client_id')}, company_id: {session.get('company_id')}")
+        if session.get('role') == 'company':
+            print("DEBUG: Company user - showing preferences list")
+            company_id = session['company_id']
+            clients = Client.query.filter_by(company_id=company_id).all()
+            client_ids = [c.id for c in clients]
+            preferences = Preferences.query.filter(Preferences.client_id.in_(client_ids)).all() if client_ids else []
+            
+            # Add client info to each preference
+            for pref in preferences:
+                pref.client = Client.query.get(pref.client_id)
+            
+            return render_template('preferences_list.html', preferences=preferences)
+        elif session.get('role') == 'client':
+            # Redirect client to their own preferences view
+            print("DEBUG: Client user - redirecting to client_preferences_view")
+            target_url = url_for('client_preferences_view')
+            print(f"DEBUG: Target URL: {target_url}")
+            return redirect(target_url)
+        else:
+            print(f"DEBUG: No role found - redirecting to home")
+            flash('Access denied', 'danger')
+            return redirect(url_for('home'))
     
     @app.route('/preferences/<int:client_id>', methods=['GET', 'POST'])
     @requires_company
@@ -505,7 +568,7 @@ def init_routes(app):
         try:
             import scraper
             plots = scraper.scrape_vansweevelt()
-            
+
             count = 0
             for plot in plots:
                 ground = Ground(
@@ -517,12 +580,143 @@ def init_routes(app):
                 )
                 db.session.add(ground)
                 count += 1
-            
+
             db.session.commit()
-            flash(f'Scraper ran! {count} grounds added.', 'success')
+
+            # After inserting, attempt to download real images for the newly
+            # scraped plots so the UI shows real photos immediately.
+            try:
+                import requests
+                import os
+                from urllib.parse import urlparse
+                from bs4 import BeautifulSoup
+
+                base_dir = os.path.join(os.path.dirname(__file__), 'static', 'images', 'grounds')
+                os.makedirs(base_dir, exist_ok=True)
+                saved = 0
+                for p in plots:
+                    # match inserted ground
+                    q = Ground.query.filter_by(location=p['location'], m2=p['m2'], budget=p['budget']).first()
+                    if not q:
+                        continue
+
+                    img_url = p.get('image_url') or p.get('detail_url')
+                    if img_url and 'pixel' in img_url and p.get('detail_url'):
+                        try:
+                            dresp = requests.get(p['detail_url'], timeout=15)
+                            dresp.raise_for_status()
+                            dsoup = BeautifulSoup(dresp.text, 'html.parser')
+                            candidates = [img.get('src') for img in dsoup.find_all('img') if img.get('src')]
+                            picked = None
+                            for c in candidates:
+                                if c.startswith('http') and ('.jpg' in c or '.png' in c):
+                                    picked = c
+                                    break
+                            if picked:
+                                img_url = picked
+                        except Exception:
+                            pass
+
+                    if not img_url:
+                        continue
+
+                    try:
+                        resp = requests.get(img_url, timeout=15)
+                        resp.raise_for_status()
+                        out_path = os.path.join(base_dir, f"{q.id}.jpg")
+                        with open(out_path, 'wb') as fh:
+                            fh.write(resp.content)
+                        saved += 1
+                    except Exception:
+                        continue
+
+                flash(f'Scraper ran! {count} grounds added. {saved} images downloaded.', 'success')
+            except Exception:
+                flash(f'Scraper ran! {count} grounds added. Images not downloaded due to an internal error.', 'warning')
         except Exception as e:
             flash(f'Scraper error: {str(e)}', 'danger')
         
+        return redirect(url_for('grounds_list'))
+
+    @app.route('/grounds/fetch_images', methods=['POST'])
+    @requires_company
+    def grounds_fetch_images():
+        """Fetch images for existing grounds using the scraper's image URLs.
+
+        The function will call the scraper parser to obtain image URLs and try
+        to match each scraped plot to an existing Ground (by location, m2 and
+        budget). When matched and an image URL is present, it downloads the
+        image and saves it to `app/static/images/grounds/<ground.id>.jpg`.
+        """
+        try:
+            import scraper
+            import requests
+            import os
+            from urllib.parse import urlparse
+
+            plots = scraper.scrape_vansweevelt()
+            saved = 0
+            failed = 0
+            base_dir = os.path.join(os.path.dirname(__file__), 'static', 'images', 'grounds')
+            os.makedirs(base_dir, exist_ok=True)
+
+            for p in plots:
+                # Simple matching strategy: location + m2 + budget
+                q = Ground.query.filter_by(location=p['location'], m2=p['m2'], budget=p['budget']).first()
+                if not q:
+                    # try looser match on location and m2
+                    q = Ground.query.filter_by(location=p['location'], m2=p['m2']).first()
+                if not q:
+                    continue
+
+                img_url = p.get('image_url') or p.get('detail_url')
+                if not img_url:
+                    failed += 1
+                    continue
+                # If the scraped image is a small placeholder, try to get a
+                # real image from the detail page.
+                try:
+                    is_placeholder = False
+                    if img_url and 'pixel' in img_url:
+                        is_placeholder = True
+
+                    real_img_url = img_url
+                    if is_placeholder and p.get('detail_url'):
+                        try:
+                            dresp = requests.get(p['detail_url'], timeout=15)
+                            dresp.raise_for_status()
+                            from bs4 import BeautifulSoup
+                            dsoup = BeautifulSoup(dresp.text, 'html.parser')
+                            # prefer absolute https image URLs
+                            candidates = [img.get('src') for img in dsoup.find_all('img') if img.get('src')]
+                            # pick first candidate that looks like a real photo
+                            picked = None
+                            for c in candidates:
+                                if c.startswith('http') and ('.jpg' in c or '.png' in c):
+                                    picked = c
+                                    break
+                            if picked:
+                                real_img_url = picked
+                        except Exception:
+                            real_img_url = img_url
+
+                    resp = requests.get(real_img_url, timeout=15)
+                    resp.raise_for_status()
+                    # determine extension
+                    path = urlparse(real_img_url).path
+                    ext = os.path.splitext(path)[1] or '.jpg'
+                    # normalize to .jpg
+                    out_path = os.path.join(base_dir, f"{q.id}.jpg")
+                    with open(out_path, 'wb') as fh:
+                        fh.write(resp.content)
+                    saved += 1
+                except Exception:
+                    failed += 1
+
+            flash(f'Image fetch complete: {saved} saved, {failed} failed', 'success')
+        except Exception as e:
+            flash(f'Failed to fetch images: {str(e)}', 'danger')
+
         return redirect(url_for('grounds_list'))
     
     @app.route('/logout')

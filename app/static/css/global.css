@@ -1,0 +1,134 @@
+:root{
+  --gm-bg: #f3faf4; /* very light green */
+  --gm-surface: #ffffff;
+  --gm-primary: #1f6f4a; /* primary green */
+  --gm-primary-600: #2c8a57;
+  --gm-muted: #6b7a71;
+  --gm-success: #22c55e;
+  --gm-warning: #f6c84c;
+  --gm-danger: #ef4444;
+  --gm-radius: 10px;
+  --gm-card-shadow: 0 6px 18px rgba(31,111,74,0.06);
+  --gm-gap: 20px;
+  --max-width: 1200px;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  background:var(--gm-bg);
+  color:#193127;
+  -webkit-font-smoothing:antialiased;
+}
+
+.gm-container{max-width:var(--max-width);margin:0 auto;padding:24px}
+
+/* NAVBAR */
+.gm-navbar{background:var(--gm-primary);color:#fff;padding:8px 0;box-shadow:0 3px 10px rgba(0,0,0,0.06);position:sticky;top:0;z-index:40}
+.gm-navbar-inner{display:flex;align-items:center;justify-content:space-between}
+.gm-brand{display:flex;align-items:center;text-decoration:none;color:inherit}
+.gm-logo{width:44px;height:44px;margin-right:12px}
+.gm-logo-full{height:60px;width:auto;margin-right:0;display:block}
+.gm-brand-text{font-weight:700;font-size:1.05rem}
+
+.gm-nav{display:flex;gap:8px;align-items:center}
+.gm-nav-link{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;color:rgba(255,255,255,0.9);text-decoration:none;font-weight:600;opacity:0.95}
+.gm-nav-link .gm-icon{font-size:1rem}
+.gm-nav-icon{width:18px;height:18px;display:inline-block}
+.gm-nav-link:hover{background:rgba(255,255,255,0.06)}
+.gm-nav-link.active{background:var(--gm-surface);color:var(--gm-primary);box-shadow:var(--gm-card-shadow)}
+.gm-nav-cta{background:rgba(255,255,255,0.12)}
+
+/* main */
+.gm-main{padding-top:28px;padding-bottom:48px}
+
+.gm-auth{min-height:calc(100vh - 120px);display:flex;align-items:center;justify-content:center;padding:24px}
+
+.gm-flash-wrap{margin-bottom:18px}
+.gm-flash{padding:12px 16px;border-radius:8px;background:#fff;border-left:4px solid var(--gm-primary);box-shadow:var(--gm-card-shadow)}
+.gm-flash-success{border-left-color:var(--gm-success)}
+.gm-flash-danger{border-left-color:var(--gm-danger)}
+
+/* Card */
+.card, .gm-card{background:var(--gm-surface);border-radius:var(--gm-radius);padding:18px;box-shadow:var(--gm-card-shadow);margin-bottom:var(--gm-gap)}
+
+/* Buttons */
+.btn{display:inline-block;padding:8px 12px;border-radius:8px;background:transparent;border:1px solid rgba(25,49,39,0.08);color:var(--gm-primary);text-decoration:none;cursor:pointer;font-weight:600}
+.btn:hover{transform:translateY(-1px)}
+.btn.btn-success, .btn-success{background:var(--gm-primary);color:#fff;border:none}
+
+/* Forms / Inputs */
+input[type="text"], input[type="number"], select, textarea{width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(25,49,39,0.08);background:transparent}
+form .form-row{display:flex;gap:12px}
+form .form-row > *{flex:1}
+
+/* Clients section styling */
+.clients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-top:12px}
+.client-card{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px;border-radius:12px;background:var(--gm-surface);box-shadow:var(--gm-card-shadow);border:1px solid rgba(25,49,39,0.04)}
+.client-main{display:flex;align-items:center;gap:12px}
+.client-avatar{width:56px;height:56px;border-radius:8px;background:linear-gradient(180deg,#eaf7ee,#ffffff);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gm-primary);font-size:1.1rem}
+.client-info{display:flex;flex-direction:column}
+.client-name{font-weight:700;font-size:1.05rem}
+.client-email{font-size:0.95rem}
+.client-address{font-size:0.9rem}
+.client-actions{display:flex;gap:8px;align-items:center}
+.client-actions .btn{padding:6px 10px}
+.client-actions.two-column{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start}
+.client-actions.two-column .col{display:flex;flex-direction:column;gap:8px}
+.btn-light{background:transparent;border:1px solid rgba(25,49,39,0.06);padding:6px 10px;border-radius:8px}
+
+/* Button sizing for clients list */
+.btn-primary-large{background:var(--gm-primary);color:#fff;padding:8px 12px;border-radius:8px;font-weight:700}
+.btn-primary-large.btn-ghost{background:transparent;color:var(--gm-primary);border:1px solid rgba(25,49,39,0.06)}
+.btn-small{padding:6px 8px;border-radius:8px;font-size:0.95rem}
+
+/* Make the client-main area clickable but don't let it cover action buttons */
+.client-main-link{display:block;text-decoration:none;color:inherit}
+.client-main-link:hover .client-card, .client-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(31,111,74,0.08)}
+
+/* Make search button visually smaller only in the clients list search row */
+.card form .form-row button{padding:6px 10px}
+
+/* Client form: equal-width input bars and larger typography */
+.client-form label.client-label{display:block;font-weight:600;color:#193127;margin-bottom:6px;font-size:1rem}
+.client-form input[type="text"], .client-form input[type="email"], .client-form input[type="number"]{padding:12px 14px;font-size:1.05rem;border-radius:10px}
+.client-form .form-row{gap:14px}
+.client-form .form-row > div{flex:1}
+
+/* Generic input helper used in some templates to ensure visual consistency */
+.gm-input{width:100%;padding:12px 14px;font-size:1.05rem;border-radius:10px;border:1px solid rgba(25,49,39,0.08);background:transparent}
+/* Tables modern */
+table{width:100%;border-collapse:separate;border-spacing:0 12px}
+thead th{background:transparent;text-align:left;color:var(--gm-muted);font-weight:600;padding:6px 12px}
+tbody tr{background:var(--gm-surface);box-shadow:var(--gm-card-shadow);border-radius:10px}
+tbody td{padding:14px 12px;border:0}
+
+/* Small helper badges */
+.badge{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:700;background:rgba(31,111,74,0.06);color:var(--gm-primary);}
+.tag{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;font-weight:700}
+.tag.success{background:rgba(34,197,94,0.12);color:var(--gm-success)}
+.tag.pending{background:rgba(246,200,76,0.12);color:var(--gm-warning)}
+.tag.info{background:rgba(31,111,74,0.06);color:var(--gm-primary)}
+
+/* Responsive adjustments */
+@media (max-width:900px){
+  .gm-nav{display:none}
+  .gm-navbar-inner{justify-content:space-between}
+  .gm-container{padding:14px}
+  .gm-main{padding-top:16px}
+  table{font-size:0.95rem}
+}
+
+/* Building plot card alternative */
+.plot-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border-radius:12px;border:1px solid rgba(25,49,39,0.04);background:linear-gradient(180deg, #fff, #fbfdfb)}
+.plot-info{display:flex;gap:16px;align-items:center}
+.plot-meta{display:flex;flex-direction:column}
+.plot-meta .label{color:var(--gm-muted);font-size:0.85rem}
+.plot-meta .value{font-weight:700}
+
+.muted{color:var(--gm-muted)}
+
+.grounds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.btn-light{background:transparent;border:1px solid rgba(25,49,39,0.06);padding:8px 10px;border-radius:8px}

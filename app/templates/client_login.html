@@ -1,11 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="card">
-    <h2>Client Login</h2>
-    <form method="POST">
-        <input type="email" name="email" placeholder="Email" required>
-        <button type="submit" class="btn">Login</button>
-        <a href="{{ url_for('home') }}" class="btn">Back</a>
-    </form>
+<div class="gm-auth" style="min-height:calc(100vh - 80px);justify-content:center;align-items:center">
+  <div class="card" style="max-width:420px;width:100%;font-size:1.05rem">
+      <h2 style="margin-top:0;font-size:1.4rem">Client Login</h2>
+      <form method="POST">
+          <label style="display:block;font-size:1rem;font-weight:600;margin-bottom:6px;color:#193127">Email</label>
+          <input type="email" name="email" placeholder="Email" required style="font-size:1rem;width:100%;padding:12px">
+          <div style="display:flex;gap:8px;margin-top:18px">
+            <button type="submit" class="btn btn-success" style="flex:1;padding:12px;font-size:1rem">Login</button>
+            <a href="{{ url_for('home') }}" class="btn" style="flex:1;padding:12px;font-size:1rem;text-align:center">Back</a>
+          </div>
+      </form>
+  </div>
 </div>
+
 {% endblock %}

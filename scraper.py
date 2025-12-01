@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from supabase import create_client, Client
 from dotenv import load_dotenv
+from typing import Optional, List, Dict
 
 # -----------------------------
 # Laad .env variabelen
@@ -13,10 +14,14 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise RuntimeError("SUPABASE_URL of SUPABASE_KEY ontbreekt in .env")
+# If Supabase credentials are not provided, avoid raising at import time so
+# the scraper parser can still be used locally. The save_to_supabase function
+# will check and error if credentials are missing.
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+else:
+    supabase = None
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 TABLE_NAME = "ground"
 
 # -----------------------------
@@ -34,7 +39,7 @@ URL = (
 # -----------------------------
 # Helper-functies
 # -----------------------------
-def parse_m2(surface_text: str | None) -> int | None:
+def parse_m2(surface_text: Optional[str]) -> Optional[int]:
     """Haalt de m² als integer uit bv. '975m²' of '975 m2'."""
     if not surface_text:
         return None
@@ -42,7 +47,7 @@ def parse_m2(surface_text: str | None) -> int | None:
     return int(digits) if digits else None
 
 
-def parse_budget(price_text: str | None) -> int | None:
+def parse_budget(price_text: Optional[str]) -> Optional[int]:
     """Haalt het bedrag als integer uit bv. '€ 149.000' -> 149000."""
     if not price_text:
         return None
@@ -53,7 +58,7 @@ def parse_budget(price_text: str | None) -> int | None:
 # -----------------------------
 # Hoofd-scrape functie
 # -----------------------------
-def scrape_vansweevelt() -> list[dict]:
+def scrape_vansweevelt() -> List[Dict]:
     """Haalt bouwgronden op en mapt ze naar de kolommen van 'ground'."""
 
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -65,7 +70,7 @@ def scrape_vansweevelt() -> list[dict]:
     coords = data.get("coordinaten", [])
     print(f"Aantal items in 'coordinaten': {len(coords)}")
 
-    results: list[dict] = []
+    results: List[Dict] = []
 
     for item in coords:
         # reclame-tegels e.d. hebben tellen = 0
@@ -82,6 +87,12 @@ def scrape_vansweevelt() -> list[dict]:
             if a_tag and a_tag.has_attr("href")
             else None
         )
+
+        # Try to find a thumbnail or hero image in the chunk HTML
+        img_tag = soup.find("img")
+        image_url = None
+        if img_tag and img_tag.has_attr("src"):
+            image_url = urljoin("https://www.vansweevelt.be", img_tag["src"])
 
         # prijs
         price_div = soup.find("div", class_="slider-bedrag")
@@ -121,7 +132,8 @@ def scrape_vansweevelt() -> list[dict]:
             "budget": budget_val,
             "subdivision_type": grond_type or "onbekend",
             "owner": "Vansweevelt",
-            # detail_url zou extra kolom vereisen, dus laten we weg
+            "detail_url": detail_url,
+            "image_url": image_url,
         }
 
         results.append(record)
@@ -132,7 +144,7 @@ def scrape_vansweevelt() -> list[dict]:
 # -----------------------------
 # Opslaan in Supabase
 # -----------------------------
-def save_to_supabase(plots: list[dict]) -> None:
+def save_to_supabase(plots: List[Dict]) -> None:
     if not plots:
         print("Geen plots om op te slaan.")
         return

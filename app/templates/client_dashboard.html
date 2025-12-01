@@ -9,7 +9,7 @@
     <p><strong>Location:</strong> {{ preferences.location or 'Not set' }}</p>
     <p><strong>Budget:</strong> €{{ preferences.min_budget or '?' }} - €{{ preferences.max_budget or '?' }}</p>
     <p><strong>Size:</strong> {{ preferences.min_m2 or '?' }} - {{ preferences.max_m2 or '?' }} m²</p>
-    <p><strong>Type:</strong> {{ preferences.subdivision_type or 'Not set' }}</p>
+    <p><strong>Subdivision Type:</strong> {{ preferences.subdivision_type or 'Not set' }}</p>
     <a href="{{ url_for('client_preferences_edit') }}" class="btn">Edit Preferences</a>
     {% else %}
     <p>No preferences set yet.</p>
@@ -20,18 +20,32 @@
 <div class="card">
     <h2>Your Matches ({{ matches|length }})</h2>
     {% if matches %}
-    <table>
-        <tr><th>Location</th><th>Size</th><th>Budget</th><th>Total Score</th><th>Status</th></tr>
-        {% for match in matches %}
-        <tr>
-            <td>{{ match.ground.location }}</td>
-            <td>{{ match.ground.m2 }} m²</td>
-            <td>€{{ match.ground.budget }}</td>
-            <td><strong>{{ ((match.budget_score or 0) + (match.m2_score or 0) + (match.location_score or 0))|round(2) }}</strong></td>
-            <td><strong>{{ match.status }}</strong></td>
-        </tr>
-        {% endfor %}
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>Location</th>
+                    <th>Surface Area (m²)</th>
+                    <th>Budget</th>
+                    <th>Subdivision Type</th>
+                    <th>Owner</th>
+                    <th>Total Score</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for match in matches %}
+                <tr>
+                        <td>{{ match.ground.location }}</td>
+                        <td>{{ match.ground.m2 }} m²</td>
+                        <td>€{{ match.ground.budget }}</td>
+                        <td>{{ match.ground.subdivision_type }}</td>
+                        <td>{{ match.ground.owner }}</td>
+                        <td><strong>{{ ((match.budget_score or 0) + (match.m2_score or 0) + (match.location_score or 0))|round(2) }}</strong></td>
+                        <td><strong>{{ match.status }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% else %}
     <p>No matches yet. Ask your company to run the matching algorithm.</p>
     {% endif %}

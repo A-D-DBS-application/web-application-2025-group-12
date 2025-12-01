@@ -1,38 +1,46 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Company Dashboard</h1>
-<a href="{{ url_for('logout') }}" class="btn">Logout</a>
-
 <div class="card">
-    <h2>Quick Stats</h2>
-    <p><strong>Clients:</strong> {{ clients|length }}</p>
-    <p><strong>Grounds:</strong> {{ grounds|length }}</p>
-    <p><strong>Matches:</strong> {{ matches|length }}</p>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+            <h1 style="margin:0">Welcome back</h1>
+            <div class="muted">Here's an overview of your platform</div>
+        </div>
+        {# Logout button intentionally removed from the visual layout on this screen per design-only request #}
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:18px">
+        <div class="card"><div class="muted">Total Clients</div><div style="font-weight:700;font-size:1.3rem">{{ clients|length }}</div></div>
+        <div class="card"><div class="muted">Building Plots</div><div style="font-weight:700;font-size:1.3rem">{{ grounds|length }}</div></div>
+        <div class="card"><div class="muted">Active Matches</div><div style="font-weight:700;font-size:1.3rem">{{ matches|length }}</div></div>
+    </div>
+
+    <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap">
+        <a href="{{ url_for('clients_list') }}" class="btn btn-success">Manage Clients</a>
+        <a href="{{ url_for('grounds_list') }}" class="btn btn-success">Manage Grounds</a>
+        <a href="{{ url_for('preferences_list') }}" class="btn btn-success">Manage Preferences</a>
+        <a href="{{ url_for('matches_list') }}" class="btn btn-success">View Matches</a>
+        {# Run Matching Algorithm button removed from visual layout on home/dashboard screen per design-only request #}
+    </div>
 </div>
 
 <div class="card">
-    <h2>Quick Actions</h2>
-    <a href="{{ url_for('clients_list') }}" class="btn btn-success">Manage Clients</a>
-    <a href="{{ url_for('grounds_list') }}" class="btn btn-success">Manage Grounds</a>
-    <a href="{{ url_for('preferences_list') }}" class="btn btn-success">Manage Preferences</a>
-    <a href="{{ url_for('matches_list') }}" class="btn btn-success">View Matches</a>
-    <form method="POST" action="{{ url_for('match_run') }}" style="display:inline;">
-        <button type="submit" class="btn">Run Matching Algorithm</button>
-    </form>
-</div>
-
-<div class="card">
-    <h2>Recent Clients</h2>
+    <h2 style="margin-top:0">Recent accepted matches</h2>
     <table>
-        <tr><th>Name</th><th>Email</th><th>Actions</th></tr>
-        {% for client in clients[:5] %}
-        <tr>
-            <td>{{ client.name }}</td>
-            <td>{{ client.email }}</td>
-            <td><a href="{{ url_for('preferences_edit', client_id=client.id) }}" class="btn">Preferences</a></td>
-        </tr>
-        {% endfor %}
+        <thead>
+            <tr><th>Name</th><th>Email</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for client in clients[:5] %}
+            <tr>
+                <td>{{ client.name }}</td>
+                <td>{{ client.email }}</td>
+                <td><a href="{{ url_for('preferences_edit', client_id=client.id) }}" class="btn">Preferences</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
-    <a href="{{ url_for('clients_list') }}" class="btn">View All Clients</a>
+    <div style="margin-top:12px"><a href="{{ url_for('clients_list') }}" class="btn">See All Matches</a></div>
 </div>
+
 {% endblock %}

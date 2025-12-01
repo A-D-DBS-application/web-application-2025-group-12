@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width:900px;margin:0 auto">
+    {% if ground %}
+    <div class="card" style="margin-bottom:24px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+            <div>
+                <h1 style="margin:0">Building Plot Details</h1>
+                <div class="muted">View complete information about this building plot</div>
+            </div>
+            {# Right-corner back button removed to avoid duplication; bottom button will handle back navigation #}
+        </div>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+            <div>
+                <img src="{{ url_for('ground_image', ground_id=ground.id) }}" alt="{{ ground.location }}" style="width:100%;height:300px;object-fit:cover;border-radius:10px;box-shadow:0 6px 18px rgba(31,111,74,0.06)">
+            </div>
+            <div>
+                <div style="margin-bottom:20px">
+                    <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:4px">LOCATION</div>
+                    <div style="font-size:1.4rem;font-weight:700;color:#193127">{{ ground.location }}</div>
+                </div>
+                
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+                    <div>
+                        <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:4px">SURFACE AREA</div>
+                        <div style="font-size:1.2rem;font-weight:700;color:#1f6f4a">{{ ground.m2 }} m²</div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:4px">PRICE</div>
+                        <div style="font-size:1.2rem;font-weight:700;color:#1f6f4a">€{{ ground.budget|format_price }}</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom:20px">
+                    <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:4px">SUBDIVISION TYPE</div>
+                    <div style="font-size:1.1rem;font-weight:600;color:#193127">{{ ground.subdivision_type }}</div>
+                </div>
+                
+                <div>
+                    <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:4px">OWNER</div>
+                    <div style="font-size:1.1rem;font-weight:600;color:#193127">{{ ground.owner }}</div>
+                </div>
+            </div>
+        </div>
+        
+        {% if session.role == 'company' %}
+        <div style="display:flex;gap:12px;justify-content:flex-start;border-top:1px solid rgba(25,49,39,0.08);padding-top:18px">
+            {# Back button will adapt to come back to Matches when appropriate via JS; default goes to plots #}
+            <a id="detail-back-btn" href="{{ url_for('grounds_list') }}" class="btn">Back to Plots</a>
+            {# Show Edit only when owner doesn't match common scraped markers (template-only heuristic) #}
+            {% set scraped_owners = ['Vansweevelt', 'Provided by local preview', ''] %}
+            {% if ground.owner is defined and ground.owner not in scraped_owners %}
+            <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn">Edit Plot</a>
+            {% endif %}
+            <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}" style="display:inline">
+                <button type="submit" class="btn" onclick="return confirm('Delete this ground? This action cannot be undone.')">Delete Plot</button>
+            </form>
+        </div>
+        {% else %}
+        <div style="border-top:1px solid rgba(25,49,39,0.08);padding-top:18px">
+            <a id="detail-back-btn" href="{{ url_for('matches_list') }}" class="btn">Back</a>
+        </div>
+        {% endif %}
+
+        <script>
+        // If the user arrived from the Matches page, make the Back button return there and show shorter label.
+        (function(){
+            try{
+                var ref = document.referrer || '';
+                var backBtn = document.getElementById('detail-back-btn');
+                if(!backBtn) return;
+                if(ref.indexOf('/matches') !== -1){
+                    backBtn.href = "{{ url_for('matches_list') }}";
+                    backBtn.textContent = 'Back';
+                } else {
+                    // default keep existing href/text (plots)
+                }
+            }catch(e){console.warn(e)}
+        })();
+        </script>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
