@@ -13,8 +13,9 @@
                 <input type="email" name="email" placeholder="Email" required style="font-size:1rem;width:100%;padding:10px;box-sizing:border-box">
             </div>
         </div>
-        <div style="margin-top:12px">
-            <button type="submit" class="btn btn-success" style="width:100%;padding:12px">Register</button>
+        <div style="display:flex;gap:8px;margin-top:18px">
+            <button type="submit" class="btn btn-success" style="flex:1;padding:12px;font-size:1rem">Register</button>
+            <a href="{{ url_for('home') }}" class="btn" style="flex:1;padding:12px;font-size:1rem;text-align:center">Back</a>
         </div>
     </form>
 </div>

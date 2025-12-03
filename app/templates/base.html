@@ -53,6 +53,9 @@
                     <img src="{{ url_for('static', filename='images/nav/matches-white.svg') }}" class="gm-nav-icon" alt="">
                     <span>Matches</span>
                 </a>
+                {% if current_user_name %}
+                <span class="gm-user-pill">{{ current_user_name }}</span>
+                {% endif %}
                 <a href="{{ url_for('logout') }}" class="gm-nav-link gm-nav-cta">
                     <img src="{{ url_for('static', filename='images/nav/logout-white.svg') }}" class="gm-nav-icon" alt="">
                     <span>Logout</span>

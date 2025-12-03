@@ -21,14 +21,14 @@
             <input type="text" name="location" placeholder="Search by location" value="{{ request.args.get('location', '') }}">
             <select name="subdivision_type">
                 <option value="">All Subdivision Types</option>
-                <option value="Residential" {% if request.args.get('subdivision_type')=='Residential' %}selected{% endif %}>Residential</option>
-                <option value="Commercial" {% if request.args.get('subdivision_type')=='Commercial' %}selected{% endif %}>Commercial</option>
-                <option value="Mixed-Use" {% if request.args.get('subdivision_type')=='Mixed-Use' %}selected{% endif %}>Mixed-Use</option>
+                {% for type in subdivision_types %}
+                <option value="{{ type }}" {% if request.args.get('subdivision_type')==type %}selected{% endif %}>{{ type.replace('_', ' ').title() }}</option>
+                {% endfor %}
             </select>
-            <input type="number" name="min_m2" placeholder="Min Surface Area (m²)" value="{{ request.args.get('min_m2', '') }}">
-            <input type="number" name="max_m2" placeholder="Max Surface Area (m²)" value="{{ request.args.get('max_m2', '') }}">
-            <input type="number" name="min_price" placeholder="Min Budget" value="{{ request.args.get('min_price', '') }}">
-            <input type="number" name="max_price" placeholder="Max Budget" value="{{ request.args.get('max_price', '') }}">
+            <input type="number" step="1" name="min_m2" placeholder="Min Surface Area (m²)" value="{{ request.args.get('min_m2', '') }}">
+            <input type="number" step="1" name="max_m2" placeholder="Max Surface Area (m²)" value="{{ request.args.get('max_m2', '') }}">
+            <input type="number" step="1" name="min_price" placeholder="Min Budget" value="{{ request.args.get('min_price', '') }}">
+            <input type="number" step="1" name="max_price" placeholder="Max Budget" value="{{ request.args.get('max_price', '') }}">
             <button type="submit" class="btn btn-success">Filter</button>
         </div>
     </form>
@@ -39,7 +39,7 @@
                 <div class="grounds-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin-bottom:20px">
                     {% for ground in grounds %}
                     <div style="display:flex;flex-direction:column;border-radius:10px;overflow:hidden;box-shadow:0 6px 18px rgba(31,111,74,0.06);background:#fff;transition:transform 0.2s,box-shadow 0.2s;cursor:pointer" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 10px 24px rgba(31,111,74,0.1)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 6px 18px rgba(31,111,74,0.06)'">
-                        <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" style="display:block;text-decoration:none;color:inherit;flex:1">
+                        <a href="{{ url_for('ground_detail', ground_id=ground.id) }}" style="display:block;text-decoration:none;color:inherit;flex:1">
                             <img src="{{ url_for('ground_image', ground_id=ground.id) }}" alt="{{ ground.location }}" style="width:100%;height:200px;object-fit:cover;display:block">
                             <div style="padding:14px;border-top:1px solid rgba(25,49,39,0.04)">
                                 <div style="font-size:1rem;font-weight:600;margin-bottom:6px;color:#193127">{{ ground.location }}</div>
@@ -48,16 +48,15 @@
                         </a>
                         {% if session.role == 'company' %}
                         <div style="padding:12px;display:flex;gap:8px;border-top:1px solid rgba(25,49,39,0.04)">
-                            {# Show Edit only for plots that appear to be manually added. Heuristic: hide when owner looks like scraped source. Adjust as needed. #}
-                            {% set scraped_owners = ['Vansweevelt', 'Provided by local preview', ''] %}
-                            {% if ground.owner is defined and ground.owner not in scraped_owners %}
+                            {# Show Edit/Delete only for grounds owned by this company #}
+                            {% if user_company and ground.provider == user_company %}
                             <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn" style="flex:1;text-align:center;font-size:0.9rem">Edit</a>
-                            {% else %}
-                            <div style="flex:1"></div>
-                            {% endif %}
                             <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}" style="flex:1">
                                 <button type="submit" class="btn" style="width:100%;font-size:0.9rem" onclick="return confirm('Delete this ground?')">Delete</button>
                             </form>
+                            {% else %}
+                            <div style="flex:1;text-align:center;color:#6b7a71;font-size:0.85rem;padding:8px">View only</div>
+                            {% endif %}
                         </div>
                         {% endif %}
                     </div>
