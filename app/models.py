@@ -31,7 +31,8 @@ class Client(db.Model):
     company_id = db.Column(db.Integer, db.ForeignKey("public.company.id"), nullable=True)
     name = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(320), nullable=False)
-    address = db.Column(db.String(300), nullable=True)
+    location = db.Column(db.String(200), nullable=True)  # city/municipality
+    address = db.Column(db.String(300), nullable=True)   # street + number
 
     company = db.relationship("Company", back_populates="clients")
 
@@ -58,12 +59,15 @@ class Ground(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # columns from db/schema.sql (no 'soil' column)
-    location = db.Column(db.String(200), nullable=False)
+    location = db.Column(db.String(200), nullable=False)  # city/municipality
+    address = db.Column(db.String(300), nullable=True)    # street + number
     m2 = db.Column(db.Integer, nullable=False)              # area in m2
     budget = db.Column(db.Numeric(12, 2), nullable=False)
     subdivision_type = db.Column(db.String(120), nullable=False)
     owner = db.Column(db.String(200), nullable=False)
+    provider = db.Column(db.String(200), nullable=True)   # company name that added this ground
     image_url = db.Column(db.String(1024), nullable=True)
+    photo_url = db.Column(db.String(1024), nullable=True)  # uploaded photo path
 
     matches = db.relationship("Match", back_populates="ground", cascade="all, delete-orphan")
 
@@ -113,9 +117,12 @@ class Match(db.Model):
     status = db.Column(db.String(30), nullable=False, default="pending")
     m2_score = db.Column(db.Float, nullable=True)
     budget_score = db.Column(db.Float, nullable=True)
+    location_score = db.Column(db.Float, nullable=True)
+    type_score = db.Column(db.Float, nullable=True)
 
+    # Average of four component scores to yield 0-100 percentage
     total_score = db.column_property(
-        (func.coalesce(m2_score, 0) + func.coalesce(budget_score, 0)) / 2.0
+        (func.coalesce(m2_score, 0) + func.coalesce(budget_score, 0) + func.coalesce(location_score, 0) + func.coalesce(type_score, 0)) / 4.0
     )
 
     client = db.relationship("Client", back_populates="matches")

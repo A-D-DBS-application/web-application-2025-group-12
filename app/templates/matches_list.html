@@ -9,20 +9,29 @@
         <div style="display:flex;gap:8px;align-items:center">
             {% if session.role == 'company' %}
             <a href="{{ url_for('dashboard') }}" class="btn">Back to dashboard</a>
+            <form action="{{ url_for('match_run') }}" method="post" style="display:inline">
+                <button type="submit" class="btn primary">Run matching</button>
+            </form>
             {% elif session.role == 'client' %}
             <a href="{{ url_for('client_dashboard') }}" class="btn">Back to dashboard</a>
             {% endif %}
         </div>
     </div>
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div style="display:flex;gap:8px">
-            <a href="{{ url_for('matches_list') }}" class="btn">All</a>
-            <a href="{{ url_for('matches_list', status='pending') }}" class="btn">Pending</a>
-            <a href="{{ url_for('matches_list', status='accepted') }}" class="btn">Accepted</a>
-            <a href="{{ url_for('matches_list', status='rejected') }}" class="btn">Rejected</a>
-        </div>
-    </div>
+    {% if session.role == 'company' and clients %}
+    <form method="GET" style="display:flex;gap:8px;align-items:center;margin-bottom:16px">
+        <label style="font-weight:600">Filter per klant:</label>
+        <select name="client_id" onchange="this.form.submit()" style="padding:8px 12px;border-radius:6px;border:1px solid #d1d5db">
+            <option value="">Alle klanten</option>
+            {% for client in clients %}
+            <option value="{{ client.id }}" {% if client_filter and client.id == client_filter|int %}selected{% endif %}>{{ client.name }}</option>
+            {% endfor %}
+        </select>
+        {% if client_filter %}
+        <a href="{{ url_for('matches_list') }}" class="btn btn-small">Toon alles</a>
+        {% endif %}
+    </form>
+    {% endif %}
 
     <div>
         {# Group matches by client (A → Z) and show top 10 per client #}
@@ -37,20 +46,28 @@
                     </div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px">
                         {% set client_matches = matches|selectattr('client.name','equalto', match.client.name)|list %}
-                        {% set client_matches = client_matches|sort(attribute='total_score', reverse=true) %}
                         {% for cm in client_matches[:10] %}
                             <a href="{{ url_for('ground_detail', ground_id=cm.ground.id) }}" style="text-decoration:none;color:inherit;display:block">
                                 <div class="card" style="padding:12px;cursor:pointer;transition:box-shadow 0.2s ease">
                                     <div style="display:flex;align-items:center;gap:12px">
-                                        <img src="/static/images/grounds/{{ cm.ground.id }}.jpg" alt="{{ cm.ground.location }}" style="width:110px;height:72px;object-fit:cover;border-radius:6px">
+                                        <img src="{{ url_for('ground_image', ground_id=cm.ground.id) }}" alt="{{ cm.ground.location }}" style="width:110px;height:72px;object-fit:cover;border-radius:6px">
                                         <div style="flex:1">
                                             <div style="font-weight:700">{{ cm.ground.location }}</div>
-                                            <div class="muted">{{ cm.ground.m2 }} m² • €{{ cm.ground.budget|format_price }} • {{ cm.ground.subdivision_type }}</div>
+                                            <div class="muted">{{ cm.ground.m2|format_number }} m² • €{{ cm.ground.budget|format_price }} • {{ cm.ground.subdivision_type.replace('_', ' ').title() }}</div>
                                         </div>
                                         <div style="text-align:right">
-                                            {# Show original backend-provided score value (may exceed 100%) #}
-                                            <div class="tag info" style="font-size:16px;font-weight:600">{{ (cm.total_score if cm.total_score is defined else ((cm.budget_score or 0) + (cm.m2_score or 0) + (cm.location_score or 0)))|round(0)|int }}%</div>
-                                            <div class="muted" style="margin-top:6px">{{ cm.status }}</div>
+                                            <div class="tag info" style="font-size:16px;font-weight:600">{{ cm|match_percent }}%</div>
+                                            {% set s = (cm.status or '')|lower %}
+                                            {{ s|status_badge }}
+                                            {% if session.role == 'company' %}
+                                                <form method="post" action="{{ url_for('match_toggle', match_id=cm.id, client_id=client_filter) }}" style="margin-top:6px">
+                                                    {% if s == 'pending' %}
+                                                        <button type="submit" name="action" value="approve" class="btn btn-small" onclick="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseup="event.stopPropagation();">Approve</button>
+                                                    {% elif s in ['approved','accepted'] %}
+                                                        <button type="submit" name="action" value="pending" class="btn btn-small" onclick="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseup="event.stopPropagation();">Set pending</button>
+                                                    {% endif %}
+                                                </form>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>

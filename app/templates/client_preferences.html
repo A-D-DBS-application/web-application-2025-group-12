@@ -22,7 +22,7 @@
             </div>
             <div>
                 <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:8px">SUBDIVISION TYPE</div>
-                <div style="font-size:1.1rem;font-weight:600;color:#193127">{{ pref.subdivision_type or '—' }}</div>
+                <div style="font-size:1.1rem;font-weight:600;color:#193127">{{ (pref.subdivision_type.replace('_', ' ').title()) if pref.subdivision_type else '—' }}</div>
             </div>
             <div>
                 <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:8px">BUDGET RANGE</div>
@@ -30,7 +30,7 @@
             </div>
             <div>
                 <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:8px">SIZE RANGE</div>
-                <div style="font-size:1.1rem;font-weight:600;color:#193127">{{ pref.min_m2 or '?' }} — {{ pref.max_m2 or '?' }} m²</div>
+                <div style="font-size:1.1rem;font-weight:600;color:#193127">{{ pref.min_m2|format_number }} — {{ pref.max_m2|format_number }} m²</div>
             </div>
         </div>
 

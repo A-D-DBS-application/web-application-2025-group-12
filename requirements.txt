@@ -17,6 +17,10 @@ Jinja2==3.1.6
 MarkupSafe==3.0.3
 typing_extensions==4.15.0
 
+# HTTP and HTML parsing for scraper/image fetch
+requests==2.32.3
+beautifulsoup4==4.12.3
+
 # Development and testing tools
 pytest==8.0.0              # Testing framework
 pytest-cov==4.1.0          # Test coverage

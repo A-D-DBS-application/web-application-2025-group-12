@@ -1,5 +1,5 @@
 def compute_match_scores(ground, preferences):
-    """Simple scoring: budget + m2 + location. Returns dict with scores."""
+    """Scoring: budget + m2 + location + type. Returns dict with scores (0-100 each)."""
     
     # Budget score
     if preferences.min_budget and preferences.max_budget:
@@ -29,8 +29,17 @@ def compute_match_scores(ground, preferences):
         else:
             location_score = 0
     
+    # Type score
+    type_score = 50  # default
+    if preferences.subdivision_type and ground.subdivision_type:
+        if preferences.subdivision_type.lower() == ground.subdivision_type.lower():
+            type_score = 100
+        else:
+            type_score = 0
+    
     return {
         'budget_score': budget_score,
         'm2_score': m2_score,
-        'location_score': location_score
+        'location_score': location_score,
+        'type_score': type_score
     }
