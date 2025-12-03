@@ -63,7 +63,7 @@ class Ground(db.Model):
     budget = db.Column(db.Numeric(12, 2), nullable=False)
     subdivision_type = db.Column(db.String(120), nullable=False)
     owner = db.Column(db.String(200), nullable=False)
-    image_url = db.Column(db.String(1024), nullable=True)
+    image_url = db.Column(db.String(1024),  nullable=True)
 
     matches = db.relationship("Match", back_populates="ground", cascade="all, delete-orphan")
 
