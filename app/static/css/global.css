@@ -39,7 +39,19 @@ body{
 .gm-nav-icon{width:18px;height:18px;display:inline-block}
 .gm-nav-link:hover{background:rgba(255,255,255,0.06)}
 .gm-nav-link.active{background:var(--gm-surface);color:var(--gm-primary);box-shadow:var(--gm-card-shadow)}
+/* Ensure white nav icons stay visible on active (white) background */
+.gm-nav-link.active .gm-nav-icon{
+  /* tint the white SVG to primary green via CSS filter */
+  filter: invert(29%) sepia(18%) saturate(1090%) hue-rotate(109deg) brightness(92%) contrast(92%);
+}
 .gm-nav-cta{background:rgba(255,255,255,0.12)}
+
+/* Logged-in user pill */
+.gm-user-pill{
+  display:inline-flex;align-items:center;gap:6px;margin-left:4px;margin-right:4px;
+  padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.2);
+  color:#fff;font-weight:600;opacity:0.9;white-space:nowrap
+}
 
 /* main */
 .gm-main{padding-top:28px;padding-bottom:48px}

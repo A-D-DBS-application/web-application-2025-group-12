@@ -17,20 +17,20 @@
 
 <div class="card" style="margin-top:18px">
     {% if matches is defined and matches %}
-        <h3 style="margin-top:0">Recent Accepted Matches</h3>
+        <h3 style="margin-top:0">Recent Approved Matches</h3>
         <table>
             <thead>
                 <tr><th>Client</th><th>Location</th><th>Surface Area</th><th>Budget</th><th>Score</th></tr>
             </thead>
             <tbody>
-            {% for match in matches|selectattr('status', 'equalto', 'accepted')|list %}
+            {% for match in matches|selectattr('status', 'equalto', 'approved')|list %}
                 {% if loop.index <= 5 %}
                 <tr>
                     <td>{{ match.client.name if match.client else 'N/A' }}</td>
                     <td>{{ match.ground.location }}</td>
-                    <td>{{ match.ground.m2 }} m²</td>
-                    <td>€{{ match.ground.budget }}</td>
-                    <td><strong>{{ match.total_score if match.total_score is defined else ((match.budget_score or 0) + (match.m2_score or 0) + (match.location_score or 0))|round(2) }}</strong></td>
+                    <td>{{ match.ground.m2|format_number }} m²</td>
+                    <td>€{{ match.ground.budget|format_price }}</td>
+                    <td><strong>{{ match|match_percent }}%</strong></td>
                 </tr>
                 {% endif %}
             {% endfor %}
