@@ -1,6 +1,6 @@
-# GroundMatch – Intelligente Bouwgrondenmatcher
+# Groundmatch – Group 12
 
-Intelligent matchingsysteem dat bouwbedrijven met ideale bouwgronden verbindt die passen bij de voorkeuren van hun klanten.
+Intelligent matchingsysteem dat bouwbedrijven koppelt aan ideale bouwpercelen die voldoen aan de voorkeuren van hun klanten.
 
 ## Hoe gebruik je de app?
 
@@ -32,21 +32,21 @@ Klanten zien uitsluitend de door u geselecteerde top 10 grondmatches en kunnen h
 - Voorkeuren aanpassen (budget, m², locatie, verkavelingstype, …).
 - Een gefilterd en volledig gepersonaliseerd aanbod zien van de 10 best passende gronden.
 
-# Link naar UI-prototype
+## Link naar UI-prototype
 
-# Link naar Kanban-bord
+## Link naar Kanban-bord
 
 https://miro.com/app/board/uXjVJ0CcO8w=/
 
-# Link naar audio-/video-opnames van feedback-sessies met partner
+## Link naar audio-/video-opnames van feedback-sessies met partner
 
 Eerste feedbackmoment: 
 Tweede feedbackmoment: 
 
-# Team
+## Team
 
-Axl Hanssen
-Joos Van Lommel
-Floor Guldemont
-Tine Van Ryckeghem
-Marie-Justine Speybroek
+- Axl Hanssen
+- Joos Van Lommel
+- Floor Guldemont
+- Tine Van Ryckeghem
+- Marie-Justine Speybroek
