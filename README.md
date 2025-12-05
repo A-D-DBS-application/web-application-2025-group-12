@@ -2,6 +2,8 @@
 
 Intelligent matchingsysteem dat bouwbedrijven koppelt aan ideale bouwpercelen die voldoen aan de voorkeuren van hun klanten.
 
+![GroundMatch logo](app/static/images/logo-full.svg)
+
 ## Hoe gebruik je de app?
 
 ### Inleiding
@@ -40,8 +42,8 @@ https://miro.com/app/board/uXjVJ0CcO8w=/
 
 ## Link naar audio-/video-opnames van feedback-sessies met partner
 
-Eerste feedbackmoment: 
-Tweede feedbackmoment: 
+- Eerste feedbackmoment: 
+- Tweede feedbackmoment: 
 
 ## Team
 
