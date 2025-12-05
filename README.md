@@ -1,24 +1,15 @@
-# 🏗️ GroundMatch - Building Plot Matching Platform
+# GroundMatch – Intelligente Bouwgrondenmatcher
 
-Intelligent matching system that connects construction companies with ideal building plots that meet their clients' preferences.
+Intelligent matchingsysteem dat bouwbedrijven met ideale bouwgronden verbindt die passen bij de voorkeuren van hun klanten.
 
-## � Over GroundMatch
-
-### Inleiding
-GroundMatch ondersteunt bouwbedrijven bij het efficiënt beheren, selecteren en opvolgen van geschikte bouwgronden voor hun klanten. Dankzij automatische data-scraping en een intelligent matchalgoritme beschikt uw bedrijf altijd over een actueel overzicht van beschikbare gronden, inclusief een berekende matchscore per klant. Dit bespaart tijd, verhoogt de nauwkeurigheid en vereenvoudigt de interne besluitvorming. U behoudt de volledige controle: u beslist welke gronden aan welke klant worden voorgesteld, en u ontvangt onmiddellijk meldingen zodra nieuwe relevante bouwgronden beschikbaar komen. Klanten zien enkel de door u geselecteerde top 10 grondmatches en kunnen eenvoudig hun voorkeuren aanpassen, waardoor u sneller en gerichter kunt inspelen op hun behoeften. GroundMatch is een duidelijke meerwaarde voor elk bouwbedrijf dat efficiëntie en service wil verhogen.
-
-Project A&D – DBS
-GroundMatch (Groep 12)
-#  How to install / use the app?
+## Hoe gebruik je de app?
 
 ### Inleiding
-
-GroundMatch ondersteunt bouwbedrijven bij het efficiënt beheren, selecteren en opvolgen van geschikte bouwgronden voor hun klanten. Dankzij automatische data-scraping en een intelligent matchalgoritme beschikt uw bedrijf altijd over een actueel en volledig overzicht van geschikte gronden per klant. 
+GroundMatch ondersteunt bouwbedrijven bij het efficiënt beheren, selecteren en opvolgen van geschikte bouwgronden voor hun klanten. Dankzij automatische data-scraping en een intelligent matchalgoritme beschikt uw bedrijf altijd over een actueel en volledig overzicht van geschikte gronden per klant.
 
 U behoudt daarbij de volledige controle: u bepaalt zelf welke gronden u aan welke klant voorstelt, terwijl u automatisch meldingen ontvangt zodra er nieuwe, relevante bouwgronden beschikbaar komen.
 
-Klanten zien uitsluitend de door u geselecteerde top 10 grondmatches en kunnen hun voorkeuren eenvoudig aanpassen. Zo speelt u sneller en gerichter in op hun behoeften, verhoogt u de efficiëntie binnen uw bedrijf én versterkt u met GroundMatch de kwaliteit van uw service. 
-
+Klanten zien uitsluitend de door u geselecteerde top 10 grondmatches en kunnen hun voorkeuren eenvoudig aanpassen. Zo speelt u sneller en gerichter in op hun behoeften, verhoogt u de efficiëntie binnen uw bedrijf én versterkt u met GroundMatch de kwaliteit van uw service.
 
 ### Wat u kunt doen als bouwbedrijf:
 - Registreren en inloggen om toegang te krijgen tot uw bedrijfsdashboard.
@@ -41,16 +32,16 @@ Klanten zien uitsluitend de door u geselecteerde top 10 grondmatches en kunnen h
 - Voorkeuren aanpassen (budget, m², locatie, verkavelingstype, …).
 - Een gefilterd en volledig gepersonaliseerd aanbod zien van de 10 best passende gronden.
 
-# Link to UI prototype
+# Link naar UI-prototype
 
-# Link to Kanban board 
+# Link naar Kanban-bord
 
 https://miro.com/app/board/uXjVJ0CcO8w=/
 
-# Link to audio / video recording of feedback sessions with partner
+# Link naar audio-/video-opnames van feedback-sessies met partner
 
-Link eerste feedbackmoment: 
-Link tweede feedbackmoment: 
+Eerste feedbackmoment: 
+Tweede feedbackmoment: 
 
 # Team
 
