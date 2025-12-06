@@ -17,8 +17,8 @@
 
     <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap">
         <a href="{{ url_for('clients_list') }}" class="btn btn-success">Manage Clients</a>
-        <a href="{{ url_for('grounds_list') }}" class="btn btn-success">Manage Grounds</a>
         <a href="{{ url_for('preferences_list') }}" class="btn btn-success">View Preferences</a>
+        <a href="{{ url_for('grounds_list') }}" class="btn btn-success">Manage Grounds</a>
         <a href="{{ url_for('matches_list') }}" class="btn btn-success">View Matches</a>
         <form method="POST" action="{{ url_for('match_run') }}" style="display:inline">
             <button type="submit" class="btn primary">Run Match Algorithm</button>
@@ -27,22 +27,25 @@
 </div>
 
 <div class="card">
-    <h2 style="margin-top:0">Recent clients</h2>
+    <h2 style="margin-top:0">Recent Building Plots</h2>
     <table>
         <thead>
-            <tr><th>Name</th><th>Email</th><th>Actions</th></tr>
+            <tr><th>Location</th><th>Surface Area</th><th>Budget</th><th>Actions</th></tr>
         </thead>
         <tbody>
-            {% for client in clients[:5] %}
+            {% for ground in grounds|sort(attribute='id', reverse=true) %}
+            {% if loop.index <= 5 %}
             <tr>
-                <td>{{ client.name }}</td>
-                <td>{{ client.email }}</td>
-                <td><a href="{{ url_for('preferences_view', client_id=client.id) }}" class="btn">View Preferences</a></td>
+                <td>{{ ground.location }}</td>
+                <td>{{ ground.m2|format_number }} m²</td>
+                <td>€{{ ground.budget|format_price }}</td>
+                <td><a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn">View Details</a></td>
             </tr>
+            {% endif %}
             {% endfor %}
         </tbody>
     </table>
-    <div style="margin-top:12px"><a href="{{ url_for('clients_list') }}" class="btn">See All Clients</a></div>
+    <div style="margin-top:12px"><a href="{{ url_for('grounds_list') }}" class="btn">See All Plots</a></div>
 </div>
 
 {% endblock %}

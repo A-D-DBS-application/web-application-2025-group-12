@@ -33,10 +33,10 @@ body{
 .gm-logo-full{height:60px;width:auto;margin-right:0;display:block}
 .gm-brand-text{font-weight:700;font-size:1.05rem}
 
-.gm-nav{display:flex;gap:8px;align-items:center}
-.gm-nav-link{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;color:rgba(255,255,255,0.9);text-decoration:none;font-weight:600;opacity:0.95}
-.gm-nav-link .gm-icon{font-size:1rem}
-.gm-nav-icon{width:18px;height:18px;display:inline-block}
+.gm-nav{display:flex;gap:6px;align-items:center}
+.gm-nav-link{display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:8px;color:rgba(255,255,255,0.9);text-decoration:none;font-weight:600;opacity:0.95;font-size:0.9rem}
+.gm-nav-link .gm-icon{font-size:0.9rem}
+.gm-nav-icon{width:16px;height:16px;display:inline-block}
 .gm-nav-link:hover{background:rgba(255,255,255,0.06)}
 .gm-nav-link.active{background:var(--gm-surface);color:var(--gm-primary);box-shadow:var(--gm-card-shadow)}
 /* Ensure white nav icons stay visible on active (white) background */

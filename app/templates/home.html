@@ -1,12 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
 <div style="text-align:center;margin-bottom:24px">
+    <img src="{{ url_for('static', filename='images/login-header.jpg') }}" alt="Construction" style="max-width:600px;width:100%;border-radius:12px;margin-bottom:24px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+    
     <h1 style="margin:0 0 12px">Welcome to GroundMatch</h1>
     <p class="muted" style="margin:0 0 24px">Connect your clients with the perfect building plots. Streamline your construction business with intelligent matching.</p>
 
     <div style="background:var(--gm-bg);border-radius:20px;padding:24px;display:inline-block;margin:0 auto">
         <div style="margin-bottom:12px;width:100%">
-            <a href="{{ url_for('company_register') }}" class="btn btn-success" style="width:100%;display:inline-block;text-align:center;padding:12px 24px">Create Account</a>
+            <a href="{{ url_for('company_register') }}" class="btn btn-success" style="width:100%;display:inline-block;text-align:center;padding:12px 24px">Create Account as Company</a>
         </div>
         <div style="display:flex;gap:12px;justify-content:center">
             <a href="{{ url_for('company_login') }}" class="btn" style="padding:12px 24px;flex:1">Company Login</a>

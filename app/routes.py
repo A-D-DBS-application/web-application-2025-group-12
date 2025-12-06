@@ -743,3 +743,32 @@ def init_routes(app):
     def logout():
         session.clear()
         return redirect(url_for('home'))
+
+    @app.route('/company/profile', methods=['GET', 'POST'])
+    @requires_company
+    def company_profile():
+        company = Company.query.get(session['company_id'])
+        if request.method == 'POST':
+            company.name = request.form['name']
+            company.email = request.form['email']
+            company.address = request.form.get('address')
+            company.phone = request.form.get('phone')
+            db.session.commit()
+            flash('Profile updated successfully!', 'success')
+            return redirect(url_for('dashboard'))
+        return render_template('company_profile.html', company=company)
+
+    @app.route('/client/profile', methods=['GET', 'POST'])
+    @requires_client
+    def client_profile():
+        client = Client.query.get(session['client_id'])
+        if request.method == 'POST':
+            client.name = request.form['name']
+            client.email = request.form['email']
+            client.location = request.form.get('location')
+            client.address = request.form.get('address')
+            client.phone = request.form.get('phone')
+            db.session.commit()
+            flash('Profile updated successfully!', 'success')
+            return redirect(url_for('client_dashboard'))
+        return render_template('client_profile.html', client=client)
