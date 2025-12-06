@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>My Profile</h2>
+    <form method="POST">
+        <div style="display:grid;grid-template-columns:1fr;gap:12px">
+            <div>
+                <label style="display:block;font-size:0.95rem;font-weight:600;margin-bottom:6px;color:#193127">Name</label>
+                <input type="text" name="name" placeholder="Name" required value="{{ client.name if client else '' }}" style="font-size:1rem;width:100%;padding:10px;box-sizing:border-box">
+            </div>
+            <div>
+                <label style="display:block;font-size:0.95rem;font-weight:600;margin-bottom:6px;color:#193127">Email Address</label>
+                <input type="email" name="email" placeholder="Email" required value="{{ client.email if client else '' }}" style="font-size:1rem;width:100%;padding:10px;box-sizing:border-box">
+            </div>
+            <div>
+                <label style="display:block;font-size:0.95rem;font-weight:600;margin-bottom:6px;color:#193127">Gemeente</label>
+                <input type="text" name="location" placeholder="Bijv. Antwerpen" value="{{ client.location if client else '' }}" style="font-size:1rem;width:100%;padding:10px;box-sizing:border-box">
+            </div>
+            <div>
+                <label style="display:block;font-size:0.95rem;font-weight:600;margin-bottom:6px;color:#193127">Straat + Nummer</label>
+                <input type="text" name="address" placeholder="Bijv. Groenplaats 1" value="{{ client.address if client else '' }}" style="font-size:1rem;width:100%;padding:10px;box-sizing:border-box">
+            </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:18px">
+            <button type="submit" class="btn btn-success" style="padding:12px;font-size:1rem">Update Profile</button>
+            <a href="{{ url_for('client_dashboard') }}" class="btn" style="padding:12px;font-size:1rem;text-align:center">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

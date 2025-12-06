@@ -1,72 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
 <div style="max-width:900px;margin:0 auto">
-    {% if ground %}
-    {# Detail View for existing ground #}
-    <div class="card" style="margin-bottom:24px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-                <div>
-                    <h1 style="margin:0">Building Plot Details</h1>
-                    <div class="muted">View complete information about this building plot</div>
-                </div>
-                {# Right-corner back button removed for cleaner detail view per UI spec #}
-            </div>
-        
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
-            <div>
-                <img src="{{ url_for('ground_image', ground_id=ground.id) }}" alt="{{ ground.location }}" style="width:100%;height:300px;object-fit:cover;border-radius:10px;box-shadow:0 6px 18px rgba(31,111,74,0.06)">
-            </div>
-            <div>
-                <div style="margin-bottom:20px">
-                    <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:4px">LOCATION</div>
-                    <div style="font-size:1.4rem;font-weight:700;color:#193127">{{ ground.location }}</div>
-                </div>
-                
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-                    <div>
-                        <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:4px">SURFACE AREA</div>
-                        <div style="font-size:1.2rem;font-weight:700;color:#1f6f4a">{{ ground.m2 }} m²</div>
-                    </div>
-                    <div>
-                        <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:4px">PRICE</div>
-                        <div style="font-size:1.2rem;font-weight:700;color:#1f6f4a">€{{ ground.budget|format_price }}</div>
-                    </div>
-                </div>
-                
-                <div style="margin-bottom:20px">
-                    <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:4px">SUBDIVISION TYPE</div>
-                    <div style="font-size:1.1rem;font-weight:600;color:#193127">{{ ground.subdivision_type }}</div>
-                </div>
-                
-                <div>
-                    <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:4px">OWNER</div>
-                    <div style="font-size:1.1rem;font-weight:600;color:#193127">{{ ground.owner }}</div>
-                </div>
-            </div>
-        </div>
-        
-        {% if session.role == 'company' %}
-        <div style="display:flex;gap:12px;justify-content:flex-start;border-top:1px solid rgba(25,49,39,0.08);padding-top:18px">
-            <a href="{{ url_for('grounds_list') }}" class="btn">Back to Plots</a>
-            <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}" style="display:inline">
-                <button type="submit" class="btn" onclick="return confirm('Delete this ground? This action cannot be undone.')">Delete Plot</button>
-            </form>
-        </div>
-        {% else %}
-        <div style="border-top:1px solid rgba(25,49,39,0.08);padding-top:18px">
-            <a href="{{ url_for('grounds_list') }}" class="btn">Back to Plots</a>
-        </div>
-        {% endif %}
-    </div>
-    
-    {% else %}
-    {# Add New Ground Form #}
     <div class="card">
-        <h2 style="margin-top:0">Add New Building Plot</h2>
-        <form method="POST">
+        <h2 style="margin-top:0">{% if ground %}Edit{% else %}Add New{% endif %} Building Plot</h2>
+        <form method="POST" enctype="multipart/form-data">
             <div style="margin-bottom:16px">
-                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Location</label>
-                <input type="text" name="location" placeholder="Enter location" required value="{{ ground.location if ground else '' }}" style="width:100%">
+                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Location (City/Municipality)</label>
+                <input type="text" name="location" placeholder="e.g., Ghent" required value="{{ ground.location if ground else '' }}" style="width:100%">
+            </div>
+            <div style="margin-bottom:16px">
+                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Address (Street + Number)</label>
+                <input type="text" name="address" placeholder="e.g., Main Street 123" value="{{ ground.address if ground else '' }}" style="width:100%">
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
                 <div>
@@ -81,19 +25,32 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
                 <div>
                     <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Subdivision Type</label>
-                    <input type="text" name="subdivision_type" placeholder="e.g., Residential" required value="{{ ground.subdivision_type if ground else '' }}" style="width:100%">
+                    <select name="subdivision_type" required style="width:100%">
+                        <option value="">Select type...</option>
+                        {% for type in subdivision_types %}
+                        <option value="{{ type }}" {% if ground and ground.subdivision_type == type %}selected{% endif %}>{{ type.replace('_', ' ').title() }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div>
                     <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Owner</label>
                     <input type="text" name="owner" placeholder="Enter owner name" required value="{{ ground.owner if ground else '' }}" style="width:100%">
                 </div>
             </div>
+            <div style="margin-bottom:16px">
+                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Photo</label>
+                <input type="file" name="photo" accept="image/*" style="width:100%">
+                {% if ground and ground.photo_url %}
+                <div style="margin-top:8px">
+                    <img src="{{ ground.photo_url }}" alt="Current photo" style="max-width:200px;border-radius:6px">
+                </div>
+                {% endif %}
+            </div>
             <div style="display:flex;gap:12px">
-                <button type="submit" class="btn btn-success">Add Plot</button>
+                <button type="submit" class="btn btn-success">{% if ground %}Update{% else %}Add{% endif %} Plot</button>
                 <a href="{{ url_for('grounds_list') }}" class="btn">Cancel</a>
             </div>
         </form>
     </div>
-    {% endif %}
 </div>
 {% endblock %}

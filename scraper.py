@@ -124,16 +124,29 @@ def scrape_vansweevelt() -> List[Dict]:
             # print(f"Skipping item zonder m2/budget: title={title}")
             continue
 
-        location_val = city or street or "onbekend"
+        # Separate location (city) and address (street + number)
+        location_val = city or "onbekend"
+        address_val = street or ""
+        
+        # Map to valid subdivision types (default to development_plot for scraped grounds)
+        subdivision_mapping = {
+            'bouwgrond': 'development_plot',
+            'grond': 'development_plot',
+            'plot': 'development_plot'
+        }
+        subdivision_val = subdivision_mapping.get(grond_type.lower() if grond_type else '', 'development_plot')
 
         record = {
             "location": location_val,
+            "address": address_val,
             "m2": m2_val,
             "budget": budget_val,
-            "subdivision_type": grond_type or "onbekend",
+            "subdivision_type": subdivision_val,
             "owner": "Vansweevelt",
+            "provider": None,  # Scraped grounds have no provider (not added by any company)
             "detail_url": detail_url,
             "image_url": image_url,
+            "photo_url": image_url,  # Use scraped image as photo
         }
 
         results.append(record)
