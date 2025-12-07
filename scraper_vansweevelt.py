@@ -80,7 +80,7 @@ def scrape_vansweevelt() -> List[Dict]:
         chunk_html = item.get("chunk", "")
         soup = BeautifulSoup(chunk_html, "html.parser")
 
-        # detail-url (niet in DB, maar handig voor debug)
+        # detail-url (niet in DB, maar handig voor debug / clicks)
         a_tag = soup.find("a", class_="pand-link")
         detail_url = (
             urljoin("https://www.vansweevelt.be", a_tag["href"])
@@ -91,8 +91,15 @@ def scrape_vansweevelt() -> List[Dict]:
         # Try to find a thumbnail or hero image in the chunk HTML
         img_tag = soup.find("img")
         image_url = None
-        if img_tag and img_tag.has_attr("src"):
-            image_url = urljoin("https://www.vansweevelt.be", img_tag["src"])
+
+        if img_tag:
+            src = (
+                img_tag.get("data-src")
+                or img_tag.get("data-srcset")
+                or img_tag.get("src")
+            )
+            if src:
+                image_url = urljoin("https://www.vansweevelt.be", src)
 
         # prijs
         price_div = soup.find("div", class_="slider-bedrag")
@@ -121,20 +128,20 @@ def scrape_vansweevelt() -> List[Dict]:
 
         # Kolommen m2 en budget zijn NOT NULL in DB -> skip als we ze niet hebben
         if m2_val is None or budget_val is None:
-            # print(f"Skipping item zonder m2/budget: title={title}")
             continue
 
         # Separate location (city) and address (street + number)
         location_val = city or "onbekend"
         address_val = street or ""
-        
+
         # Map to valid subdivision types (default to development_plot for scraped grounds)
         subdivision_mapping = {
-            'bouwgrond': 'development_plot',
-            'grond': 'development_plot',
-            'plot': 'development_plot'
+            "bouwgrond": "development_plot",
+            "grond": "development_plot",
+            "plot": "development_plot",
         }
-        subdivision_val = subdivision_mapping.get(grond_type.lower() if grond_type else '', 'development_plot')
+        subdivision_key = (grond_type or "").lower()
+        subdivision_val = subdivision_mapping.get(subdivision_key, "development_plot")
 
         record = {
             "location": location_val,
@@ -143,7 +150,7 @@ def scrape_vansweevelt() -> List[Dict]:
             "budget": budget_val,
             "subdivision_type": subdivision_val,
             "owner": "Vansweevelt",
-            "provider": None,  # Scraped grounds have no provider (not added by any company)
+            "provider": None,        # Scraped grounds not tied to a company
             "detail_url": detail_url,
             "image_url": image_url,
             "photo_url": image_url,  # Use scraped image as photo
@@ -162,9 +169,6 @@ def save_to_supabase(plots: List[Dict]) -> None:
         print("Geen plots om op te slaan.")
         return
 
-    # Eenvoudige insert: voor een MVP is dit prima.
-    # Als je duplicaten wilt vermijden, kun je eerst de tabel leegmaken
-    # of een unieke key toevoegen.
     response = supabase.table(TABLE_NAME).insert(plots).execute()
     print("Supabase insert response:", response)
 
@@ -180,6 +184,13 @@ if __name__ == "__main__":
         print(p)
 
     save_to_supabase(plots)
+
+
+
+
+
+
+
 
 
 
