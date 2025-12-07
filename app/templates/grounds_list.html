@@ -3,7 +3,12 @@
 <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px">
         <div>
-            <h1 style="margin:0">Building Plots {% if grounds is defined %}<span class="badge">{{ grounds|length }}</span>{% endif %}</h1>
+            <h1 style="margin:0">
+                Building Plots
+                {% if grounds is defined %}
+                    <span class="badge">{{ grounds|length }}</span>
+                {% endif %}
+            </h1>
             <div class="muted">Browse and search available building plots</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
@@ -18,66 +23,105 @@
 
     <form method="GET" class="card" style="margin-bottom:18px">
         <div class="form-row">
-            <input type="text" name="location" placeholder="Search by location" value="{{ request.args.get('location', '') }}">
+            <input type="text" name="location" placeholder="Search by location"
+                   value="{{ request.args.get('location', '') }}">
             <select name="subdivision_type">
                 <option value="">All Subdivision Types</option>
-                <option value="Residential" {% if request.args.get('subdivision_type')=='Residential' %}selected{% endif %}>Residential</option>
-                <option value="Commercial" {% if request.args.get('subdivision_type')=='Commercial' %}selected{% endif %}>Commercial</option>
-                <option value="Mixed-Use" {% if request.args.get('subdivision_type')=='Mixed-Use' %}selected{% endif %}>Mixed-Use</option>
+                <option value="Residential"
+                        {% if request.args.get('subdivision_type')=='Residential' %}selected{% endif %}>
+                    Residential
+                </option>
+                <option value="Commercial"
+                        {% if request.args.get('subdivision_type')=='Commercial' %}selected{% endif %}>
+                    Commercial
+                </option>
+                <option value="Mixed-Use"
+                        {% if request.args.get('subdivision_type')=='Mixed-Use' %}selected{% endif %}>
+                    Mixed-Use
+                </option>
             </select>
-            <input type="number" name="min_m2" placeholder="Min Surface Area (m²)" value="{{ request.args.get('min_m2', '') }}">
-            <input type="number" name="max_m2" placeholder="Max Surface Area (m²)" value="{{ request.args.get('max_m2', '') }}">
-            <input type="number" name="min_price" placeholder="Min Budget" value="{{ request.args.get('min_price', '') }}">
-            <input type="number" name="max_price" placeholder="Max Budget" value="{{ request.args.get('max_price', '') }}">
+            <input type="number" name="min_m2" placeholder="Min Surface Area (m²)"
+                   value="{{ request.args.get('min_m2', '') }}">
+            <input type="number" name="max_m2" placeholder="Max Surface Area (m²)"
+                   value="{{ request.args.get('max_m2', '') }}">
+            <input type="number" name="min_price" placeholder="Min Budget"
+                   value="{{ request.args.get('min_price', '') }}">
+            <input type="number" name="max_price" placeholder="Max Budget"
+                   value="{{ request.args.get('max_price', '') }}">
             <button type="submit" class="btn btn-success">Filter</button>
         </div>
     </form>
 
-        <div>
-            {% if grounds is defined %}
-                {% if grounds|length > 0 %}
-                <div class="grounds-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin-bottom:20px">
+    <div>
+        {% if grounds is defined %}
+            {% if grounds|length > 0 %}
+                <div class="grounds-grid"
+                     style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin-bottom:20px">
                     {% for ground in grounds %}
-                    <div style="display:flex;flex-direction:column;border-radius:10px;overflow:hidden;box-shadow:0 6px 18px rgba(31,111,74,0.06);background:#fff;transition:transform 0.2s,box-shadow 0.2s;cursor:pointer" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 10px 24px rgba(31,111,74,0.1)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 6px 18px rgba(31,111,74,0.06)'">
-                        <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" style="display:block;text-decoration:none;color:inherit;flex:1">
-                            <img src="{{ url_for('ground_image', ground_id=ground.id) }}" alt="{{ ground.location }}" style="width:100%;height:200px;object-fit:cover;display:block">
+                    <div style="display:flex;flex-direction:column;border-radius:10px;overflow:hidden;
+                                box-shadow:0 6px 18px rgba(31,111,74,0.06);background:#fff;
+                                transition:transform 0.2s,box-shadow 0.2s;cursor:pointer"
+                         onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 10px 24px rgba(31,111,74,0.1)'"
+                         onmouseout="this.style.transform='none';this.style.boxShadow='0 6px 18px rgba(31,111,74,0.06)'">
+                        <a href="{{ url_for('ground_edit', ground_id=ground.id) }}"
+                           style="display:block;text-decoration:none;color:inherit;flex:1">
+                            {# Belangrijk: gebruik image_url indien aanwezig, anders fallback naar ground_image #}
+                            <img
+                                src="{{ ground.image_url or url_for('ground_image', ground_id=ground.id) }}"
+                                alt="{{ ground.location }}"
+                                style="width:100%;height:200px;object-fit:cover;display:block"
+                            >
                             <div style="padding:14px;border-top:1px solid rgba(25,49,39,0.04)">
-                                <div style="font-size:1rem;font-weight:600;margin-bottom:6px;color:#193127">{{ ground.location }}</div>
-                                <div style="font-size:1.1rem;font-weight:700;color:#1f6f4a">€{{ ground.budget|format_price }}</div>
+                                <div style="font-size:1rem;font-weight:600;margin-bottom:6px;color:#193127">
+                                    {{ ground.location }}
+                                </div>
+                                <div style="font-size:1.1rem;font-weight:700;color:#1f6f4a">
+                                    €{{ ground.budget|format_price }}
+                                </div>
                             </div>
                         </a>
                         {% if session.role == 'company' %}
                         <div style="padding:12px;display:flex;gap:8px;border-top:1px solid rgba(25,49,39,0.04)">
-                            {# Show Edit only for plots that appear to be manually added. Heuristic: hide when owner looks like scraped source. Adjust as needed. #}
+                            {# Show Edit only for plots that appear to be manually added. #}
                             {% set scraped_owners = ['Vansweevelt', 'Provided by local preview', ''] %}
                             {% if ground.owner is defined and ground.owner not in scraped_owners %}
-                            <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn" style="flex:1;text-align:center;font-size:0.9rem">Edit</a>
+                                <a href="{{ url_for('ground_edit', ground_id=ground.id) }}"
+                                   class="btn"
+                                   style="flex:1;text-align:center;font-size:0.9rem">
+                                    Edit
+                                </a>
                             {% else %}
-                            <div style="flex:1"></div>
+                                <div style="flex:1"></div>
                             {% endif %}
-                            <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}" style="flex:1">
-                                <button type="submit" class="btn" style="width:100%;font-size:0.9rem" onclick="return confirm('Delete this ground?')">Delete</button>
+                            <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}"
+                                  style="flex:1">
+                                <button type="submit" class="btn" style="width:100%;font-size:0.9rem"
+                                        onclick="return confirm('Delete this ground?')">
+                                    Delete
+                                </button>
                             </form>
                         </div>
                         {% endif %}
                     </div>
                     {% endfor %}
                 </div>
-                {% else %}
+            {% else %}
                 <div class="card" style="text-align:center;padding:24px">
                     <p class="muted">No building plots found matching your filters.</p>
-                    <p class="muted" style="font-size:0.9rem">Try adjusting your search criteria or add a new building plot to get started.</p>
+                    <p class="muted" style="font-size:0.9rem">
+                        Try adjusting your search criteria or add a new building plot to get started.
+                    </p>
                     {% if session.role == 'company' %}
-                    <a href="{{ url_for('ground_add') }}" class="btn btn-success">Add First Building Plot</a>
+                        <a href="{{ url_for('ground_add') }}" class="btn btn-success">Add First Building Plot</a>
                     {% endif %}
                 </div>
-                {% endif %}
-            {% else %}
+            {% endif %}
+        {% else %}
             <div class="card" style="text-align:center;padding:24px">
                 <p class="muted">Loading building plots...</p>
             </div>
-            {% endif %}
-        </div>
+        {% endif %}
+    </div>
 </div>
-
 {% endblock %}
+

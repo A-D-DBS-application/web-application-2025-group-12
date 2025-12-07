@@ -89,10 +89,25 @@ def scrape_vansweevelt() -> List[Dict]:
         )
 
         # Try to find a thumbnail or hero image in the chunk HTML
+        # img_tag = soup.find("img")
+        # image_url = None
+        # if img_tag and img_tag.has_attr("src"):
+
+        #   image_url = urljoin("https://www.vansweevelt.be", img_tag["src"])
+
+        # Try to find a thumbnail or hero image in the chunk HTML
         img_tag = soup.find("img")
         image_url = None
-        if img_tag and img_tag.has_attr("src"):
-            image_url = urljoin("https://www.vansweevelt.be", img_tag["src"])
+
+        if img_tag:
+            src = (
+                    img_tag.get("data-src")
+                    or img_tag.get("data-srcset")
+                    or img_tag.get("src")
+            )
+
+            if src:
+                image_url = urljoin("https://www.vansweevelt.be", src)
 
         # prijs
         price_div = soup.find("div", class_="slider-bedrag")
@@ -132,7 +147,7 @@ def scrape_vansweevelt() -> List[Dict]:
             "budget": budget_val,
             "subdivision_type": grond_type or "onbekend",
             "owner": "Vansweevelt",
-            "detail_url": detail_url,
+            # "detail_url": detail_url,
             "image_url": image_url,
         }
 
@@ -167,6 +182,12 @@ if __name__ == "__main__":
         print(p)
 
     save_to_supabase(plots)
+
+
+
+
+
+
 
 
 

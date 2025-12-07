@@ -5,16 +5,19 @@
     {# Detail View for existing ground #}
     <div class="card" style="margin-bottom:24px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-                <div>
-                    <h1 style="margin:0">Building Plot Details</h1>
-                    <div class="muted">View complete information about this building plot</div>
-                </div>
-                {# Right-corner back button removed for cleaner detail view per UI spec #}
+            <div>
+                <h1 style="margin:0">Building Plot Details</h1>
+                <div class="muted">View complete information about this building plot</div>
             </div>
+            {# Right-corner back button removed for cleaner detail view per UI spec #}
+        </div>
         
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
             <div>
-                <img src="{{ url_for('ground_image', ground_id=ground.id) }}" alt="{{ ground.location }}" style="width:100%;height:300px;object-fit:cover;border-radius:10px;box-shadow:0 6px 18px rgba(31,111,74,0.06)">
+                {# Gebruik eerst ground.image_url, en val terug op de ground_image route #}
+                <img src="{{ ground.image_url or url_for('ground_image', ground_id=ground.id) }}"
+                     alt="{{ ground.location }}"
+                     style="width:100%;height:300px;object-fit:cover;border-radius:10px;box-shadow:0 6px 18px rgba(31,111,74,0.06)">
             </div>
             <div>
                 <div style="margin-bottom:20px">
@@ -49,7 +52,10 @@
         <div style="display:flex;gap:12px;justify-content:flex-start;border-top:1px solid rgba(25,49,39,0.08);padding-top:18px">
             <a href="{{ url_for('grounds_list') }}" class="btn">Back to Plots</a>
             <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}" style="display:inline">
-                <button type="submit" class="btn" onclick="return confirm('Delete this ground? This action cannot be undone.')">Delete Plot</button>
+                <button type="submit" class="btn"
+                        onclick="return confirm('Delete this ground? This action cannot be undone.')">
+                    Delete Plot
+                </button>
             </form>
         </div>
         {% else %}
@@ -66,26 +72,33 @@
         <form method="POST">
             <div style="margin-bottom:16px">
                 <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Location</label>
-                <input type="text" name="location" placeholder="Enter location" required value="{{ ground.location if ground else '' }}" style="width:100%">
+                <input type="text" name="location" placeholder="Enter location" required
+                       value="{{ ground.location if ground else '' }}" style="width:100%">
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
                 <div>
-                    <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Surface Area (m²)</label>
-                    <input type="number" name="m2" placeholder="e.g., 5000" required value="{{ ground.m2 if ground else '' }}" style="width:100%">
+                    <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">
+                        Surface Area (m²)
+                    </label>
+                    <input type="number" name="m2" placeholder="e.g., 5000" required
+                           value="{{ ground.m2 if ground else '' }}" style="width:100%">
                 </div>
                 <div>
                     <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Budget (€)</label>
-                    <input type="number" step="0.01" name="budget" placeholder="e.g., 500000" required value="{{ ground.budget if ground else '' }}" style="width:100%">
+                    <input type="number" step="0.01" name="budget" placeholder="e.g., 500000" required
+                           value="{{ ground.budget if ground else '' }}" style="width:100%">
                 </div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
                 <div>
                     <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Subdivision Type</label>
-                    <input type="text" name="subdivision_type" placeholder="e.g., Residential" required value="{{ ground.subdivision_type if ground else '' }}" style="width:100%">
+                    <input type="text" name="subdivision_type" placeholder="e.g., Residential" required
+                           value="{{ ground.subdivision_type if ground else '' }}" style="width:100%">
                 </div>
                 <div>
                     <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Owner</label>
-                    <input type="text" name="owner" placeholder="Enter owner name" required value="{{ ground.owner if ground else '' }}" style="width:100%">
+                    <input type="text" name="owner" placeholder="Enter owner name" required
+                           value="{{ ground.owner if ground else '' }}" style="width:100%">
                 </div>
             </div>
             <div style="display:flex;gap:12px">
@@ -97,3 +110,4 @@
     {% endif %}
 </div>
 {% endblock %}
+
