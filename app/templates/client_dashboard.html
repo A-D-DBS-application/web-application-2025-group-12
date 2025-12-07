@@ -1,15 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Client Dashboard - {{ client.name }}</h1>
-<a href="{{ url_for('logout') }}" class="btn">Logout</a>
 
 <div class="card">
     <h2>Your Preferences</h2>
     {% if preferences %}
     <p><strong>Location:</strong> {{ preferences.location or 'Not set' }}</p>
-    <p><strong>Budget:</strong> €{{ preferences.min_budget or '?' }} - €{{ preferences.max_budget or '?' }}</p>
-    <p><strong>Size:</strong> {{ preferences.min_m2 or '?' }} - {{ preferences.max_m2 or '?' }} m²</p>
-    <p><strong>Subdivision Type:</strong> {{ preferences.subdivision_type or 'Not set' }}</p>
+    <p><strong>Budget:</strong> €{{ preferences.min_budget|format_price if preferences.min_budget else '?' }} - €{{ preferences.max_budget|format_price if preferences.max_budget else '?' }}</p>
+    <p><strong>Size:</strong> {{ preferences.min_m2|format_number }} - {{ preferences.max_m2|format_number }} m²</p>
+    <p><strong>Subdivision Type:</strong> {{ (preferences.subdivision_type.replace('_', ' ').title()) if preferences.subdivision_type else 'Not set' }}</p>
     <a href="{{ url_for('client_preferences_edit') }}" class="btn">Edit Preferences</a>
     {% else %}
     <p>No preferences set yet.</p>
@@ -36,12 +35,12 @@
                 {% for match in matches %}
                 <tr>
                         <td>{{ match.ground.location }}</td>
-                        <td>{{ match.ground.m2 }} m²</td>
-                        <td>€{{ match.ground.budget }}</td>
-                        <td>{{ match.ground.subdivision_type }}</td>
+                        <td>{{ match.ground.m2|format_number }} m²</td>
+                        <td>€{{ match.ground.budget|format_price }}</td>
+                        <td>{{ match.ground.subdivision_type.replace('_', ' ').title() }}</td>
                         <td>{{ match.ground.owner }}</td>
-                        <td><strong>{{ ((match.budget_score or 0) + (match.m2_score or 0) + (match.location_score or 0))|round(2) }}</strong></td>
-                        <td><strong>{{ match.status }}</strong></td>
+                        <td><strong>{{ match|match_percent }}%</strong></td>
+                        <td>{{ match.status|status_badge }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

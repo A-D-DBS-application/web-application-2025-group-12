@@ -53,6 +53,9 @@
                     <img src="{{ url_for('static', filename='images/nav/matches-white.svg') }}" class="gm-nav-icon" alt="">
                     <span>Matches</span>
                 </a>
+                {% if current_user_name %}
+                <span class="gm-user-pill">{{ current_user_name }}</span>
+                {% endif %}
                 <a href="{{ url_for('logout') }}" class="gm-nav-link gm-nav-cta">
                     <img src="{{ url_for('static', filename='images/nav/logout-white.svg') }}" class="gm-nav-icon" alt="">
                     <span>Logout</span>
@@ -78,6 +81,12 @@
 
     <footer class="gm-footer">
         <div class="gm-container">
+            {% if session.role == 'client' and client is defined and client.company %}
+            <div style="border-top:1px solid #e0e0e0;padding-top:12px;margin-bottom:12px">
+                <strong style="color:#193127">Company Contact Information:</strong><br>
+                <small>Email: {{ client.company.email or 'Not available' }}</small>
+            </div>
+            {% endif %}
             <small>© {{ current_year if (current_year is defined) else '' }} GroundMatch — MVP</small>
         </div>
     </footer>

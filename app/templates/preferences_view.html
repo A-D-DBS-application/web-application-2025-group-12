@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <div>
+            <h1 style="margin:0">Client Preferences</h1>
+            <div class="muted">View preferences for {{ client.name }}</div>
+        </div>
+        <a href="{{ url_for('preferences_list') }}" class="btn">Back to List</a>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <div>
+            <div style="margin-bottom:16px">
+                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Preferred Location</label>
+                <div style="padding:10px;background:#f6fbf8;border-radius:6px">{{ pref.location or 'Not specified' }}</div>
+            </div>
+            <div style="margin-bottom:16px">
+                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Subdivision Type</label>
+                <div style="padding:10px;background:#f6fbf8;border-radius:6px">{{ pref.subdivision_type.replace('_', ' ').title() if pref.subdivision_type else 'Not specified' }}</div>
+            </div>
+        </div>
+        <div>
+            <div style="margin-bottom:16px">
+                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Surface Area Range (m²)</label>
+                <div style="padding:10px;background:#f6fbf8;border-radius:6px">
+                    {% if pref.min_m2 or pref.max_m2 %}
+                        {{ pref.min_m2|format_number }} - {{ pref.max_m2|format_number }} m²
+                    {% else %}
+                        Not specified
+                    {% endif %}
+                </div>
+            </div>
+            <div style="margin-bottom:16px">
+                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Budget Range (€)</label>
+                <div style="padding:10px;background:#f6fbf8;border-radius:6px">
+                    {% if pref.min_budget or pref.max_budget %}
+                        €{{ pref.min_budget|format_price if pref.min_budget else '?' }} - €{{ pref.max_budget|format_price if pref.max_budget else '?' }}
+                    {% else %}
+                        Not specified
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top:24px;padding:12px;background:#fff3cd;border-radius:6px;border-left:4px solid #ffc107">
+        <strong>Note:</strong> Only clients can edit their own preferences. You can view them here but cannot make changes.
+    </div>
+</div>
+{% endblock %}

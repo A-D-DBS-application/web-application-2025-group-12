@@ -33,7 +33,7 @@
                                 </div>
                                 <div style="display:flex;gap:8px">
                                     <span style="font-size:0.85rem;color:#6b7a71;font-weight:600;min-width:100px">Type:</span>
-                                    <span style="font-weight:500">{{ pref.subdivision_type or '—' }}</span>
+                                    <span style="font-weight:500">{{ (pref.subdivision_type.replace('_', ' ').title()) if pref.subdivision_type else '—' }}</span>
                                 </div>
                                 <div style="display:flex;gap:8px">
                                     <span style="font-size:0.85rem;color:#6b7a71;font-weight:600;min-width:100px">Budget:</span>
@@ -41,12 +41,12 @@
                                 </div>
                                 <div style="display:flex;gap:8px">
                                     <span style="font-size:0.85rem;color:#6b7a71;font-weight:600;min-width:100px">Size:</span>
-                                    <span style="font-weight:500">{{ pref.min_m2 or '?' }} — {{ pref.max_m2 or '?' }} m²</span>
+                                    <span style="font-weight:500">{{ pref.min_m2|format_number }} — {{ pref.max_m2|format_number }} m²</span>
                                 </div>
                             </div>
                         </div>
                         <div style="margin-top:auto;padding-top:12px;border-top:1px solid rgba(25,49,39,0.08)">
-                            <a href="{{ url_for('preferences_edit', client_id=pref.client_id) }}" class="btn btn-success">Edit Preferences</a>
+                            <a href="{{ url_for('preferences_view', client_id=pref.client_id) }}" class="btn btn-success">View Preferences</a>
                         </div>
                     </div>
                     {% endfor %}
@@ -65,7 +65,7 @@
                         </div>
                         <div>
                             <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:8px">SUBDIVISION TYPE</div>
-                            <div style="font-size:1.1rem;font-weight:600;color:#193127">{{ pref.subdivision_type or '—' }}</div>
+                            <div style="font-size:1.1rem;font-weight:600;color:#193127">{{ (pref.subdivision_type.replace('_', ' ').title()) if pref.subdivision_type else '—' }}</div>
                         </div>
                         <div>
                             <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:8px">BUDGET RANGE</div>
@@ -73,12 +73,12 @@
                         </div>
                         <div>
                             <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:8px">SIZE RANGE</div>
-                            <div style="font-size:1.1rem;font-weight:600;color:#193127">{{ pref.min_m2 or '?' }} — {{ pref.max_m2 or '?' }} m²</div>
+                            <div style="font-size:1.1rem;font-weight:600;color:#193127">{{ pref.min_m2|format_number }} — {{ pref.max_m2|format_number }} m²</div>
                         </div>
                     </div>
                 </div>
                 <div style="border-top:1px solid rgba(25,49,39,0.08);padding-top:16px">
-                    <a href="{{ url_for('preferences_edit', client_id=pref.client_id) }}" class="btn btn-success">Edit Preferences</a>
+                    <a href="{{ url_for('preferences_view', client_id=pref.client_id) }}" class="btn btn-success">View Preferences</a>
                 </div>
             </div>
             {% endfor %}
