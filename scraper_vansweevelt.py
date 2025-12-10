@@ -55,6 +55,39 @@ def parse_budget(price_text: Optional[str]) -> Optional[int]:
     return int(digits) if digits else None
 
 
+def extract_address(soup: BeautifulSoup) -> Optional[str]:
+    """
+    Probeert een zo volledig mogelijk adres te vinden in de kaart-HTML.
+
+    Strategie:
+    1. Eerst <h4> (zoals je originele code).
+    2. Als dat leeg is:
+       - zoek in <p>-tags naar een tekst met een huisnummer (cijfer).
+       - anders zoek in <span>-tags naar iets met een huisnummer.
+    """
+    # 1) Je originele aanpak: <h4>
+    h4 = soup.find("h4")
+    if h4:
+        text = h4.get_text(" ", strip=True)
+        if text:
+            return text
+
+    # 2) Probeer <p>-tags
+    for p in soup.find_all("p"):
+        text = p.get_text(" ", strip=True)
+        if any(ch.isdigit() for ch in text):
+            return text
+
+    # 3) Probeer <span>-tags
+    for span in soup.find_all("span"):
+        text = span.get_text(" ", strip=True)
+        if any(ch.isdigit() for ch in text):
+            return text
+
+    # Niets gevonden
+    return None
+
+
 # -----------------------------
 # Hoofd-scrape functie
 # -----------------------------
@@ -117,9 +150,8 @@ def scrape_vansweevelt() -> List[Dict]:
         else:
             grond_type = title
 
-        # straat (optioneel)
-        h4 = soup.find("h4")
-        street = h4.get_text(strip=True) if h4 else None
+        # straat / adres (nu slimmer)
+        street = extract_address(soup)
 
         # oppervlakte
         icons_div = soup.find("div", class_="icons")
@@ -151,7 +183,7 @@ def scrape_vansweevelt() -> List[Dict]:
             "subdivision_type": subdivision_val,
             "owner": "Vansweevelt",
             "provider": None,        # Scraped grounds not tied to a company
-            "detail_url": detail_url,
+            # "detail_url": detail_url,  # niet in DB -> uitgelaten
             "image_url": image_url,
             "photo_url": image_url,  # Use scraped image as photo
         }
@@ -168,6 +200,8 @@ def save_to_supabase(plots: List[Dict]) -> None:
     if not plots:
         print("Geen plots om op te slaan.")
         return
+    
+    supabase.table(TABLE_NAME).delete().eq("owner", "Vansweevelt").execute()
 
     response = supabase.table(TABLE_NAME).insert(plots).execute()
     print("Supabase insert response:", response)
@@ -184,6 +218,8 @@ if __name__ == "__main__":
         print(p)
 
     save_to_supabase(plots)
+
+
 
 
 
