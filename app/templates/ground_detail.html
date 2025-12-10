@@ -1,71 +1,66 @@
 {% extends "base.html" %}
+{% from 'macros/layout.html' import detail_field_primary, detail_field, detail_grid_2col, section_divider %}
+{% from 'macros/forms.html' import page_header %}
+
 {% block content %}
-<div style="max-width:900px;margin:0 auto">
+<div class="page-wrapper-medium">
     {% if ground %}
-    <div class="card" style="margin-bottom:24px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-            <div>
-                <h1 style="margin:0">Building Plot Details</h1>
-                <div class="muted">View complete information about this building plot</div>
-            </div>
-            {# Right-corner back button removed to avoid duplication; bottom button will handle back navigation #}
-        </div>
+    <div class="card mb-4">
+        {# Page Header #}
+        {{ page_header("Building Plot Details", "View complete information about this building plot") }}
         
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+        {# Two-column layout: Image and Details #}
+        {% call detail_grid_2col('lg') %}
+            {# Plot Image #}
             <div>
                 {% if ground.photo_url %}
-                <img src="{{ ground.photo_url }}" alt="{{ ground.location }}" style="width:100%;height:300px;object-fit:cover;border-radius:10px;box-shadow:0 6px 18px rgba(31,111,74,0.06)">
+                <img src="{{ ground.photo_url }}" alt="{{ ground.location }}" class="detail-image">
                 {% else %}
-                <img src="{{ url_for('ground_image', ground_id=ground.id) }}" alt="{{ ground.location }}" style="width:100%;height:300px;object-fit:cover;border-radius:10px;box-shadow:0 6px 18px rgba(31,111,74,0.06)">
+                <img src="{{ url_for('ground_image', ground_id=ground.id) }}" alt="{{ ground.location }}" class="detail-image">
                 {% endif %}
             </div>
+            
+            {# Plot Details #}
             <div>
-                <div style="margin-bottom:20px">
-                    <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:4px">LOCATION</div>
-                    <div style="font-size:1.4rem;font-weight:700;color:#193127">{{ ground.location }}</div>
+                {# Location and Address #}
+                <div class="detail-field">
+                    <div class="detail-label">LOCATION</div>
+                    <div class="detail-value detail-value-lg">{{ ground.location }}</div>
                     {% if ground.address %}
-                    <div style="font-size:1.1rem;color:#6b7a71;margin-top:4px">{{ ground.address }}</div>
+                    <div class="detail-value-muted">{{ ground.address }}</div>
                     {% endif %}
                 </div>
                 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-                    <div>
-                        <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:4px">SURFACE AREA</div>
-                        <div style="font-size:1.2rem;font-weight:700;color:#1f6f4a">{{ ground.m2|format_number }} m²</div>
-                    </div>
-                    <div>
-                        <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:4px">PRICE</div>
-                        <div style="font-size:1.2rem;font-weight:700;color:#1f6f4a">€{{ ground.budget|format_price }}</div>
-                    </div>
-                </div>
+                {# Surface Area and Price Grid #}
+                {% call detail_grid_2col() %}
+                    {{ detail_field_primary("SURFACE AREA", ground.m2|format_number ~ " m²") }}
+                    {{ detail_field_primary("PRICE", "€" ~ ground.budget|format_price) }}
+                {% endcall %}
                 
-                <div style="margin-bottom:20px">
-                    <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:4px">SUBDIVISION TYPE</div>
-                    <div style="font-size:1.1rem;font-weight:600;color:#193127">{{ ground.subdivision_type.replace('_', ' ').title() }}</div>
-                </div>
+                {# Subdivision Type #}
+                {{ detail_field("SUBDIVISION TYPE", ground.subdivision_type.replace('_', ' ').title()) }}
                 
-                <div>
-                    <div style="font-size:0.9rem;color:#6b7a71;font-weight:600;margin-bottom:4px">OWNER</div>
-                    <div style="font-size:1.1rem;font-weight:600;color:#193127">{{ ground.owner }}</div>
-                </div>
+                {# Owner #}
+                {{ detail_field("OWNER", ground.owner, False) }}
             </div>
-        </div>
+        {% endcall %}
         
+        {# Action Buttons Section #}
         {% if session.role == 'company' %}
-        <div style="display:flex;gap:12px;justify-content:flex-start;border-top:1px solid rgba(25,49,39,0.08);padding-top:18px">
-            <a id="detail-back-btn" href="{{ url_for('grounds_list') }}" class="btn">Back to Plots</a>
-            {# Show Edit/Delete only for grounds owned by this company #}
-            {% if user_company and ground.provider == user_company %}
-            <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn">Edit Plot</a>
-            <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}" style="display:inline">
-                <button type="submit" class="btn" onclick="return confirm('Delete this ground? This action cannot be undone.')">Delete Plot</button>
-            </form>
-            {% endif %}
-        </div>
+            {% call section_divider() %}
+                <a id="detail-back-btn" href="{{ url_for('grounds_list') }}" class="btn">Back to Plots</a>
+                {# Show Edit/Delete only for grounds owned by this company #}
+                {% if user_company and ground.provider == user_company %}
+                <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn">Edit Plot</a>
+                <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}" class="inline">
+                    <button type="submit" class="btn" onclick="return confirm('Delete this ground? This action cannot be undone.')">Delete Plot</button>
+                </form>
+                {% endif %}
+            {% endcall %}
         {% else %}
-        <div style="border-top:1px solid rgba(25,49,39,0.08);padding-top:18px">
-            <a id="detail-back-btn" href="{{ url_for('matches_list') }}" class="btn">Back</a>
-        </div>
+            {% call section_divider() %}
+                <a id="detail-back-btn" href="{{ url_for('matches_list') }}" class="btn">Back</a>
+            {% endcall %}
         {% endif %}
 
         <script>
@@ -78,8 +73,6 @@
                 if(ref.indexOf('/matches') !== -1){
                     backBtn.href = "{{ url_for('matches_list') }}";
                     backBtn.textContent = 'Back';
-                } else {
-                    // default keep existing href/text (plots)
                 }
             }catch(e){console.warn(e)}
         })();

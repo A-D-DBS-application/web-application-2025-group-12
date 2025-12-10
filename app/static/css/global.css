@@ -1,16 +1,65 @@
+/* ===========================================================================
+   CSS VARIABLES - SINGLE SOURCE OF TRUTH FOR ALL DESIGN VALUES
+   
+   To change the main color scheme (e.g., from green to blue):
+   1. Change --gm-primary to your new color
+   2. Adjust --gm-primary-rgb values accordingly
+   3. All components will automatically update
+   =========================================================================== */
 :root{
-  --gm-bg: #f3faf4; /* very light green */
+  /* Color Palette - Main Colors */
+  --gm-bg: #f3faf4; /* very light green background */
   --gm-surface: #ffffff;
-  --gm-primary: #1f6f4a; /* primary green */
+  --gm-primary: #1f6f4a; /* PRIMARY COLOR - Change this to rebrand entire app */
+  --gm-primary-rgb: 31, 111, 74; /* RGB values of primary color for rgba() usage */
   --gm-primary-600: #2c8a57;
-  --gm-muted: #6b7a71;
+  
+  /* Text Colors */
+  --gm-text-dark: #193127; /* Dark text for headings and labels */
+  --gm-text-body: #193127; /* Body text color */
+  --gm-muted: #6b7a71; /* Muted/secondary text */
+  
+  /* Status Colors */
   --gm-success: #22c55e;
   --gm-warning: #f6c84c;
   --gm-danger: #ef4444;
+  
+  /* Borders */
+  --gm-border: rgba(25, 49, 39, 0.08); /* Standard border color */
+  --gm-border-light: rgba(255, 255, 255, 0.1); /* Light border for dark backgrounds */
+  --gm-border-divider: rgba(25, 49, 39, 0.08); /* Section divider */
+  
+  /* Backgrounds & Overlays */
+  --gm-overlay-light: rgba(31, 111, 74, 0.02); /* Very light primary overlay */
+  --gm-overlay-medium: rgba(31, 111, 74, 0.06); /* Medium primary overlay */
+  
+  /* Shadows */
+  --gm-shadow-sm: 0 3px 10px rgba(0, 0, 0, 0.06);
+  --gm-shadow-md: 0 6px 18px rgba(31, 111, 74, 0.06);
+  --gm-shadow-lg: 0 10px 24px rgba(31, 111, 74, 0.08);
+  --gm-shadow-xl: 0 10px 28px rgba(31, 111, 74, 0.12);
+  --gm-card-shadow: var(--gm-shadow-md); /* Alias for backwards compatibility */
+  
+  /* Spacing & Layout */
   --gm-radius: 10px;
-  --gm-card-shadow: 0 6px 18px rgba(31,111,74,0.06);
+  --gm-radius-sm: 6px;
+  --gm-radius-lg: 12px;
   --gm-gap: 20px;
+  --gm-gap-sm: 12px;
+  --gm-gap-xs: 8px;
+  
+  /* Container Widths */
   --max-width: 1200px;
+  --max-width-narrow: 600px;
+  --max-width-medium: 900px;
+  
+  /* Typography */
+  --font-size-base: 1rem;
+  --font-size-sm: 0.9rem;
+  --font-size-xs: 0.85rem;
+  --font-size-lg: 1.05rem;
+  --font-size-xl: 1.2rem;
+  --font-size-2xl: 1.4rem;
 }
 
 *{box-sizing:border-box}
@@ -19,15 +68,237 @@ body{
   margin:0;
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
   background:var(--gm-bg);
-  color:#193127;
+  color:var(--gm-text-body);
   -webkit-font-smoothing:antialiased;
 }
 
+/* ===========================================================================
+   LAYOUT CONTAINERS
+   =========================================================================== */
 .gm-container{max-width:var(--max-width);margin:0 auto;padding:24px}
+
+/* Page wrappers with max-width constraints */
+.page-wrapper{margin:0 auto}
+.page-wrapper-narrow{max-width:var(--max-width-narrow);margin:0 auto}
+.page-wrapper-medium{max-width:var(--max-width-medium);margin:0 auto}
+
+/* ===========================================================================
+   PAGE HEADER COMPONENTS
+   =========================================================================== */
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.page-header-content{flex:1}
+.page-header-title{margin:0 0 6px;font-size:var(--font-size-2xl)}
+.page-header-subtitle{color:var(--gm-muted)}
+.page-header-actions{display:flex;gap:var(--gm-gap-xs);align-items:center}
+
+/* ===========================================================================
+   FORM COMPONENTS
+   =========================================================================== */
+/* Form labels */
+.form-label{
+  display:block;
+  font-weight:600;
+  margin-bottom:6px;
+  color:var(--gm-text-dark);
+  font-size:var(--font-size-base);
+}
+
+.form-label-sm{
+  font-size:var(--font-size-sm);
+}
+
+/* Form inputs - standard styling for all input types */
+.form-input,
+input.form-input[type="text"],
+input.form-input[type="email"],
+input.form-input[type="number"],
+select.form-input,
+textarea.form-input{
+  width:100%;
+  padding:10px 12px;
+  border-radius:var(--gm-radius);
+  border:1px solid var(--gm-border);
+  background:transparent;
+  font-size:var(--font-size-base);
+}
+
+.form-input-lg{
+  padding:12px 14px;
+  font-size:var(--font-size-lg);
+}
+
+/* Form field wrapper (container for label + input) */
+.form-field{margin-bottom:16px}
+
+/* Form rows and grids */
+.form-row-2col{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-bottom:16px;
+}
+
+/* Form actions (button container at bottom of forms) */
+.form-actions-row{
+  display:flex;
+  gap:var(--gm-gap-sm);
+  margin-top:18px;
+}
+
+.form-actions-row-centered{
+  display:flex;
+  gap:var(--gm-gap-xs);
+  margin-top:18px;
+  justify-content:center;
+}
+
+/* Auth form specific styles */
+.auth-form-actions{
+  display:flex;
+  gap:var(--gm-gap-xs);
+  margin-top:18px;
+}
+
+.auth-form-actions .btn{
+  flex:1;
+  padding:12px;
+  font-size:var(--font-size-base);
+  text-align:center;
+}
+
+/* ===========================================================================
+   DETAIL PAGE COMPONENTS
+   =========================================================================== */
+/* Detail field label (e.g., "LOCATION", "SURFACE AREA") */
+.detail-label{
+  font-size:var(--font-size-sm);
+  color:var(--gm-muted);
+  font-weight:600;
+  margin-bottom:4px;
+  text-transform:uppercase;
+}
+
+.detail-label-normal{
+  text-transform:none;
+}
+
+/* Detail field value (regular text) */
+.detail-value{
+  font-size:var(--font-size-lg);
+  font-weight:600;
+  color:var(--gm-text-dark);
+}
+
+.detail-value-lg{
+  font-size:var(--font-size-2xl);
+  font-weight:700;
+}
+
+.detail-value-muted{
+  color:var(--gm-muted);
+  margin-top:4px;
+}
+
+/* Detail field value (highlighted/primary color) */
+.detail-value-primary{
+  font-size:var(--font-size-xl);
+  font-weight:700;
+  color:var(--gm-primary);
+}
+
+/* Detail field container */
+.detail-field{margin-bottom:20px}
+
+/* Detail grid for two-column layout */
+.detail-grid-2col{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-bottom:20px;
+}
+
+.detail-grid-2col-lg{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+  margin-bottom:24px;
+}
+
+/* Section divider */
+.section-divider{
+  border-top:1px solid var(--gm-border-divider);
+  padding-top:18px;
+}
+
+/* Image containers */
+.detail-image{
+  width:100%;
+  height:300px;
+  object-fit:cover;
+  border-radius:var(--gm-radius);
+  box-shadow:var(--gm-shadow-md);
+}
+
+/* ===========================================================================
+   GRID LAYOUTS
+   =========================================================================== */
+.grid-2col{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:var(--gm-gap-sm);
+}
+
+.grid-auto-fill{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+  gap:18px;
+}
+
+/* ===========================================================================
+   UTILITY CLASSES
+   =========================================================================== */
+/* Flex utilities */
+.flex{display:flex}
+.flex-col{display:flex;flex-direction:column}
+.flex-center{display:flex;align-items:center;justify-content:center}
+.flex-between{display:flex;justify-content:space-between;align-items:center}
+.flex-gap{gap:var(--gm-gap)}
+.flex-gap-sm{gap:var(--gm-gap-sm)}
+.flex-gap-xs{gap:var(--gm-gap-xs)}
+
+/* Spacing utilities */
+.mb-0{margin-bottom:0}
+.mb-1{margin-bottom:6px}
+.mb-2{margin-bottom:12px}
+.mb-3{margin-bottom:18px}
+.mb-4{margin-bottom:24px}
+.mt-0{margin-top:0}
+.mt-1{margin-top:6px}
+.mt-2{margin-top:12px}
+.mt-3{margin-top:18px}
+.mt-4{margin-top:24px}
+
+/* Text utilities */
+.text-center{text-align:center}
+.text-muted{color:var(--gm-muted)}
+.text-dark{color:var(--gm-text-dark)}
+.text-primary{color:var(--gm-primary)}
+
+/* Font size utilities */
+.text-sm{font-size:var(--font-size-sm)}
+.text-lg{font-size:var(--font-size-lg)}
+.text-xl{font-size:var(--font-size-xl)}
+.text-2xl{font-size:var(--font-size-2xl)}
+
+/* Display utilities */
+.inline{display:inline}
+.inline-block{display:inline-block}
+.block{display:block}
 
 /* NAVBAR */
 .gm-navbar{background:var(--gm-primary);color:#fff;padding:8px 0;box-shadow:0 3px 10px rgba(0,0,0,0.06);position:sticky;top:0;z-index:40}
-.gm-navbar-inner{display:flex;align-items:center;justify-content:space-between}
+.gm-navbar-inner{display:flex;align-items:center;justify-content:space-between;position:relative}
+.gm-navbar-centered{justify-content:center !important}
 .gm-brand{display:flex;align-items:center;text-decoration:none;color:inherit}
 .gm-logo{width:44px;height:44px;margin-right:12px}
 .gm-logo-full{height:60px;width:auto;margin-right:0;display:block}
@@ -46,12 +317,88 @@ body{
 }
 .gm-nav-cta{background:rgba(255,255,255,0.12)}
 
+/* Mobile menu styles */
+.mobile-menu-checkbox{display:none}
+.mobile-menu-icon{display:none;flex-direction:column;cursor:pointer;padding:8px}
+.mobile-menu-icon span{width:24px;height:3px;background:#fff;margin:4px 0;border-radius:2px;transition:all 0.3s ease}
+
+.gm-nav-mobile{display:none;position:absolute;top:100%;left:0;right:0;background:var(--gm-primary);flex-direction:column;border-top:1px solid rgba(255,255,255,0.1);max-height:0;overflow:hidden;transition:max-height 0.3s ease;z-index:1000}
+
+.mobile-menu-checkbox:checked ~ .gm-nav-mobile{
+  display:flex;
+  max-height:600px;
+}
+
+.mobile-menu-checkbox:checked ~ .gm-nav-mobile::before{
+  content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:transparent;z-index:-1;
+}
+
+.mobile-menu-checkbox:checked ~ .mobile-menu-icon span:nth-child(1){transform:rotate(45deg) translate(7px, 7px)}
+.mobile-menu-checkbox:checked ~ .mobile-menu-icon span:nth-child(2){opacity:0}
+.mobile-menu-checkbox:checked ~ .mobile-menu-icon span:nth-child(3){transform:rotate(-45deg) translate(7px, -7px)}
+
+.gm-nav-mobile-link{display:block;padding:14px 16px;color:rgba(255,255,255,0.9);text-decoration:none;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.1);transition:background 0.2s ease}
+.gm-nav-mobile-link:hover{background:rgba(255,255,255,0.1)}
+.gm-nav-mobile-link.active{background:rgba(255,255,255,0.15);color:#fff}
+
+.gm-nav-mobile-user{padding:8px 0;border-top:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1)}
+.gm-nav-mobile-user .gm-nav-mobile-link{padding:12px 16px;border-bottom:none}
+
+.gm-nav-mobile-logout{background:rgba(255,255,255,0.08)}
+
+.gm-nav-desktop{display:flex}
+
 /* Logged-in user pill */
 .gm-user-pill{
   display:inline-flex;align-items:center;gap:6px;margin-left:4px;margin-right:4px;
   padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.2);
   color:#fff;font-weight:600;opacity:0.9;white-space:nowrap
 }
+
+.gm-user-link{
+  text-decoration:none;cursor:pointer;transition:all 0.2s ease;
+}
+
+/* Dashboard styles */
+.dashboard-header{display:flex;justify-content:space-between;align-items:center}
+.dashboard-header h1{margin:0 0 6px}
+
+.dashboard-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:18px}
+.stat-card{padding:12px !important}
+.stat-value{font-weight:700;font-size:1.3rem;margin-top:6px}
+
+.dashboard-actions{margin-top:18px;display:flex;gap:8px;flex-wrap:wrap}
+.dashboard-actions form{display:inline}
+
+/* Building plots grid */
+.plots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:16px}
+.plot-item{background:var(--gm-surface);border-radius:var(--gm-radius);overflow:hidden;box-shadow:var(--gm-card-shadow);transition:transform 0.2s ease,box-shadow 0.2s ease}
+.plot-item:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(31,111,74,0.12)}
+
+.plot-image-container{width:100%;height:200px;overflow:hidden;background:#f0f0f0}
+.plot-image{width:100%;height:100%;object-fit:cover}
+
+.plot-details{padding:12px}
+.plot-location{font-weight:700;font-size:1.05rem;margin-bottom:8px}
+.plot-meta{display:flex;gap:12px;font-size:0.9rem;color:var(--gm-muted);margin-bottom:8px}
+.plot-meta span{flex:1}
+
+.see-all-link{margin-top:12px}
+
+/* Client dashboard matches grid */
+.client-matches-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:12px}
+.client-match-card{background:var(--gm-surface);border-radius:var(--gm-radius);overflow:hidden;box-shadow:var(--gm-card-shadow);transition:transform 0.2s ease,box-shadow 0.2s ease}
+.client-match-card:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(31,111,74,0.12)}
+
+.client-match-image-container{width:100%;height:180px;overflow:hidden;background:#f0f0f0}
+.client-match-image{width:100%;height:100%;object-fit:cover}
+
+.client-match-info{padding:12px}
+.client-match-location{font-weight:700;font-size:1rem;margin-bottom:8px}
+.client-match-meta{display:flex;gap:8px;font-size:0.9rem;color:var(--gm-muted);margin-bottom:6px}
+.client-match-meta-secondary{display:flex;gap:8px;font-size:0.85rem;color:var(--gm-muted);margin-bottom:10px}
+.meta-item{flex:1}
+.client-match-score{color:var(--gm-primary);font-size:0.95rem;font-weight:600}
 
 /* main */
 .gm-main{padding-top:28px;padding-bottom:48px}
@@ -62,6 +409,10 @@ body{
 .gm-flash{padding:12px 16px;border-radius:8px;background:#fff;border-left:4px solid var(--gm-primary);box-shadow:var(--gm-card-shadow)}
 .gm-flash-success{border-left-color:var(--gm-success)}
 .gm-flash-danger{border-left-color:var(--gm-danger)}
+
+/* Footer */
+.gm-footer-company-info{border-top:1px solid #e0e0e0;padding-top:12px;margin-bottom:12px}
+.gm-footer-company-info strong{color:#193127}
 
 /* Card */
 .card, .gm-card{background:var(--gm-surface);border-radius:var(--gm-radius);padding:18px;box-shadow:var(--gm-card-shadow);margin-bottom:var(--gm-gap)}
@@ -111,6 +462,23 @@ form .form-row > *{flex:1}
 
 /* Generic input helper used in some templates to ensure visual consistency */
 .gm-input{width:100%;padding:12px 14px;font-size:1.05rem;border-radius:10px;border:1px solid rgba(25,49,39,0.08);background:transparent}
+
+/* Profile form styles */
+.profile-form{margin-top:16px}
+.form-grid-single{display:grid;grid-template-columns:1fr;gap:12px}
+.form-label{display:block;font-size:0.95rem;font-weight:600;margin-bottom:6px;color:#193127}
+.profile-form input[type="text"],
+.profile-form input[type="email"],
+.profile-form input[type="number"]{
+  font-size:1rem;width:100%;padding:10px;box-sizing:border-box;
+}
+.form-actions{display:flex;gap:8px;margin-top:18px}
+.form-actions .btn{padding:12px;font-size:1rem;text-align:center}
+
+@media (max-width:480px){
+  .form-actions{flex-direction:column}
+  .form-actions .btn{width:100%}
+}
 /* Tables modern */
 table{width:100%;border-collapse:separate;border-spacing:0 12px}
 thead th{background:transparent;text-align:left;color:var(--gm-muted);font-weight:600;padding:6px 12px}
@@ -126,11 +494,160 @@ tbody td{padding:14px 12px;border:0}
 
 /* Responsive adjustments */
 @media (max-width:900px){
-  .gm-nav{display:none}
-  .gm-navbar-inner{justify-content:space-between}
+  .gm-nav-desktop{display:none}
+  .mobile-menu-icon{display:flex}
+  .gm-navbar-inner{justify-content:space-between;position:relative}
   .gm-container{padding:14px}
   .gm-main{padding-top:16px}
   table{font-size:0.95rem}
+}
+
+/* Mobile-first adjustments for small devices (iPhone 12 Pro ~390px) */
+@media (max-width:480px){
+  .gm-container{padding:12px}
+  .gm-main{padding-top:12px;padding-bottom:24px}
+  .gm-navbar{padding:6px 0}
+  .gm-logo-full{height:48px}
+  
+  /* Card adjustments */
+  .card, .gm-card{padding:12px;margin-bottom:12px;font-size:0.95rem}
+  
+  /* Button adjustments */
+  .btn{padding:6px 10px;font-size:0.9rem}
+  
+  /* Form elements */
+  input[type="text"], input[type="number"], input[type="email"], select, textarea{
+    padding:8px 10px;font-size:1rem;
+  }
+  
+  /* Form row */
+  form .form-row{flex-direction:column;gap:8px}
+  form .form-row > *{flex:1}
+  
+  /* Tables on mobile */
+  table{font-size:0.85rem;border-spacing:0 8px}
+  tbody td{padding:10px 8px}
+  thead th{padding:4px 8px}
+  
+  /* Grids */
+  .clients-grid{grid-template-columns:1fr;gap:12px;margin-top:8px}
+  .grounds-grid{grid-template-columns:1fr;gap:12px}
+  
+  /* Badges and tags */
+  .badge{padding:4px 8px;font-size:0.85rem}
+  .tag{padding:4px 8px;font-size:0.85rem}
+  
+  /* Client cards */
+  .client-card{flex-direction:column;align-items:flex-start;gap:12px;padding:12px}
+  .client-main{width:100%}
+  .client-actions{width:100%;flex-direction:column}
+  .client-actions.two-column{grid-template-columns:1fr;width:100%}
+  .client-actions.two-column .col{width:100%}
+  .client-actions .btn{width:100%;text-align:center}
+  
+  /* Clients list page - make client cards responsive on mobile */
+  /* Target the client card container (the one with gap:16px and margin-top:16px) and its children */
+  .card > div[style*="flex-direction:column"][style*="gap:16px"] > div[style*="gap:16px"][style*="align-items:stretch"]{
+    flex-direction:column !important;
+    gap:8px !important;
+  }
+  
+  /* Client info link section becomes full width and smaller */
+  .card > div[style*="flex-direction:column"][style*="gap:16px"] > div[style*="gap:16px"] > a.client-main-link{
+    flex:unset !important;
+    width:100% !important;
+    padding:8px !important;
+  }
+  
+  /* Avatar becomes smaller */
+  .card > div[style*="flex-direction:column"][style*="gap:16px"] > div[style*="gap:16px"] > a.client-main-link div[style*="width:56px"]{
+    width:44px !important;
+    height:44px !important;
+    font-size:0.95rem !important;
+  }
+  
+  /* Client name becomes smaller */
+  .card > div[style*="flex-direction:column"][style*="gap:16px"] > div[style*="gap:16px"] > a.client-main-link div[style*="gap:12px"] > div:last-child > div:first-child{
+    font-size:0.95rem !important;
+  }
+  
+  /* Client email becomes smaller */
+  .card > div[style*="flex-direction:column"][style*="gap:16px"] > div[style*="gap:16px"] > a.client-main-link div[style*="gap:12px"] > div:last-child > div:nth-child(2){
+    font-size:0.85rem !important;
+  }
+  
+  /* Client address becomes smaller */
+  .card > div[style*="flex-direction:column"][style*="gap:16px"] > div[style*="gap:16px"] > a.client-main-link div[style*="gap:12px"] > div:last-child > div:nth-child(3){
+    font-size:0.8rem !important;
+  }
+  
+  /* Buttons section: full width, flex-row to keep buttons side by side, remove left border */
+  .card > div[style*="flex-direction:column"][style*="gap:16px"] > div[style*="gap:16px"] > div[style*="border-left"]{
+    width:100% !important;
+    flex-direction:row !important;
+    gap:4px !important;
+    padding:8px 12px !important;
+    border-left:none !important;
+    border-top:1px solid rgba(25,49,39,0.08) !important;
+    background:transparent !important;
+    flex-wrap:wrap !important;
+  }
+  
+  /* Button sizing in clients list */
+  .card > div[style*="flex-direction:column"][style*="gap:16px"] > div[style*="gap:16px"] > div[style*="border-left"] .btn{
+    padding:6px 8px !important;
+    font-size:0.8rem !important;
+  }
+  
+  .card > div[style*="flex-direction:column"][style*="gap:16px"] > div[style*="gap:16px"] > div[style*="border-left"] .btn-primary-large{
+    padding:6px 8px !important;
+    font-size:0.8rem !important;
+  }
+  
+  .card > div[style*="flex-direction:column"][style*="gap:16px"] > div[style*="gap:16px"] > div[style*="border-left"] .btn-small{
+    padding:4px 6px !important;
+    font-size:0.75rem !important;
+  }
+  
+  /* Heading adjustments */
+  h1{font-size:1.3rem !important}
+  h2{font-size:1.2rem !important}
+  h3{font-size:1.1rem !important}
+  h4{font-size:1rem !important}
+  
+  /* Flash messages */
+  .gm-flash{padding:10px 12px;font-size:0.9rem}
+  
+  /* Matches page mobile */
+  .matches-header{flex-direction:column;align-items:flex-start;gap:12px;margin-bottom:16px}
+  .matches-actions{width:100%;flex-direction:column}
+  .matches-actions .btn{width:100%;text-align:center}
+  
+  .client-filter-form{flex-direction:column;align-items:flex-start;gap:8px}
+  .client-filter-form select{width:100%}
+  
+  .match-cards-grid{grid-template-columns:1fr;gap:12px}
+  .match-card-content{flex-direction:column;align-items:flex-start}
+  .match-card-image{width:100%;height:auto;max-height:150px}
+  .match-card-actions{width:100%;text-align:left}
+  
+  /* Dashboard mobile */
+  .plots-grid{grid-template-columns:1fr}
+  .plot-item{display:flex;flex-direction:column}
+  .plot-image-container{width:100%;height:150px}
+  
+  .client-matches-grid{grid-template-columns:1fr}
+  .client-match-card{display:flex;flex-direction:column}
+  .client-match-image-container{width:100%;height:150px}
+}
+
+/* Extra small devices (320px+) */
+@media (max-width:360px){
+  .gm-container{padding:10px}
+  .gm-logo-full{height:44px}
+  .btn{padding:6px 8px;font-size:0.85rem}
+  h1{font-size:1.2rem !important}
+  h2{font-size:1.1rem !important}
 }
 
 /* Building plot card alternative */
@@ -144,3 +661,36 @@ tbody td{padding:14px 12px;border:0}
 
 .grounds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
 .btn-light{background:transparent;border:1px solid rgba(25,49,39,0.06);padding:8px 10px;border-radius:8px}
+
+/* Matches page styles */
+.matches-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.matches-header h1{margin:0 0 6px}
+.matches-actions{display:flex;gap:8px;align-items:center}
+.inline-form{display:inline}
+
+.company-info-box{border-top:1px solid #e0e0e0;padding-top:12px;margin-bottom:12px;margin-top:12px}
+.company-info-box strong{color:#193127}
+.company-info-box small{display:block;margin-top:4px}
+
+.client-filter-form{display:flex;gap:8px;align-items:center;margin-bottom:16px;font-weight:600}
+.client-filter-form select{padding:8px 12px;border-radius:6px;border:1px solid #d1d5db}
+
+.matches-container{display:flex;flex-direction:column;gap:12px}
+
+.matches-group{margin-bottom:18px !important}
+.matches-group-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.matches-group-header h4{margin:0}
+
+.match-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+
+.match-card-link{text-decoration:none;color:inherit;display:block}
+.match-card{padding:12px;cursor:pointer;transition:box-shadow 0.2s ease}
+.match-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(31,111,74,0.1)}
+
+.match-card-content{display:flex;align-items:center;gap:12px}
+.match-card-image{width:110px;height:72px;object-fit:cover;border-radius:6px;flex-shrink:0}
+.match-card-info{flex:1}
+.match-card-location{font-weight:700}
+.match-card-actions{text-align:right;display:flex;flex-direction:column;gap:6px}
+.match-score{font-size:16px;font-weight:600;justify-content:center}
+.match-action-form{margin-top:6px}

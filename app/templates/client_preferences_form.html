@@ -1,57 +1,11 @@
-{% extends "base.html" %}
-{% block content %}
-<div style="max-width:600px;margin:0 auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-        <div>
-            <h1 style="margin:0 0 6px">Edit Your Preferences</h1>
-            <div class="muted">Update your property search criteria</div>
-        </div>
-    </div>
-
-    <div class="card">
-        <form method="POST">
-            <div style="margin-bottom:16px">
-                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Location</label>
-                <input type="text" name="location" placeholder="e.g., Amsterdam, Rotterdam" value="{{ pref.location if pref else '' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(25,49,39,0.08);background:transparent">
-            </div>
-
-            <div style="margin-bottom:16px">
-                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Subdivision Type</label>
-                <select name="subdivision_type" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(25,49,39,0.08);background:transparent">
-                    <option value="">Any type...</option>
-                    {% for type in subdivision_types %}
-                    <option value="{{ type }}" {% if pref and pref.subdivision_type == type %}selected{% endif %}>{{ type.replace('_', ' ').title() }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
-                <div>
-                    <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Min Size (m²)</label>
-                    <input type="number" name="min_m2" placeholder="e.g., 1000" value="{{ pref.min_m2 if pref else '' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(25,49,39,0.08);background:transparent">
-                </div>
-                <div>
-                    <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Max Size (m²)</label>
-                    <input type="number" name="max_m2" placeholder="e.g., 10000" value="{{ pref.max_m2 if pref else '' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(25,49,39,0.08);background:transparent">
-                </div>
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
-                <div>
-                    <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Min Budget (€)</label>
-                    <input type="number" step="1" name="min_budget" placeholder="e.g., 100000" value="{{ pref.min_budget if pref else '' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(25,49,39,0.08);background:transparent">
-                </div>
-                <div>
-                    <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Max Budget (€)</label>
-                    <input type="number" step="1" name="max_budget" placeholder="e.g., 1000000" value="{{ pref.max_budget if pref else '' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(25,49,39,0.08);background:transparent">
-                </div>
-            </div>
-
-            <div style="display:flex;gap:12px">
-                <button type="submit" class="btn btn-success">Save Changes</button>
-                <a href="{{ url_for('client_dashboard') }}" class="btn">Cancel</a>
-            </div>
-        </form>
-    </div>
-</div>
-{% endblock %}
+{# ===========================================================================
+   CLIENT PREFERENCES FORM REDIRECT
+   
+   This template has been unified with preferences_form.html to eliminate
+   duplication. Both company and client users now use the same template,
+   which adapts based on session.role.
+   
+   This file is kept for backwards compatibility but simply includes the
+   unified preferences_form.html template.
+   =========================================================================== #}
+{% include 'preferences_form.html' %}

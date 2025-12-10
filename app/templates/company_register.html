@@ -1,21 +1,23 @@
 {% extends "base.html" %}
+{% from 'macros/forms.html' import form_label, form_input %}
+
 {% block content %}
-<div class="card" style="max-width:420px;width:100%;margin:0 auto">
-    <h2 style="margin-top:0">Register Company</h2>
+<div class="card page-wrapper-narrow mt-4">
+    <h2 class="mt-0">Register Company</h2>
     <form method="POST">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="grid-2col">
             <div>
-                <label style="display:block;font-size:0.95rem;font-weight:600;margin-bottom:6px;color:#193127">Company Name</label>
-                <input type="text" name="name" placeholder="Company Name" required style="font-size:1rem;width:100%;padding:10px;box-sizing:border-box">
+                {{ form_label("Company Name") }}
+                {{ form_input("name", "text", "Company Name", "", True) }}
             </div>
             <div>
-                <label style="display:block;font-size:0.95rem;font-weight:600;margin-bottom:6px;color:#193127">Email</label>
-                <input type="email" name="email" placeholder="Email" required style="font-size:1rem;width:100%;padding:10px;box-sizing:border-box">
+                {{ form_label("Email") }}
+                {{ form_input("email", "email", "Email", "", True) }}
             </div>
         </div>
-        <div style="display:flex;gap:8px;margin-top:18px">
-            <button type="submit" class="btn btn-success" style="flex:1;padding:12px;font-size:1rem">Register</button>
-            <a href="{{ url_for('home') }}" class="btn" style="flex:1;padding:12px;font-size:1rem;text-align:center">Back</a>
+        <div class="auth-form-actions">
+            <button type="submit" class="btn btn-success">Register</button>
+            <a href="{{ url_for('home') }}" class="btn">Back</a>
         </div>
     </form>
 </div>

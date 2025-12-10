@@ -1,51 +1,66 @@
+{# ===========================================================================
+   UNIFIED PREFERENCES FORM
+   
+   This template is used by BOTH company users (editing client preferences)
+   and client users (editing their own preferences). The template adapts
+   based on session.role to show appropriate titles and cancel URLs.
+   
+   Variables expected:
+   - pref: Preferences object (may be None for new preferences)
+   - client: Client object (for company role, shows client name)
+   - subdivision_types: List of available subdivision types (for dropdown)
+   
+   NOTE: All styling uses CSS classes from global.css. No inline styles.
+   =========================================================================== #}
 {% extends "base.html" %}
+{% from 'macros/forms.html' import form_field, form_row_2col, form_actions, form_label, form_select, page_header %}
+
 {% block content %}
-<div style="max-width:600px;margin:0 auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-        <div>
-            <h1 style="margin:0 0 6px">Edit Preferences</h1>
-            <div class="muted">Manage preferences for {{ client.name }}</div>
-        </div>
-    </div>
+<div class="page-wrapper-narrow">
+    {{ page_header(
+        "Edit Preferences" if session.role == 'company' else "Edit Your Preferences",
+        "Manage preferences for " ~ client.name if session.role == 'company' else "Update your property search criteria"
+    ) }}
 
     <div class="card">
         <form method="POST">
-            <div style="margin-bottom:16px">
-                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Location</label>
-                <input type="text" name="location" placeholder="e.g., Amsterdam, Rotterdam" value="{{ pref.location if pref else '' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(25,49,39,0.08);background:transparent">
+            {# Location field #}
+            {{ form_field("Location", "location", "text", "e.g., Amsterdam, Rotterdam", pref.location if pref else '') }}
+
+            {# Subdivision Type - dropdown for clients, text input for companies #}
+            <div class="form-field">
+                {{ form_label("Subdivision Type") }}
+                {% if session.role == 'client' and subdivision_types %}
+                    {{ form_select("subdivision_type", subdivision_types, pref.subdivision_type if pref else '', "Any type...") }}
+                {% else %}
+                    <input type="text" 
+                           name="subdivision_type" 
+                           class="form-input"
+                           placeholder="e.g., Residential, Commercial, Mixed-Use" 
+                           value="{{ pref.subdivision_type if pref else '' }}">
+                {% endif %}
             </div>
 
-            <div style="margin-bottom:16px">
-                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Subdivision Type</label>
-                <input type="text" name="subdivision_type" placeholder="e.g., Residential, Commercial, Mixed-Use" value="{{ pref.subdivision_type if pref else '' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(25,49,39,0.08);background:transparent">
-            </div>
+            {# Min/Max Size (m²) #}
+            {{ form_row_2col(
+                "Min Size (m²)", "min_m2", pref.min_m2 if pref else '',
+                "Max Size (m²)", "max_m2", pref.max_m2 if pref else '',
+                "number", None, "e.g., 1000", "e.g., 10000"
+            ) }}
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
-                <div>
-                    <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Min Size (m²)</label>
-                    <input type="number" name="min_m2" placeholder="e.g., 1000" value="{{ pref.min_m2 if pref else '' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(25,49,39,0.08);background:transparent">
-                </div>
-                <div>
-                    <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Max Size (m²)</label>
-                    <input type="number" name="max_m2" placeholder="e.g., 10000" value="{{ pref.max_m2 if pref else '' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(25,49,39,0.08);background:transparent">
-                </div>
-            </div>
+            {# Min/Max Budget (€) #}
+            {{ form_row_2col(
+                "Min Budget (€)", "min_budget", pref.min_budget if pref else '',
+                "Max Budget (€)", "max_budget", pref.max_budget if pref else '',
+                "number", "1", "e.g., 100000", "e.g., 1000000"
+            ) }}
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
-                <div>
-                    <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Min Budget (€)</label>
-                    <input type="number" step="1" name="min_budget" placeholder="e.g., 100000" value="{{ pref.min_budget if pref else '' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(25,49,39,0.08);background:transparent">
-                </div>
-                <div>
-                    <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Max Budget (€)</label>
-                    <input type="number" step="1" name="max_budget" placeholder="e.g., 1000000" value="{{ pref.max_budget if pref else '' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(25,49,39,0.08);background:transparent">
-                </div>
-            </div>
-
-            <div style="display:flex;gap:12px">
-                <button type="submit" class="btn btn-success">Save Changes</button>
-                <a href="{{ url_for('preferences_list') }}" class="btn">Cancel</a>
-            </div>
+            {# Action buttons - different cancel URLs based on role #}
+            {% if session.role == 'company' %}
+                {{ form_actions("Save Changes", url_for('preferences_list'), "Cancel") }}
+            {% else %}
+                {{ form_actions("Save Changes", url_for('client_dashboard'), "Cancel") }}
+            {% endif %}
         </form>
     </div>
 </div>

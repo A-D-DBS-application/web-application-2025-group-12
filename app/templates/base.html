@@ -14,7 +14,7 @@
     {% if request.endpoint in auth_endpoints %}
     {# Centered logo navbar for auth-related pages (home, login, register) #}
     <header class="gm-navbar">
-        <div class="gm-container gm-navbar-inner" style="justify-content:center">
+        <div class="gm-container gm-navbar-inner gm-navbar-centered">
             <a class="gm-brand" href="{{ url_for('home') }}">
                 <img src="{{ url_for('static', filename='images/logo-full.svg') }}" alt="GroundMatch" class="gm-logo-full">
             </a>
@@ -28,7 +28,16 @@
                 <img src="{{ url_for('static', filename='images/logo-full.svg') }}" alt="GroundMatch" class="gm-logo-full">
             </a>
 
-            <nav class="gm-nav">
+            {# Mobile hamburger menu toggle #}
+            <input type="checkbox" id="mobile-menu-toggle" class="mobile-menu-checkbox">
+            <label for="mobile-menu-toggle" class="mobile-menu-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+            </label>
+
+            {# Desktop navigation #}
+            <nav class="gm-nav gm-nav-desktop">
                 <a href="{{ url_for('dashboard') if session.role == 'company' else url_for('client_dashboard') }}" class="gm-nav-link {% if request.path.startswith('/dashboard') or request.path.startswith('/client/dashboard') or request.path == '/' %}active{% endif %}">
                     <img src="{{ url_for('static', filename='images/nav/home-white.svg') }}" class="gm-nav-icon" alt="">
                     <span>Home</span>
@@ -53,11 +62,50 @@
                     <img src="{{ url_for('static', filename='images/nav/matches-white.svg') }}" class="gm-nav-icon" alt="">
                     <span>Matches</span>
                 </a>
-                {% if current_user_name %}
-                <span class="gm-user-pill">{{ current_user_name }}</span>
+                {% if session.role == 'company' %}
+                <a href="{{ url_for('company_profile') }}" class="gm-user-pill gm-user-link">{{ current_user_name }}</a>
+                {% elif session.role == 'client' %}
+                <a href="{{ url_for('client_profile') }}" class="gm-user-pill gm-user-link">{{ current_user_name }}</a>
                 {% endif %}
                 <a href="{{ url_for('logout') }}" class="gm-nav-link gm-nav-cta">
                     <img src="{{ url_for('static', filename='images/nav/logout-white.svg') }}" class="gm-nav-icon" alt="">
+                    <span>Logout</span>
+                </a>
+            </nav>
+
+            {# Mobile navigation menu #}
+            <nav class="gm-nav gm-nav-mobile">
+                <a href="{{ url_for('dashboard') if session.role == 'company' else url_for('client_dashboard') }}" class="gm-nav-mobile-link {% if request.path.startswith('/dashboard') or request.path.startswith('/client/dashboard') or request.path == '/' %}active{% endif %}">
+                    <span>Home</span>
+                </a>
+                {% if session.role == 'company' %}
+                <a href="{{ url_for('clients_list') }}" class="gm-nav-mobile-link {% if request.path.startswith('/clients') %}active{% endif %}">
+                    <span>Clients</span>
+                </a>
+                {% endif %}
+                <a href="{{ url_for('preferences_list') }}" class="gm-nav-mobile-link {% if request.path.startswith('/preferences') %}active{% endif %}">
+                    <span>Preferences</span>
+                </a>
+                {% if session.role == 'company' %}
+                <a href="{{ url_for('grounds_list') }}" class="gm-nav-mobile-link {% if request.path.startswith('/grounds') %}active{% endif %}">
+                    <span>Building Plots</span>
+                </a>
+                {% endif %}
+                <a href="{{ url_for('matches_list') }}" class="gm-nav-mobile-link {% if request.path.startswith('/matches') %}active{% endif %}">
+                    <span>Matches</span>
+                </a>
+                <div class="gm-nav-mobile-user">
+                    {% if session.role == 'company' %}
+                    <a href="{{ url_for('company_profile') }}" class="gm-nav-mobile-link">
+                        <strong>{{ current_user_name }}</strong>
+                    </a>
+                    {% elif session.role == 'client' %}
+                    <a href="{{ url_for('client_profile') }}" class="gm-nav-mobile-link">
+                        <strong>{{ current_user_name }}</strong>
+                    </a>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('logout') }}" class="gm-nav-mobile-link gm-nav-mobile-logout">
                     <span>Logout</span>
                 </a>
             </nav>
@@ -82,8 +130,8 @@
     <footer class="gm-footer">
         <div class="gm-container">
             {% if session.role == 'client' and client is defined and client.company %}
-            <div style="border-top:1px solid #e0e0e0;padding-top:12px;margin-bottom:12px">
-                <strong style="color:#193127">Company Contact Information:</strong><br>
+            <div class="gm-footer-company-info">
+                <strong>Company Contact Information:</strong><br>
                 <small>Email: {{ client.company.email or 'Not available' }}</small>
             </div>
             {% endif %}
@@ -93,3 +141,4 @@
 
 </body>
 </html>
+

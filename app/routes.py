@@ -610,13 +610,15 @@ def init_routes(app):
                 query = query.filter(Match.client_id == int(client_filter))
             
             clients = Client.query.filter_by(company_id=session['company_id']).order_by(Client.name).all()
+            client = None
         elif session.get('role') == 'client':
             query = Match.query.filter_by(client_id=session['client_id'], status='approved')
             clients = []
+            client = Client.query.get(session['client_id'])
         else:
             return redirect(url_for('home'))
         
-        return render_template('matches_list.html', matches=get_sorted_matches(query.all()), client_filter=client_filter, clients=clients)
+        return render_template('matches_list.html', matches=get_sorted_matches(query.all()), client_filter=client_filter, clients=clients, client=client)
 
     @app.route('/matches/<int:match_id>/toggle', methods=['POST'])
     @requires_company

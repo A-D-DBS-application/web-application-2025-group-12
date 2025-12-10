@@ -1,51 +1,52 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center">
+    <div class="dashboard-header">
         <div>
-            <h1 style="margin:0">Welcome back</h1>
+            <h1>Welcome back</h1>
             <div class="muted">Here's an overview of your platform</div>
         </div>
-        {# Logout button intentionally removed from the visual layout on this screen per design-only request #}
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:18px">
-        <div class="card"><div class="muted">Total Clients</div><div style="font-weight:700;font-size:1.3rem">{{ clients|length }}</div></div>
-        <div class="card"><div class="muted">Building Plots</div><div style="font-weight:700;font-size:1.3rem">{{ grounds|length }}</div></div>
-        <div class="card"><div class="muted">Active Matches</div><div style="font-weight:700;font-size:1.3rem">{{ matches|length }}</div></div>
+    <div class="dashboard-stats">
+        <div class="card stat-card"><div class="muted">Total Clients</div><div class="stat-value">{{ clients|length }}</div></div>
+        <div class="card stat-card"><div class="muted">Building Plots</div><div class="stat-value">{{ grounds|length }}</div></div>
+        <div class="card stat-card"><div class="muted">Active Matches</div><div class="stat-value">{{ matches|length }}</div></div>
     </div>
 
-    <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap">
+    <div class="dashboard-actions">
         <a href="{{ url_for('clients_list') }}" class="btn btn-success">Manage Clients</a>
         <a href="{{ url_for('preferences_list') }}" class="btn btn-success">View Preferences</a>
         <a href="{{ url_for('grounds_list') }}" class="btn btn-success">Manage Grounds</a>
         <a href="{{ url_for('matches_list') }}" class="btn btn-success">View Matches</a>
-        <form method="POST" action="{{ url_for('match_run') }}" style="display:inline">
+        <form method="POST" action="{{ url_for('match_run') }}" class="inline-form">
             <button type="submit" class="btn primary">Run Match Algorithm</button>
         </form>
     </div>
 </div>
 
 <div class="card">
-    <h2 style="margin-top:0">Recent Building Plots</h2>
-    <table>
-        <thead>
-            <tr><th>Location</th><th>Surface Area</th><th>Budget</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-            {% for ground in grounds|sort(attribute='id', reverse=true) %}
-            {% if loop.index <= 5 %}
-            <tr>
-                <td>{{ ground.location }}</td>
-                <td>{{ ground.m2|format_number }} m²</td>
-                <td>€{{ ground.budget|format_price }}</td>
-                <td><a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn">View Details</a></td>
-            </tr>
-            {% endif %}
-            {% endfor %}
-        </tbody>
-    </table>
-    <div style="margin-top:12px"><a href="{{ url_for('grounds_list') }}" class="btn">See All Plots</a></div>
+    <h2>Recent Building Plots</h2>
+    <div class="plots-grid">
+        {% for ground in grounds|sort(attribute='id', reverse=true) %}
+        {% if loop.index <= 5 %}
+            <div class="plot-item">
+                <div class="plot-image-container">
+                    <img src="{% if ground.photo_url %}{{ ground.photo_url }}{% elif ground.image_url %}{{ ground.image_url }}{% else %}{{ url_for('ground_image', ground_id=ground.id) }}{% endif %}" alt="{{ ground.location }}" class="plot-image">
+                </div>
+                <div class="plot-details">
+                    <div class="plot-location">{{ ground.location }}</div>
+                    <div class="plot-meta">
+                        <span>{{ ground.m2|format_number }} m²</span>
+                        <span>€{{ ground.budget|format_price }}</span>
+                    </div>
+                    <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn btn-small">View Details</a>
+                </div>
+            </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    <div class="see-all-link"><a href="{{ url_for('grounds_list') }}" class="btn">See All Plots</a></div>
 </div>
 
 {% endblock %}
