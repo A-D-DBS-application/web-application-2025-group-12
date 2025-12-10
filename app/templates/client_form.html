@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from 'macros/forms.html' import form_actions %}
+
 {% block content %}
 <div class="card">
     <h2>{% if client %}Edit{% else %}Add{% endif %} Client</h2>

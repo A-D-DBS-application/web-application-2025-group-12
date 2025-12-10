@@ -19,32 +19,29 @@
 <div class="card">
     <h2>Your Matches ({{ matches|length }})</h2>
     {% if matches %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Location</th>
-                    <th>Surface Area (m²)</th>
-                    <th>Budget</th>
-                    <th>Subdivision Type</th>
-                    <th>Owner</th>
-                    <th>Total Score</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for match in matches %}
-                <tr>
-                        <td>{{ match.ground.location }}</td>
-                        <td>{{ match.ground.m2|format_number }} m²</td>
-                        <td>€{{ match.ground.budget|format_price }}</td>
-                        <td>{{ match.ground.subdivision_type.replace('_', ' ').title() }}</td>
-                        <td>{{ match.ground.owner }}</td>
-                        <td><strong>{{ match|match_percent }}%</strong></td>
-                        <td>{{ match.status|status_badge }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="client-matches-grid">
+            {% for match in matches %}
+            <div class="client-match-card">
+                <div class="client-match-image-container">
+                    <img src="{% if match.ground.photo_url %}{{ match.ground.photo_url }}{% elif match.ground.image_url %}{{ match.ground.image_url }}{% else %}{{ url_for('ground_image', ground_id=match.ground.id) }}{% endif %}" alt="{{ match.ground.location }}" class="client-match-image">
+                </div>
+                <div class="client-match-info">
+                    <div class="client-match-location">{{ match.ground.location }}</div>
+                    <div class="client-match-meta">
+                        <div class="meta-item">{{ match.ground.m2|format_number }} m²</div>
+                        <div class="meta-item">€{{ match.ground.budget|format_price }}</div>
+                    </div>
+                    <div class="client-match-meta-secondary">
+                        <div class="meta-item">{{ match.ground.subdivision_type.replace('_', ' ').title() }}</div>
+                        <div class="meta-item">{{ match.ground.owner }}</div>
+                    </div>
+                    <div class="client-match-score">
+                        <strong>Score: {{ match|match_percent }}%</strong>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     {% else %}
     <p>No matches yet. Ask your company to run the matching algorithm.</p>
     {% endif %}

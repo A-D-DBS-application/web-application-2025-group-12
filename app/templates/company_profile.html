@@ -2,20 +2,20 @@
 {% block content %}
 <div class="card">
     <h2>My Profile</h2>
-    <form method="POST">
-        <div style="display:grid;grid-template-columns:1fr;gap:12px">
+    <form method="POST" class="profile-form">
+        <div class="form-grid-single">
             <div>
-                <label style="display:block;font-size:0.95rem;font-weight:600;margin-bottom:6px;color:#193127">Company Name</label>
-                <input type="text" name="name" placeholder="Company Name" required value="{{ company.name if company else '' }}" style="font-size:1rem;width:100%;padding:10px;box-sizing:border-box">
+                <label class="form-label">Company Name</label>
+                <input type="text" name="name" placeholder="Company Name" required value="{{ company.name if company else '' }}">
             </div>
             <div>
-                <label style="display:block;font-size:0.95rem;font-weight:600;margin-bottom:6px;color:#193127">Email Address</label>
-                <input type="email" name="email" placeholder="Email" required value="{{ company.email if company else '' }}" style="font-size:1rem;width:100%;padding:10px;box-sizing:border-box">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" placeholder="Email" required value="{{ company.email if company else '' }}">
             </div>
         </div>
-        <div style="display:flex;gap:8px;margin-top:18px">
-            <button type="submit" class="btn btn-success" style="padding:12px;font-size:1rem">Update Profile</button>
-            <a href="{{ url_for('dashboard') }}" class="btn" style="padding:12px;font-size:1rem;text-align:center">Cancel</a>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">Update Profile</button>
+            <a href="{{ url_for('dashboard') }}" class="btn">Cancel</a>
         </div>
     </form>
 </div>
