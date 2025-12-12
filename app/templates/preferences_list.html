@@ -8,7 +8,7 @@
             <h1 class="mb-1">Client Preferences</h1>
             <p class="text-muted mb-0">View and manage preferences for all your clients</p>
         </div>
-        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary main-action">← Back to Dashboard</a>
     </div>
 
     {% if preferences|length > 0 %}
@@ -36,7 +36,7 @@
                                 <div><span class="text-muted">Size:</span> <strong>{{ pref.min_m2|format_number }} — {{ pref.max_m2|format_number }} m²</strong></div>
                             </div>
                             <div class="card-footer bg-light">
-                                <a href="{{ url_for('preferences_view', client_id=pref.client_id) }}" class="btn btn-sm btn-outline-primary">View Preferences</a>
+                                <a href="{{ url_for('preferences_view', client_id=pref.client_id) }}" class="btn btn-sm btn-outline-secondary">View Preferences</a>
                             </div>
                         </div>
                     </div>
@@ -69,15 +69,15 @@
                     </div>
                 </div>
                 <div class="card-footer bg-light">
-                    <a href="{{ url_for('preferences_view', client_id=pref.client_id) }}" class="btn btn-sm btn-outline-primary">View Preferences</a>
+                    <a href="{{ url_for('preferences_view', client_id=pref.client_id) }}" class="btn btn-sm btn-outline-secondary">View Preferences</a>
                 </div>
             </div>
             {% endfor %}
         </div>
     </div>
     {% else %}
-    <div class="card" style="text-align:center;padding:32px">
-        <p style="font-size:1.1rem;color:#6b7a71;margin-bottom:16px">You don't have any clients with preferences yet.</p>
+    <div class="card center-card">
+        <p class="muted-pref">You don't have any clients with preferences yet.</p>
         <a href="{{ url_for('clients_list') }}" class="btn btn-success">Add a Client</a>
     </div>
     {% endif %}
@@ -96,8 +96,7 @@
         
         function resetButtons(){
             buttons.forEach(b => {
-                b.style.background = 'transparent';
-                b.style.color = 'var(--gm-primary)';
+                b.classList.remove('gm-client-active');
                 b.style.border = '1px solid rgba(25,49,39,0.08)';
             });
         }
@@ -110,17 +109,13 @@
                 if(id === 'all'){
                     allClientsView.style.display = 'block';
                     details.forEach(d=>d.style.display='none');
-                    b.style.background = 'var(--gm-primary)';
-                    b.style.color = '#fff';
-                    b.style.border = 'none';
+                    b.classList.add('gm-client-active');
                 } else {
                     allClientsView.style.display = 'none';
                     details.forEach(d=>d.style.display='none');
                     const el = document.getElementById('client-'+id);
                     if(el) el.style.display='block';
-                    b.style.background = 'var(--gm-primary)';
-                    b.style.color = '#fff';
-                    b.style.border = 'none';
+                    b.classList.add('gm-client-active');
                 }
             });
         });

@@ -6,10 +6,9 @@
 <div class="container py-5">
     <!-- Hero Section -->
     <div class="text-center mb-5">
-        <img src="{{ url_for('static', filename='images/login-header.jpg') }}" 
-             alt="Construction" 
-             class="img-fluid rounded shadow mb-4" 
-             style="max-width: 600px;">
+       <img src="{{ url_for('static', filename='images/login-header.jpg') }}" 
+           alt="Construction" 
+           class="img-fluid rounded shadow mb-4 hero-img">
         
         <h1 class="display-4 fw-bold mb-3">Welcome to GroundMatch</h1>
         <p class="lead text-muted mb-4">
@@ -18,7 +17,7 @@
         </p>
 
         <!-- Login/Register Card -->
-        <div class="card shadow-sm mx-auto" style="max-width: 400px;">
+        <div class="card shadow-sm mx-auto auth-card">
             <div class="card-body p-4">
                 <div class="d-grid gap-2 mb-3">
                     <a href="{{ url_for('company_register') }}" class="btn btn-primary btn-lg">
@@ -117,11 +116,5 @@
     </div>
 </div>
 
-<!-- Add subtle hover effect via CSS -->
-<style>
-    .hover-lift:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
-    }
-</style>
+<!-- Hover effects moved to central stylesheet (.hover-lift) -->
 {% endblock %}

@@ -7,11 +7,15 @@
    ROOT VARIABLES - Brand colors and spacing
    ============================================================================ */
 :root {
-    /* Brand Colors */
-    --primary-color: #2E7D32;
-    --primary-hover: #1B5E20;
-    --secondary-color: #43A047;
-    --accent-color: #66BB6A;
+     /* Brand Colors
+         --brand-color is the single place to change the app's main theme color
+         Set this to the background color of your uploaded logo to rebrand quickly.
+     */
+    --brand-color: #1f6f4a; /* logo background color (updated to match uploaded logo) */
+     --primary-color: var(--brand-color);
+     --primary-hover: #1B5E20; /* darker hover for primary actions */
+     --secondary-color: #43A047;
+     --accent-color: #66BB6A;
     
     /* Neutral Colors */
     --background: #F5F5F5;
@@ -26,6 +30,13 @@
     --warning: #FF9800;
     --error: #F44336;
     --info: #2196F3;
+    /* Explicit edit button blue - re-use --info by default but can be tuned */
+    --edit-blue: var(--info);
+    /* Additional semantic tokens discovered in templates/assets */
+    --avatar-bg: #eaf7ee; /* used for client avatar background */
+    --muted-pref: #6b7a71; /* used for preference empty-state text */
+    /* gm-primary kept as compatibility alias used in some inline scripts/templates */
+    --gm-primary: var(--brand-color);
     
     /* Spacing */
     --spacing-xs: 0.25rem;
@@ -61,6 +72,100 @@
     border-color: var(--primary-hover);
 }
 
+/* Ensure any success/green buttons also use the brand color so all green buttons match the logo */
+.btn-success {
+    background-color: var(--brand-color);
+    border-color: var(--brand-color);
+    color: #fff;
+}
+.btn-success:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+/* Outline-success should also reflect the brand color */
+.btn-outline-success {
+    color: var(--brand-color);
+    border-color: var(--brand-color);
+}
+.btn-outline-success:hover {
+    background-color: rgba(31,111,74,0.08);
+}
+
+/* Specific 'Edit' button style (blue) used for building-plot Edit controls
+   This ensures a consistent blue across overview lists and the detail page. */
+.btn-edit {
+    background-color: var(--edit-blue);
+    border-color: var(--edit-blue);
+    color: #fff;
+}
+.btn-edit:hover {
+    /* slightly darker hover; pick a darker tone derived from edit blue */
+    background-color: color-mix(in srgb, var(--edit-blue) 75%, black 25%);
+    border-color: color-mix(in srgb, var(--edit-blue) 75%, black 25%);
+}
+.btn-edit-outline {
+    color: var(--edit-blue);
+    border-color: var(--edit-blue);
+    background-color: transparent;
+}
+.btn-edit-outline:hover {
+    background-color: color-mix(in srgb, var(--edit-blue) 8%, transparent 92%);
+}
+
+/* Ensure hover text color stays correct for edit buttons
+   - Filled edit button keeps white text on hover
+   - Outline edit button keeps blue text on hover (does not turn black) */
+.btn-edit:hover,
+.btn-edit:focus {
+    color: #fff !important;
+}
+.btn-edit-outline:hover,
+.btn-edit-outline:focus {
+    color: var(--edit-blue) !important;
+    border-color: var(--edit-blue) !important;
+}
+
+/* Preference/edit action button - unify appearance across dashboard and
+   preferences page for client users. Use this utility together with
+   the .btn-edit-outline class to guarantee identical sizing and spacing. */
+.pref-action {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+}
+
+/* Avatar used in clients list */
+.client-avatar {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--avatar-bg);
+}
+
+/* Muted preference message */
+.muted-pref {
+    font-size: 1.1rem;
+    color: var(--muted-pref);
+    margin-bottom: 16px;
+}
+
+/* Centered card utility to replace inline style="text-align:center;padding:32px" */
+.center-card {
+    text-align: center;
+    padding: 32px;
+}
+
+/* Active client button state used by preferences_list.js behavior */
+.gm-client-active {
+    background: var(--gm-primary) !important;
+    color: #fff !important;
+    border: none !important;
+}
+
 /* Card styling */
 .card {
     border: 1px solid var(--border-color);
@@ -87,8 +192,59 @@
 }
 
 .navbar-brand {
-    font-weight: 600;
+    /* Match button typography: same font-family and weight as primary action buttons */
+    font-family: var(--font-family);
+    font-weight: 500;
     color: var(--primary-color) !important;
+}
+
+/* Force navbar background to the brand color (logo background) */
+.navbar {
+    background-color: var(--brand-color) !important;
+}
+
+/* Auth-page logo blending - makes the logo area share the same background color
+   so the uploaded combined logo (symbol + word) appears seamless on auth pages */
+.auth-page .navbar-brand {
+    background-color: var(--brand-color);
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--radius-sm);
+}
+.auth-page .navbar-brand img {
+    display: block;
+    background-color: transparent; /* keeps SVG transparency; wrapper provides the background */
+    height: 48px;
+}
+@media (max-width: 576px) {
+    .auth-page .navbar-brand img {
+        height: 36px;
+    }
+}
+
+/* Navbar links: white text for contrast and slightly larger */
+.navbar .nav-link {
+    color: #ffffff !important;
+    /* Use same typography as buttons to ensure consistent letter appearance */
+    font-family: var(--font-family);
+    font-weight: 500;
+}
+.navbar .nav-link.active {
+    text-decoration: underline;
+}
+
+/* Make main navbar links and action buttons slightly larger to better fill the navbar */
+.navbar .nav-link {
+    font-size: 1.02rem;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+}
+.navbar .bi { /* icons in navbar slightly larger */
+    font-size: 1.05rem;
+    margin-right: 0.35rem;
+}
+.navbar .btn {
+    font-size: 1.02rem;
+    padding: 0.45rem 0.8rem;
 }
 
 /* ============================================================================
@@ -191,6 +347,40 @@ a:hover {
     padding: var(--spacing-md);
 }
 
+/* Small utilities moved from templates to central stylesheet */
+/* Hover lift used by multiple templates (matches, cards) */
+.hover-lift {
+    transition: transform 0.2s;
+}
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Matches card image wrapper and image sizing */
+.match-image-wrapper {
+    height: 180px;
+}
+.match-card-img {
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Ground detail image and thumbnail sizing */
+.ground-detail-image {
+    height: 300px;
+    object-fit: cover;
+    width: 100%;
+}
+.ground-thumb {
+    max-width: 200px;
+}
+
+/* Auth/login card max width (used on home page) */
+.auth-card {
+    max-width: 400px;
+}
+
 /* Badge styling for subdivision types */
 .badge-subdivision {
     font-size: 0.875rem;
@@ -283,6 +473,13 @@ a:hover {
     transition: all 0.2s ease;
 }
 
+/* Main action style used to harmonize important back/add/run buttons across pages */
+.main-action {
+    /* mirror the Preferences "Back to Preferences" button style but slightly larger */
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+}
+
 .btn-sm {
     padding: 0.25rem 0.5rem;
     font-size: 0.875rem;
@@ -343,6 +540,18 @@ a:hover {
    RESPONSIVE ADJUSTMENTS
    ============================================================================ */
 
+/* Desktop / larger screens: constrain the login/home hero image so it doesn't
+    become too large on wide viewports. We keep the small-screen full-bleed
+    behavior in the (max-width:576px) media query above. */
+.hero-img {
+     max-width: 600px;
+     width: 100%;
+     display: block;
+     margin-left: auto;
+     margin-right: auto;
+     border-radius: var(--radius-md);
+}
+
 @media (max-width: 768px) {
     h1 { font-size: 2rem; }
     h2 { font-size: 1.75rem; }
@@ -354,6 +563,54 @@ a:hover {
     
     .filter-section {
         padding: var(--spacing-md);
+    }
+
+    /* Ensure header action buttons wrap nicely on small screens (e.g. iPhone) */
+    .page-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .page-actions .btn {
+        flex: 0 0 auto;
+    }
+}
+
+/* On very small screens (phones), stack header action buttons and make them full-width
+   so they don't get pushed off-screen (fixes iPhone 12 Pro display issue). */
+@media (max-width: 576px) {
+    .d-flex.justify-content-between.align-items-center {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .page-actions {
+        display: flex !important;
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        margin-top: 0.25rem;
+    }
+
+    .page-actions .btn {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+
+    /* Stack form/profile action buttons (Update Profile, Back to Dashboard) on small screens */
+    .profile-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .profile-actions .btn {
+        width: 100%;
     }
 }
 
@@ -371,5 +628,35 @@ a:hover {
     .card {
         box-shadow: none;
         border: 1px solid #ddd;
+    }
+}
+
+/* Prevent horizontal scrolling and ensure images don't overflow on very small devices */
+@media (max-width: 576px) {
+    html, body {
+        overflow-x: hidden;
+    }
+
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Constrain auth-page logo to viewport width so it doesn't cause horizontal scroll */
+    .auth-page .navbar-brand img {
+        max-width: 85vw;
+        height: auto;
+        display: block;
+    }
+
+    /* Make the home/login hero image full-bleed on very small screens (e.g. iPhone 12 Pro) */
+    .hero-img {
+        width: 100vw !important; /* span full viewport width */
+        max-width: none !important; /* override img-fluid/max-width rules */
+        height: auto !important;
+        margin-left: calc(50% - 50vw) !important; /* center the 100vw image inside any container */
+        margin-right: calc(50% - 50vw) !important;
+        border-radius: 0 !important; /* remove rounded corners for full-bleed look */
+        display: block;
     }
 }

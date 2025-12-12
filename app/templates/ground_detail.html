@@ -62,7 +62,8 @@
           <a id="detail-back-btn" href="{{ url_for('grounds_list') }}" class="btn btn-outline-secondary">← Back to Plots</a>
           {# Show Edit/Delete only for grounds owned by this company #}
           {% if user_company and ground.provider == user_company %}
-          <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn btn-warning">Edit Plot</a>
+          {# Filled blue Edit button to match the Delete Plot button style (white text) #}
+          <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn btn-edit">Edit</a>
           <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}" class="d-inline">
             <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this ground? This action cannot be undone.')">Delete Plot</button>
           </form>

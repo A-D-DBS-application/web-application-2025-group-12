@@ -117,7 +117,7 @@
                             {% if session.role == 'company' %}
                                 <a href="{{ url_for('preferences_list') }}" class="btn btn-outline-secondary">← Back to Preferences</a>
                             {% else %}
-                                <a href="{{ url_for('client_dashboard') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
+                                <a href="{{ url_for('client_dashboard') }}" class="btn btn-outline-secondary main-action">← Back to Dashboard</a>
                             {% endif %}
                         </div>
                     </form>

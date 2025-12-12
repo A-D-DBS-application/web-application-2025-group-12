@@ -16,9 +16,9 @@
             <p class="text-muted mb-0">Browse and search available building plots</p>
         </div>
         {% if session.role == 'company' %}
-        <div class="d-flex gap-2">
-            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
-            <a href="{{ url_for('ground_add') }}" class="btn btn-primary">+ Add Building Plot</a>
+        <div class="d-flex gap-2 page-actions">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary main-action">← Back to Dashboard</a>
+            <a href="{{ url_for('ground_add') }}" class="btn btn-success main-action">+ Add Building Plot</a>
         </div>
         {% endif %}
     </div>
@@ -149,7 +149,7 @@
                             <div class="card-footer bg-light">
                                 {% if user_company and ground.provider and ground.provider|trim|lower == user_company|trim|lower %}
                                     <div class="d-flex gap-2">
-                                        <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn btn-sm btn-outline-primary flex-fill">Edit</a>
+                                        <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn btn-sm btn-edit-outline flex-fill">Edit</a>
                                         <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}" class="flex-fill">
                                             <button type="submit" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Delete this ground?')">Delete</button>
                                         </form>
@@ -168,7 +168,7 @@
                     <h4>No building plots found</h4>
                     <p class="text-muted">No building plots match your current filters. Try adjusting your search criteria.</p>
                     {% if session.role == 'company' %}
-                        <a href="{{ url_for('ground_add') }}" class="btn btn-primary mt-3">Add First Building Plot</a>
+                        <a href="{{ url_for('ground_add') }}" class="btn btn-success mt-3">Add First Building Plot</a>
                     {% endif %}
                 </div>
             {% endif %}
