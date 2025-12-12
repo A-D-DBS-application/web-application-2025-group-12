@@ -96,6 +96,29 @@ def normalize_subdivision_type(raw_type):
 
 
 # ============================================================================
+# MATCH SCORING UTILITIES
+# ============================================================================
+
+def get_match_score(match):
+    """Get total score (0-100) for a Match object.
+    Prefers total_score if available; otherwise averages component scores.
+    """
+    try:
+        val = getattr(match, 'total_score', None)
+        if val is None:
+            parts = []
+            for attr in ('budget_score', 'm2_score', 'location_score', 'type_score'):
+                v = getattr(match, attr, None)
+                if v is not None:
+                    parts.append(float(v))
+            val = (sum(parts) / len(parts)) if parts else 0.0
+        val = float(val)
+    except Exception:
+        val = 0.0
+    # Clamp to [0, 100]
+    return max(0.0, min(100.0, val))
+
+# ============================================================================
 # MATCH STATUS TYPES
 # ============================================================================
 
