@@ -16,9 +16,11 @@
 
         <div class="row g-4 mb-3">
             <div>
-                 <img src="{{ ground.image_url or url_for('ground_image', ground_id=ground.id) }}"
+                {% if ground.image_url %}
+                 <img src="{{ ground.image_url }}"
                      alt="{{ ground.location }}"
                      class="img-fluid rounded shadow-sm" style="height:300px;object-fit:cover;width:100%">
+                {% endif %}
             </div>
 
             <div>

@@ -62,11 +62,17 @@
                 {% for ground in grounds|sort(attribute='id', reverse=true) %}
                 {% if loop.index <= 6 %}
                 <div class="col">
-                    <div class="card ground-card h-100 shadow-sm">
+                    <div class="card ground-card h-100 shadow-sm position-relative" data-href="{{ url_for('ground_detail', ground_id=ground.id) }}" style="cursor: pointer;">
                         <a href="{{ url_for('ground_detail', ground_id=ground.id) }}" class="text-decoration-none">
-                            <img src="{{ ground.image_url or url_for('ground_image', ground_id=ground.id) }}" 
+                            {% if ground.image_url %}
+                            <img src="{{ ground.image_url }}" 
                                  class="card-img-top" 
                                  alt="{{ ground.location }}">
+                            {% else %}
+                            <div class="bg-light d-flex align-items-center justify-content-center card-img-top" style="height: 180px;">
+                                <span class="text-muted">No image available</span>
+                            </div>
+                            {% endif %}
                         </a>
                         <div class="card-body">
                             <h5 class="card-title text-dark">{{ ground.location }}</h5>
@@ -108,4 +114,22 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.ground-card').forEach(function(card) {
+            card.addEventListener('click', function(e) {
+                if (e.target.closest('a, button, input, select, textarea, form')) {
+                    return;
+                }
+                const href = card.getAttribute('data-href');
+                if (href) {
+                    window.location.href = href;
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}
