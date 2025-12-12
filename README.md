@@ -36,6 +36,8 @@ Klanten zien uitsluitend de door u geselecteerde top 10 grondmatches en kunnen h
 
 ## Link naar UI-prototype
 
+https://www.figma.com/make/L7uPvepWneJHBqlXnq6imX/Web-Application-UI-Design?t=2i4nlD2i9Nq9FXR6-20&fullscreen=1
+
 ## Link naar Kanban-bord
 
 https://miro.com/app/board/uXjVJ0CcO8w=/
