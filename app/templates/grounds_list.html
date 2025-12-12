@@ -116,11 +116,17 @@
                 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
                     {% for ground in grounds %}
                     <div class="col">
-                        <div class="card ground-card h-100 shadow-sm">
+                        <div class="card ground-card h-100 shadow-sm position-relative" data-href="{{ url_for('ground_detail', ground_id=ground.id) }}" style="cursor: pointer;">
                             <a href="{{ url_for('ground_detail', ground_id=ground.id) }}" class="text-decoration-none">
-                                <img src="{{ ground.image_url or url_for('ground_image', ground_id=ground.id) }}" 
+                                {% if ground.image_url %}
+                                <img src="{{ ground.image_url }}" 
                                      class="card-img-top" 
                                      alt="{{ ground.location }}">
+                                {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center card-img-top" style="height: 180px;">
+                                    <span class="text-muted">No image available</span>
+                                </div>
+                                {% endif %}
                             </a>
                             
                             <div class="card-body">
@@ -176,6 +182,25 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.ground-card').forEach(function(card) {
+            card.addEventListener('click', function(e) {
+                // Don't intercept clicks on buttons, links, or form controls
+                if (e.target.closest('a, button, input, select, textarea, form')) {
+                    return;
+                }
+                const href = card.getAttribute('data-href');
+                if (href) {
+                    window.location.href = href;
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}
 
 

@@ -4,6 +4,16 @@ import uuid
 from werkzeug.utils import secure_filename
 from functools import wraps
 from sqlalchemy.orm import joinedload
+from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables before reading them
+load_dotenv()
+
+try:
+    from supabase import create_client
+except Exception:
+    create_client = None
 
 from .models import db, Company, Client, Ground, Preferences, Match
 from .matching import compute_match_scores
@@ -19,8 +29,10 @@ from .helpers import (
 # CONFIGURATION
 # ============================================================================
 
-UPLOAD_FOLDER = 'app/static/uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY') or os.getenv('SUPABASE_ANON_KEY')
+SUPABASE_BUCKET = os.getenv('SUPABASE_GROUND_BUCKET', 'ground-images')
 
 # ============================================================================
 # UTILITY FUNCTIONS
@@ -70,21 +82,42 @@ def check_client_ownership(client):
     """Check if current company owns the client. Returns True if authorized."""
     return client.company_id == session['company_id']
 
+def _supabase_upload(file_storage):
+    """Upload a werkzeug FileStorage to Supabase Storage and return public URL, or None on failure."""
+    if not create_client:
+        flash('Image upload failed: Supabase client not available. Install with: pip install supabase', 'warning')
+        return None
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        flash('Image upload failed: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set in .env', 'warning')
+        return None
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        ext = file_storage.filename.rsplit('.', 1)[1].lower()
+        ts = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+        object_name = f"ground_{uuid.uuid4()}_{ts}.{ext}"
+        # Read bytes
+        data = file_storage.read()
+        # Reset pointer (in case reused)
+        file_storage.stream.seek(0)
+        # Upload
+        result = supabase.storage.from_(SUPABASE_BUCKET).upload(object_name, data, file_options={"contentType": f"image/{ext}"})
+        public_url = supabase.storage.from_(SUPABASE_BUCKET).get_public_url(object_name)
+        flash(f'Image uploaded successfully to {SUPABASE_BUCKET}', 'success')
+        return public_url
+    except Exception as e:
+        flash(f'Image upload failed: {str(e)}', 'danger')
+        return None
+
 def handle_photo_upload():
-    """Handle photo upload from request.files. Returns image_url or None."""
+    """Handle photo upload from request.files. Returns a public URL or None. Never generates random images."""
     if 'photo' not in request.files:
         return None
-    
     file = request.files['photo']
     if not file or not file.filename or not allowed_file(file.filename):
         return None
-    
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    ext = file.filename.rsplit('.', 1)[1].lower()
-    filename = f"{uuid.uuid4()}.{ext}"
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
-    return f"/static/uploads/{filename}"
+    # Try Supabase first
+    url = _supabase_upload(file)
+    return url
 
 def get_sorted_matches(matches):
     """Sort matches with approved first, then by score (highest first)."""
@@ -515,10 +548,6 @@ def init_routes(app):
                 
                 # Handle image upload
                 image_url = handle_photo_upload()
-                
-                # If no image uploaded, use random placeholder
-                if not image_url:
-                    image_url = f"https://picsum.photos/seed/{uuid.uuid4()}/800/400"
                 
                 ground = Ground(
                     location=location,
