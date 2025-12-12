@@ -12,7 +12,7 @@ class Company(UserMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False, unique=True)
-    email = db.Column(db.String(320), nullable=True)
+    email = db.Column(db.String(320), nullable=False)
 
     # relaties
     clients = db.relationship("Client", back_populates="company", cascade="all, delete-orphan")
@@ -28,11 +28,11 @@ class Client(db.Model):
     __table_args__ = {"schema": "public"}
 
     id = db.Column(db.Integer, primary_key=True)
-    company_id = db.Column(db.Integer, db.ForeignKey("public.company.id"), nullable=True)
+    company_id = db.Column(db.Integer, db.ForeignKey("public.company.id"), nullable=False)
     name = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(320), nullable=False)
-    location = db.Column(db.String(200), nullable=True)  # city/municipality
-    address = db.Column(db.String(300), nullable=True)   # street + number
+    location = db.Column(db.String(200), nullable=False)  # city/municipality
+    address = db.Column(db.String(300), nullable=False)   # street + number
 
     company = db.relationship("Company", back_populates="clients")
 
@@ -60,13 +60,13 @@ class Ground(db.Model):
 
     # columns from db/schema.sql (no 'soil' column)
     location = db.Column(db.String(200), nullable=False)  # city/municipality
-    address = db.Column(db.String(300), nullable=True)    # street + number
+    address = db.Column(db.String(300), nullable=False)    # street + number
     m2 = db.Column(db.Integer, nullable=False)              # area in m2
     budget = db.Column(db.Numeric(12, 2), nullable=False)
     subdivision_type = db.Column(db.String(120), nullable=False)
     owner = db.Column(db.String(200), nullable=False)
-    provider = db.Column(db.String(200), nullable=True)   # company name that added this ground
-    image_url = db.Column(db.String(1024), nullable=True)  # uploaded or scraped image path/url
+    provider = db.Column(db.String(200), nullable=False)   # company name that added this ground
+    image_url = db.Column(db.String(1024), nullable=False)  # uploaded or scraped image path/url
 
     matches = db.relationship("Match", back_populates="ground", cascade="all, delete-orphan")
 
@@ -86,14 +86,14 @@ class Preferences(db.Model):
     client = db.relationship("Client", back_populates="preferences")
 
     # gewenste kenmerken
-    location = db.Column(db.String(200), nullable=True)
-    subdivision_type = db.Column(db.String(120), nullable=True)
+    location = db.Column(db.String(200), nullable=False)
+    subdivision_type = db.Column(db.String(120), nullable=False)
 
-    min_m2 = db.Column(db.Integer, nullable=True)
-    max_m2 = db.Column(db.Integer, nullable=True)
+    min_m2 = db.Column(db.Integer, nullable=False)
+    max_m2 = db.Column(db.Integer, nullable=False)
 
-    min_budget = db.Column(db.Numeric(12, 2), nullable=True)
-    max_budget = db.Column(db.Numeric(12, 2), nullable=True)
+    min_budget = db.Column(db.Numeric(12, 2), nullable=False)
+    max_budget = db.Column(db.Numeric(12, 2), nullable=False)
 
     # removed matches relationship: a Match is between ground and client; access from preferences through preferences.client.matches
 
@@ -109,15 +109,15 @@ class Match(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # link to client instead of company or preferences
-    client_id = db.Column(db.Integer, db.ForeignKey("public.client.id", ondelete="CASCADE"), nullable=False)
-    ground_id = db.Column(db.Integer, db.ForeignKey("public.ground.id", ondelete="CASCADE"), nullable=False)
+    client_id = db.Column(db.Integer, db.ForeignKey("public.client.id", ondelete="CASCADE"), nullable=False, unique=True)
+    ground_id = db.Column(db.Integer, db.ForeignKey("public.ground.id", ondelete="CASCADE"), nullable=False, unique=True)
 
     # status & (sub)scores zoals in ERD
     status = db.Column(db.String(30), nullable=False, default="pending")
-    m2_score = db.Column(db.Float, nullable=True)
-    budget_score = db.Column(db.Float, nullable=True)
-    location_score = db.Column(db.Float, nullable=True)
-    type_score = db.Column(db.Float, nullable=True)
+    m2_score = db.Column(db.Float, nullable=False)
+    budget_score = db.Column(db.Float, nullable=False)
+    location_score = db.Column(db.Float, nullable=False)
+    type_score = db.Column(db.Float, nullable=False)
 
     # Average of four component scores to yield 0-100 percentage
     total_score = db.column_property(
