@@ -39,7 +39,7 @@ https://miro.com/app/board/uXjVJ0CcO8w=/
 
 ## Link to audio/video recording of feedback sessions with partner 
 
-- First meeting: 
+- First meeting: https://drive.google.com/file/d/1VDLpL4u5b6rgSiR7dWZJFgXL_Ppsf_Jd/view?usp=sharing
 - Second meeting: 
 
 ## Team
