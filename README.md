@@ -1,4 +1,4 @@
-# Groundmatch – Group 12
+# GroundMatch – Group 12
 
 Intelligent matching system that connects construction companies with ideal building plots that meet their clients' preferences.
 ![GroundMatch logo](app/static/images/logo-full.svg)
