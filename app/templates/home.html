@@ -37,59 +37,9 @@
         </div>
     </div>
 
-    <!-- Browse Available Plots Section -->
-    {% if grounds %}
-    <div class="mt-5">
-        <h2 class="mb-4 text-center">Featured Building Plots</h2>
-        <p class="text-center text-muted mb-4">Explore our latest available building plots</p>
-        
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            {% for ground in grounds %}
-            <div class="col">
-                <a href="{{ url_for('ground_detail', ground_id=ground.id) }}" class="text-decoration-none">
-                    <div class="position-relative overflow-hidden rounded shadow-sm hover-lift" style="transition: transform 0.2s; cursor: pointer; height: 250px;">
-                        {% if ground.image_url %}
-                        <img src="{{ ground.image_url }}" 
-                             alt="{{ ground.location }}" 
-                             class="img-fluid w-100 h-100" 
-                             style="object-fit: cover;">
-                        {% else %}
-                        <div class="bg-light d-flex align-items-center justify-content-center w-100 h-100">
-                            <span class="text-muted">No image available</span>
-                        </div>
-                        {% endif %}
-                    </div>
-                </a>
-            </div>
-            {% endfor %}
-        </div>
-        
-        <div class="text-center mt-5">
-            <a href="{{ url_for('grounds_list') }}" class="btn btn-primary btn-lg">Browse All Plots</a>
-        </div>
-    </div>
-    {% endif %}
+    {# Featured Building Plots section removed per request #}
 
-    <!-- Company-only Management Section -->
-    {% if session.role == 'company' %}
-    <div class="mt-5">
-        <div class="row g-4">
-            <div class="col-md-6 mx-auto">
-                <a href="{{ url_for('client_add') }}" class="text-decoration-none">
-                    <div class="card h-100 shadow-sm hover-lift" style="transition: transform 0.2s; cursor: pointer; background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f6 100%);">
-                        <div class="card-body text-center py-5">
-                            <div class="mb-3">
-                                <i class="bi bi-plus-circle" style="font-size: 3rem; color: #4caf50;"></i>
-                            </div>
-                            <h5 class="card-title fw-bold text-dark mb-2">Add New Client</h5>
-                            <p class="card-text text-muted">Create a new client profile and set their preferences</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </div>
-    {% endif %}
+    {# Company Add Client card removed per request #}
 
     <!-- Recent Matches or Feature Cards -->
     <div class="mt-5">
