@@ -1,7 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash, session, Response, send_file
 import os
 import uuid
-from werkzeug.utils import secure_filename
 from functools import wraps
 from sqlalchemy.orm import joinedload
 from datetime import datetime
@@ -22,7 +21,8 @@ from .helpers import (
     get_subdivision_types_display,
     normalize_subdivision_type,
     parse_int_filter,
-    parse_float_filter
+    parse_float_filter,
+    get_match_score
 )
 
 # ============================================================================
@@ -120,19 +120,10 @@ def handle_photo_upload():
     return url
 
 def get_sorted_matches(matches):
-    """Sort matches with approved first, then by score (highest first)."""
-    def score_of(m):
-        try:
-            if getattr(m, 'total_score', None) is not None:
-                return float(m.total_score)
-        except Exception:
-            pass
-        # Fallback: sum existing component scores if present
-        return float((getattr(m, 'budget_score', 0) or 0) + (getattr(m, 'm2_score', 0) or 0) + (getattr(m, 'location_score', 0) or 0) + (getattr(m, 'type_score', 0) or 0))
-
-    def sort_key(m):
+    """Soort_key(m):
         status = (m.status or '').lower()
         approved_first = 0 if status in ('approved', 'accepted') else 1
+        return (approved_first, -get_match_score'approved', 'accepted') else 1
         return (approved_first, -score_of(m))
 
     return sorted(matches, key=sort_key)

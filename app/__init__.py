@@ -2,6 +2,7 @@ from flask import Flask, session
 from markupsafe import Markup
 from flask_sqlalchemy import SQLAlchemy
 from .config import Config
+from .helpers import get_match_score
 
 db = SQLAlchemy()
 
@@ -33,25 +34,9 @@ def format_number(number):
 
 def match_percent(match):
     """Return an integer percent in [0,100] for a Match-like object.
-    Prefers `total_score` if available; otherwise averages available component scores.
+    Wrapper around get_match_score that returns rounded integer.
     """
-    try:
-        val = getattr(match, 'total_score', None)
-        if val is None:
-            parts = []
-            for attr in ('budget_score', 'm2_score', 'location_score', 'type_score'):
-                v = getattr(match, attr, None)
-                if v is not None:
-                    parts.append(float(v))
-            val = (sum(parts) / len(parts)) if parts else 0.0
-        val = float(val)
-    except Exception:
-        val = 0.0
-    if val < 0:
-        val = 0.0
-    if val > 100:
-        val = 100.0
-    return int(round(val))
+    return int(round(get_match_score(match)))
 
 def status_badge(status: str):
     """Return a small HTML badge for a match status.
