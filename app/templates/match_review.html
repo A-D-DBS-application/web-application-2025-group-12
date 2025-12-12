@@ -1,58 +1,96 @@
-{% extends "base.html" %}
+{% extends "base_new.html" %}
+
+{% block title %}Review Matches{% endblock %}
+
 {% block content %}
-<div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
-            <h1 style="margin:0">Review Matches</h1>
-            <div class="muted">Select which matches to approve for your clients</div>
+            <h1 class="display-6 fw-bold mb-2">Review Matches</h1>
+            <p class="text-muted">Select which matches to approve for your clients</p>
         </div>
-        <a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
     </div>
 
     {% if client_matches %}
     <form method="POST">
         {% for client, matches in client_matches.items() %}
-        <div class="card" style="margin-bottom:24px">
-            <h3 style="margin-top:0">{{ client.name }}</h3>
-            <div class="muted" style="margin-bottom:12px">Top {{ matches|length }} matches (best scores first)</div>
-            
-            <div style="display:grid;gap:12px">
-                {% for match in matches %}
-                <div class="card" style="padding:12px;display:flex;align-items:center;gap:12px">
-                    <input type="checkbox" name="approved_matches" value="{{ match.id }}" {% if match.status == 'approved' %}checked{% endif %} style="width:20px;height:20px">
-                    <input type="hidden" name="displayed_matches" value="{{ match.id }}">
-                    <img src="{% if match.ground.photo_url %}{{ match.ground.photo_url }}{% else %}{{ url_for('ground_image', ground_id=match.ground.id) }}{% endif %}" alt="{{ match.ground.location }}" style="width:100px;height:60px;object-fit:cover;border-radius:6px">
-                    <div style="flex:1">
-                        <div style="font-weight:700">{{ match.ground.location }}</div>
-                        <div class="muted">{{ match.ground.address or 'Address not specified' }}</div>
-                        <div class="muted">{{ match.ground.m2|format_number }} m² • €{{ match.ground.budget|format_price }} • {{ match.ground.subdivision_type.replace('_', ' ').title() }}</div>
-                    </div>
-                    <div style="text-align:right">
-                        <div class="tag info" style="font-size:18px;font-weight:600">{{ (match.total_score or 0)|round(0)|int }}%</div>
-                        <div class="muted" style="margin-top:4px;font-size:0.85rem">
-                            M2: {{ (match.m2_score or 0)|round(0)|int }}% • 
-                            Budget: {{ (match.budget_score or 0)|round(0)|int }}%<br>
-                            Location: {{ (match.location_score or 0)|round(0)|int }}% • 
-                            Type: {{ (match.type_score or 0)|round(0)|int }}%
+        <div class="card shadow-sm mb-5">
+            <div class="card-header bg-light border-bottom">
+                <h4 class="mb-0 fw-bold">{{ client.name }}</h4>
+                <small class="text-muted">Top {{ matches|length }} matches (best scores first)</small>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for match in matches %}
+                    <div class="list-group-item p-3">
+                        <div class="row align-items-center g-3">
+                            <!-- Checkbox -->
+                            <div class="col-auto">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="approved_matches" value="{{ match.match_key if is_preview else match.id }}" id="match_{{ match.id }}" {% if match.status == 'approved' %}checked{% endif %}>
+                                </div>
+                            </div>
+
+                            <!-- Image -->
+                            <div class="col-auto">
+                                <img src="{{ match.ground.image_url or url_for('ground_image', ground_id=match.ground.id) }}" 
+                                     alt="{{ match.ground.location }}" 
+                                     class="rounded shadow-sm" 
+                                     style="width: 120px; height: 80px; object-fit: cover;">
+                            </div>
+
+                            <!-- Details -->
+                            <div class="col">
+                                <h6 class="fw-bold mb-1">{{ match.ground.location }}</h6>
+                                <small class="text-muted d-block">{{ match.ground.address or 'Address not specified' }}</small>
+                                <small class="text-muted d-block">
+                                    {{ match.ground.m2|format_number }} m² • 
+                                    €{{ match.ground.budget|format_price }} • 
+                                    <span class="badge bg-info text-dark">{{ match.ground.subdivision_type.replace('_', ' ').title() }}</span>
+                                </small>
+                            </div>
+
+                            <!-- Scores -->
+                            <div class="col-md-3 text-end">
+                                <div class="mb-2">
+                                    <h5 class="mb-0">
+                                        <span class="badge bg-success fs-6">{{ (match.total_score or 0)|round(0)|int }}%</span>
+                                    </h5>
+                                </div>
+                                <small class="text-muted d-block">
+                                    M²: {{ (match.m2_score or 0)|round(0)|int }}% • 
+                                    Budget: {{ (match.budget_score or 0)|round(0)|int }}%
+                                </small>
+                                <small class="text-muted d-block">
+                                    Location: {{ (match.location_score or 0)|round(0)|int }}% • 
+                                    Type: {{ (match.type_score or 0)|round(0)|int }}%
+                                </small>
+                            </div>
                         </div>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
             </div>
         </div>
         {% endfor %}
         
-        <div style="display:flex;gap:12px;margin-top:24px">
-            <button type="submit" class="btn btn-success">Save Approvals</button>
-            <a href="{{ url_for('matches_list') }}" class="btn">View All Matches</a>
+        <!-- Action Buttons -->
+        <div class="d-flex gap-3 mt-5 mb-5">
+            <button type="submit" class="btn btn-success btn-lg">✓ Save Approvals</button>
+            <a href="{{ url_for('matches_list') }}" class="btn btn-outline-primary btn-lg">View All Matches</a>
         </div>
     </form>
     {% else %}
-    <div class="card" style="text-align:center;padding:24px">
-        <p class="muted">No matches found. Run the matching algorithm first.</p>
-        <form method="POST" action="{{ url_for('match_run') }}" style="display:inline">
-            <button type="submit" class="btn primary">Run Match Algorithm</button>
-        </form>
+    <div class="card shadow-sm border-0">
+        <div class="card-body text-center py-5">
+            <h5 class="text-muted mb-4">No matches found</h5>
+            <p class="text-muted mb-4">Run the matching algorithm first to generate client-ground matches.</p>
+            <form method="POST" action="{{ url_for('match_run') }}" style="display:inline">
+                <button type="submit" class="btn btn-primary btn-lg">▶ Run Match Algorithm</button>
+            </form>
+        </div>
     </div>
     {% endif %}
 </div>

@@ -1,16 +1,36 @@
-{% extends "base.html" %}
-{% from 'macros/layout.html' import auth_card %}
-{% from 'macros/forms.html' import form_label, form_input %}
-
+{% extends "base_new.html" %}
 {% block content %}
-{% call auth_card("Company Login") %}
-    <form method="POST">
-        {{ form_label("Email") }}
-        {{ form_input("email", "email", "Email", "", True) }}
-        <div class="auth-form-actions">
-            <button type="submit" class="btn btn-success">Login</button>
-            <a href="{{ url_for('home') }}" class="btn">Back</a>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <div class="text-center mb-4">
+            <h2 class="h4 fw-bold text-dark">Company Login</h2>
+            <p class="text-muted small">Sign in to your account</p>
+          </div>
+
+          <form method="POST">
+            <div class="mb-3">
+              <label class="form-label">Email Address</label>
+              <input type="email" name="email" class="form-control" placeholder="your@company.com" required>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-success btn-lg">Login</button>
+            </div>
+          </form>
+
+          <hr class="my-3">
+          <p class="text-center text-muted small mb-0">
+            Don't have an account? <a href="{{ url_for('company_register') }}">Register here</a>
+          </p>
         </div>
-    </form>
-{% endcall %}
+      </div>
+      <div class="text-center mt-3">
+        <a href="{{ url_for('home') }}" class="btn btn-outline-secondary">← Back to Home</a>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

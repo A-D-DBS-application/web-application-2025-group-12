@@ -66,8 +66,7 @@ class Ground(db.Model):
     subdivision_type = db.Column(db.String(120), nullable=False)
     owner = db.Column(db.String(200), nullable=False)
     provider = db.Column(db.String(200), nullable=True)   # company name that added this ground
-    image_url = db.Column(db.String(1024), nullable=True)
-    photo_url = db.Column(db.String(1024), nullable=True)  # uploaded photo path
+    image_url = db.Column(db.String(1024), nullable=True)  # uploaded or scraped image path/url
 
     matches = db.relationship("Match", back_populates="ground", cascade="all, delete-orphan")
 

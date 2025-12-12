@@ -28,6 +28,9 @@ instance/
 db/dumps/*.sql
 !db/dumps/.gitkeep
 
+# User Uploads
+app/static/uploads/
+
 # IDE
 .vscode/
 .idea/

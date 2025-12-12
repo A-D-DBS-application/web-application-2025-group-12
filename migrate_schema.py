@@ -1,6 +1,6 @@
 """
 Database migration script to add new columns for assignment requirements.
-Adds: address, provider, photo_url to ground table
+Adds: address, provider to ground table
 Adds: type_score to match table
 """
 import os
@@ -49,18 +49,7 @@ def migrate():
         """)
         existing_ground_cols = [row[0] for row in cursor.fetchall()]
         print(f"\n   Existing ground columns: {', '.join(existing_ground_cols)}")
-        
-        # Add address column if not exists
-        if 'address' not in existing_ground_cols:
-            print("\n✅ Adding 'address' column to ground table...")
-            cursor.execute("""
-                ALTER TABLE public.ground 
-                ADD COLUMN address VARCHAR(300)
-            """)
-            print("   ✓ address column added")
-        else:
-            print("\n⏭️  'address' column already exists")
-        
+
         # Add provider column if not exists
         if 'provider' not in existing_ground_cols:
             print("\n✅ Adding 'provider' column to ground table...")
@@ -71,17 +60,8 @@ def migrate():
             print("   ✓ provider column added")
         else:
             print("\n⏭️  'provider' column already exists")
-        
-        # Add photo_url column if not exists
-        if 'photo_url' not in existing_ground_cols:
-            print("\n✅ Adding 'photo_url' column to ground table...")
-            cursor.execute("""
-                ALTER TABLE public.ground 
-                ADD COLUMN photo_url TEXT
-            """)
-            print("   ✓ photo_url column added")
-        else:
-            print("\n⏭️  'photo_url' column already exists")
+
+        # Image storage: single image_url column maintained; photo_url no longer used
         
         # Check match table columns
         cursor.execute("""

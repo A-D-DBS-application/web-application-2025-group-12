@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 300" width="1400" height="300">
-  <!-- Background matching navbar color #1f6f4a -->
-  <rect width="1400" height="300" fill="#1f6f4a"/>
+  <!-- Background matching navbar color #2E7D32 -->
+  <rect width="1400" height="300" fill="#2E7D32"/>
   
   <!-- Location Pin Icon (left side) - More rounded design (moved slightly right) -->
   <g transform="translate(120, 80)">
@@ -11,9 +11,9 @@
     <!-- Inner circle (dot) at the point with soft shadow effect -->
     <circle cx="0" cy="25" r="16" fill="white"/>
     <!-- Inner circle outline for definition -->
-    <circle cx="0" cy="25" r="16" fill="none" stroke="#1f6f4a" stroke-width="4"/>
+    <circle cx="0" cy="25" r="16" fill="none" stroke="#2E7D32" stroke-width="4"/>
     <!-- Small dot in center -->
-    <circle cx="0" cy="25" r="7" fill="#1f6f4a"/>
+    <circle cx="0" cy="25" r="7" fill="#2E7D32"/>
   </g>
   
   <!-- Text: "GroundMatch" (moved closer to icon, adjusted size) -->
