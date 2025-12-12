@@ -1,84 +1,105 @@
-{% extends "base.html" %}
-{% from 'macros/layout.html' import detail_field_primary, detail_field, detail_grid_2col, section_divider %}
-{% from 'macros/forms.html' import page_header %}
-
+{% extends "base_new.html" %}
 {% block content %}
-<div class="page-wrapper-medium">
-    {% if ground %}
-    <div class="card mb-4">
-        {# Page Header #}
-        {{ page_header("Building Plot Details", "View complete information about this building plot") }}
-        
-        {# Two-column layout: Image and Details #}
-        {% call detail_grid_2col('lg') %}
-            {# Plot Image #}
-            <div>
-                {% if ground.photo_url %}
-                <img src="{{ ground.photo_url }}" alt="{{ ground.location }}" class="detail-image">
-                {% else %}
-                <img src="{{ url_for('ground_image', ground_id=ground.id) }}" alt="{{ ground.location }}" class="detail-image">
-                {% endif %}
-            </div>
-            
-            {# Plot Details #}
-            <div>
-                {# Location and Address #}
-                <div class="detail-field">
-                    <div class="detail-label">LOCATION</div>
-                    <div class="detail-value detail-value-lg">{{ ground.location }}</div>
-                    {% if ground.address %}
-                    <div class="detail-value-muted">{{ ground.address }}</div>
-                    {% endif %}
-                </div>
-                
-                {# Surface Area and Price Grid #}
-                {% call detail_grid_2col() %}
-                    {{ detail_field_primary("SURFACE AREA", ground.m2|format_number ~ " m²") }}
-                    {{ detail_field_primary("PRICE", "€" ~ ground.budget|format_price) }}
-                {% endcall %}
-                
-                {# Subdivision Type #}
-                {{ detail_field("SUBDIVISION TYPE", ground.subdivision_type.replace('_', ' ').title()) }}
-                
-                {# Owner #}
-                {{ detail_field("OWNER", ground.owner, False) }}
-            </div>
-        {% endcall %}
-        
-        {# Action Buttons Section #}
-        {% if session.role == 'company' %}
-            {% call section_divider() %}
-                <a id="detail-back-btn" href="{{ url_for('grounds_list') }}" class="btn">Back to Plots</a>
-                {# Show Edit/Delete only for grounds owned by this company #}
-                {% if user_company and ground.provider == user_company %}
-                <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn">Edit Plot</a>
-                <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}" class="inline">
-                    <button type="submit" class="btn" onclick="return confirm('Delete this ground? This action cannot be undone.')">Delete Plot</button>
-                </form>
-                {% endif %}
-            {% endcall %}
-        {% else %}
-            {% call section_divider() %}
-                <a id="detail-back-btn" href="{{ url_for('matches_list') }}" class="btn">Back</a>
-            {% endcall %}
-        {% endif %}
-
-        <script>
-        // If the user arrived from the Matches page, make the Back button return there and show shorter label.
-        (function(){
-            try{
-                var ref = document.referrer || '';
-                var backBtn = document.getElementById('detail-back-btn');
-                if(!backBtn) return;
-                if(ref.indexOf('/matches') !== -1){
-                    backBtn.href = "{{ url_for('matches_list') }}";
-                    backBtn.textContent = 'Back';
-                }
-            }catch(e){console.warn(e)}
-        })();
-        </script>
+<div class="container py-3">
+  {% if ground %}
+  <div class="card shadow-sm mb-4">
+    {# Page Header #}
+    <div class="card-body pb-2">
+      <div class="mb-3">
+        <h1 class="h3 mb-1">Building Plot Details</h1>
+        <p class="text-muted mb-0">View complete information about this building plot</p>
+      </div>
     </div>
-    {% endif %}
+
+    {# Two-column layout: Image and Details #}
+    <div class="card-body pt-2">
+      <div class="row g-4 mb-4">
+        {# Plot Image #}
+        <div class="col-md-6">
+          <img src="{{ ground.image_url or url_for('ground_image', ground_id=ground.id) }}" alt="{{ ground.location }}" class="img-fluid rounded shadow-sm" style="height:350px;object-fit:cover;width:100%">
+        </div>
+        
+        {# Plot Details #}
+        <div class="col-md-6">
+          {# Location and Address #}
+          <div class="mb-4">
+            <small class="text-muted fw-semibold d-block mb-1">LOCATION</small>
+            <div class="h5 fw-bold text-dark">{{ ground.location }}</div>
+            {% if ground.address %}
+            <div class="text-muted small">{{ ground.address }}</div>
+            {% endif %}
+          </div>
+          
+          {# Surface Area and Price Grid #}
+          <div class="row g-3 mb-4">
+            <div class="col-6">
+              <small class="text-muted fw-semibold d-block mb-1">SURFACE AREA</small>
+              <div class="h5 fw-bold text-success">{{ ground.m2|format_number }} m²</div>
+            </div>
+            <div class="col-6">
+              <small class="text-muted fw-semibold d-block mb-1">PRICE</small>
+              <div class="h5 fw-bold text-success">€{{ ground.budget|format_price }}</div>
+            </div>
+          </div>
+          
+          {# Subdivision Type #}
+          <div class="mb-4">
+            <small class="text-muted fw-semibold d-block mb-1">SUBDIVISION TYPE</small>
+            <div class="fw-semibold text-dark">{{ ground.subdivision_type.replace('_', ' ').title() }}</div>
+          </div>
+          
+          {# Owner #}
+          <div class="mb-3">
+            <small class="text-muted fw-semibold d-block mb-1">OWNER</small>
+            <div class="fw-semibold text-dark">{{ ground.owner }}</div>
+          </div>
+        </div>
+      </div>
+
+      {# Action Buttons Section #}
+      <div class="border-top pt-3">
+        {% if session.role == 'company' %}
+          <a id="detail-back-btn" href="{{ url_for('grounds_list') }}" class="btn btn-outline-secondary">← Back to Plots</a>
+          {# Show Edit/Delete only for grounds owned by this company #}
+          {% if user_company and ground.provider == user_company %}
+          <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn btn-warning">Edit Plot</a>
+          <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}" class="d-inline">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this ground? This action cannot be undone.')">Delete Plot</button>
+          </form>
+          {% endif %}
+        {% elif session.role == 'client' %}
+          <a id="detail-back-btn" href="{{ url_for('matches_list') }}" class="btn btn-outline-secondary">← Back to Matches</a>
+        {% else %}
+          {# Not logged in - show back to home #}
+          <a id="detail-back-btn" href="{{ url_for('home') }}" class="btn btn-outline-secondary">← Back to Home</a>
+          <a href="{{ url_for('company_login') }}" class="btn btn-success">Login to Get Matched</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <script>
+  (function(){
+    try{
+      var ref = document.referrer || '';
+      var backBtn = document.getElementById('detail-back-btn');
+      if(!backBtn) return;
+      
+      // Handle different referrer contexts
+      if(ref.indexOf('/matches') !== -1){
+        backBtn.href = "{{ url_for('matches_list') }}";
+        backBtn.textContent = '← Back to Matches';
+      } else if(ref.indexOf('/grounds') !== -1 && ref.indexOf('/grounds/') === -1){
+        backBtn.href = "{{ url_for('grounds_list') }}";
+        backBtn.textContent = '← Back to Plots';
+      } else if(ref.indexOf('{{ url_for("home") }}') !== -1 || ref.endsWith('/')){
+        backBtn.href = "{{ url_for('home') }}";
+        backBtn.textContent = '← Back to Home';
+      }
+    }catch(e){console.warn(e)}
+  })();
+  </script>
 </div>
 {% endblock %}
 

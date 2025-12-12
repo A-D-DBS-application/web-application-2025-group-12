@@ -169,7 +169,7 @@ def normalize_hillewaere_item(item: Dict) -> Optional[Dict]:
         "provider": None,
         #"detail_url": url,
         "image_url": item.get("img"),
-        "photo_url": item.get("img"),
+        "image_url": item.get("img"),
         # Als je ook lat/lng kolommen hebt in DB, kun je die hier toevoegen:
         # "lat": float(item["lat"]),
         # "lng": float(item["lng"]),

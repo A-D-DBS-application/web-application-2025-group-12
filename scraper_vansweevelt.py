@@ -166,13 +166,20 @@ def scrape_vansweevelt() -> List[Dict]:
         location_val = city or "onbekend"
         address_val = street or ""
 
-        # Map to valid subdivision types (default to development_plot for scraped grounds)
+        # Map to valid subdivision types (default to development_plot)
         subdivision_mapping = {
             "bouwgrond": "development_plot",
             "grond": "development_plot",
             "plot": "development_plot",
+            "open bebouwing": "detached",
+            "open": "detached",
+            "halfopen": "semi_detached",
+            "half open": "semi_detached",
+            "gesloten": "terraced",
+            "rijwoning": "terraced",
+            "appartement": "apartment",
         }
-        subdivision_key = (grond_type or "").lower()
+        subdivision_key = (grond_type or "").strip().lower()
         subdivision_val = subdivision_mapping.get(subdivision_key, "development_plot")
 
         record = {
@@ -185,7 +192,6 @@ def scrape_vansweevelt() -> List[Dict]:
             "provider": None,        # Scraped grounds not tied to a company
             # "detail_url": detail_url,  # niet in DB -> uitgelaten
             "image_url": image_url,
-            "photo_url": image_url,  # Use scraped image as photo
         }
 
         results.append(record)

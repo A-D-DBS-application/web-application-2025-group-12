@@ -1,51 +1,177 @@
-{% extends "base.html" %}
-{% block content %}
-<div style="text-align:center;margin-bottom:24px">
-    <img src="{{ url_for('static', filename='images/login-header.jpg') }}" alt="Construction" style="max-width:600px;width:100%;border-radius:12px;margin-bottom:24px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
-    
-    <h1 style="margin:0 0 12px">Welcome to GroundMatch</h1>
-    <p class="muted" style="margin:0 0 24px">Connect your clients with the perfect building plots. Streamline your construction business with intelligent matching.</p>
+{% extends "base_new.html" %}
 
-    <div style="background:var(--gm-bg);border-radius:20px;padding:24px;display:inline-block;margin:0 auto">
-        <div style="margin-bottom:12px;width:100%">
-            <a href="{{ url_for('company_register') }}" class="btn btn-success" style="width:100%;display:inline-block;text-align:center;padding:12px 24px">Create Account as Company</a>
+{% block title %}Welcome to GroundMatch{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Hero Section -->
+    <div class="text-center mb-5">
+        <img src="{{ url_for('static', filename='images/login-header.jpg') }}" 
+             alt="Construction" 
+             class="img-fluid rounded shadow mb-4" 
+             style="max-width: 600px;">
+        
+        <h1 class="display-4 fw-bold mb-3">Welcome to GroundMatch</h1>
+        <p class="lead text-muted mb-4">
+            Connect your clients with the perfect building plots. 
+            Streamline your construction business with intelligent matching.
+        </p>
+
+        <!-- Login/Register Card -->
+        <div class="card shadow-sm mx-auto" style="max-width: 400px;">
+            <div class="card-body p-4">
+                <div class="d-grid gap-2 mb-3">
+                    <a href="{{ url_for('company_register') }}" class="btn btn-primary btn-lg">
+                        Create Account as Company
+                    </a>
+                </div>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('company_login') }}" class="btn btn-outline-primary">
+                        Company Login
+                    </a>
+                    <a href="{{ url_for('client_login') }}" class="btn btn-outline-secondary">
+                        Client Login
+                    </a>
+                </div>
+            </div>
         </div>
-        <div style="display:flex;gap:12px;justify-content:center">
-            <a href="{{ url_for('company_login') }}" class="btn" style="padding:12px 24px;flex:1">Company Login</a>
-            <a href="{{ url_for('client_login') }}" class="btn" style="padding:12px 24px;flex:1">Client Login</a>
+    </div>
+
+    <!-- Browse Available Plots Section -->
+    {% if grounds %}
+    <div class="mt-5">
+        <h2 class="mb-4 text-center">Featured Building Plots</h2>
+        <p class="text-center text-muted mb-4">Explore our latest available building plots</p>
+        
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for ground in grounds %}
+            <div class="col">
+                <a href="{{ url_for('ground_detail', ground_id=ground.id) }}" class="text-decoration-none">
+                    <div class="position-relative overflow-hidden rounded shadow-sm hover-lift" style="transition: transform 0.2s; cursor: pointer; height: 250px;">
+                        {% if ground.image_url %}
+                        <img src="{{ ground.image_url }}" 
+                             alt="{{ ground.location }}" 
+                             class="img-fluid w-100 h-100" 
+                             style="object-fit: cover;">
+                        {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center w-100 h-100">
+                            <span class="text-muted">No image available</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
         </div>
+        
+        <div class="text-center mt-5">
+            <a href="{{ url_for('grounds_list') }}" class="btn btn-primary btn-lg">Browse All Plots</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Company-only Management Section -->
+    {% if session.role == 'company' %}
+    <div class="mt-5">
+        <div class="row g-4">
+            <div class="col-md-6 mx-auto">
+                <a href="{{ url_for('client_add') }}" class="text-decoration-none">
+                    <div class="card h-100 shadow-sm hover-lift" style="transition: transform 0.2s; cursor: pointer; background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f6 100%);">
+                        <div class="card-body text-center py-5">
+                            <div class="mb-3">
+                                <i class="bi bi-plus-circle" style="font-size: 3rem; color: #4caf50;"></i>
+                            </div>
+                            <h5 class="card-title fw-bold text-dark mb-2">Add New Client</h5>
+                            <p class="card-text text-muted">Create a new client profile and set their preferences</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Matches or Feature Cards -->
+    <div class="mt-5">
+        {% if matches is defined and matches %}
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">Recent Approved Matches</h3>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Location</th>
+                                    <th>Surface Area</th>
+                                    <th>Budget</th>
+                                    <th>Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for match in matches|selectattr('status', 'equalto', 'approved')|list %}
+                                {% if loop.index <= 5 %}
+                                <tr>
+                                    <td>{{ match.client.name if match.client else 'N/A' }}</td>
+                                    <td>{{ match.ground.location }}</td>
+                                    <td>{{ match.ground.m2|format_number }} m²</td>
+                                    <td>€{{ match.ground.budget|format_price }}</td>
+                                    <td><strong class="text-success">{{ match|match_percent }}%</strong></td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">How it works</h3>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="card h-100 text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title">Manage Clients</h5>
+                                    <p class="card-text text-muted">
+                                        Keep track of all your clients and preferences
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title">Browse Plots</h5>
+                                    <p class="card-text text-muted">
+                                        Search through available building plots
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title">Smart Matching</h5>
+                                    <p class="card-text text-muted">
+                                        Get intelligent matches based on preferences
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
     </div>
 </div>
 
-<div class="card" style="margin-top:18px">
-    {% if matches is defined and matches %}
-        <h3 style="margin-top:0">Recent Approved Matches</h3>
-        <table>
-            <thead>
-                <tr><th>Client</th><th>Location</th><th>Surface Area</th><th>Budget</th><th>Score</th></tr>
-            </thead>
-            <tbody>
-            {% for match in matches|selectattr('status', 'equalto', 'approved')|list %}
-                {% if loop.index <= 5 %}
-                <tr>
-                    <td>{{ match.client.name if match.client else 'N/A' }}</td>
-                    <td>{{ match.ground.location }}</td>
-                    <td>{{ match.ground.m2|format_number }} m²</td>
-                    <td>€{{ match.ground.budget|format_price }}</td>
-                    <td><strong>{{ match|match_percent }}%</strong></td>
-                </tr>
-                {% endif %}
-            {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <h3 style="margin-top:0">How it works</h3>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
-            <div class="card"><strong>Manage Clients</strong><div class="muted">Keep track of all your clients and preferences</div></div>
-            <div class="card"><strong>Browse Plots</strong><div class="muted">Search through available building plots</div></div>
-            <div class="card"><strong>Smart Matching</strong><div class="muted">Get intelligent matches based on preferences</div></div>
-        </div>
-    {% endif %}
-</div>
-
+<!-- Add subtle hover effect via CSS -->
+<style>
+    .hover-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
+    }
+</style>
 {% endblock %}

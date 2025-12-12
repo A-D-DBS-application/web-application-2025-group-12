@@ -1,0 +1,26 @@
+{# Flash messages partial - displays Bootstrap alerts for user feedback #}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages mb-4">
+            {% for category, message in messages %}
+                {# Map Flask categories to Bootstrap alert types #}
+                {% set alert_type = 'primary' %}
+                {% if category == 'success' %}
+                    {% set alert_type = 'success' %}
+                {% elif category == 'danger' or category == 'error' %}
+                    {% set alert_type = 'danger' %}
+                {% elif category == 'warning' %}
+                    {% set alert_type = 'warning' %}
+                {% elif category == 'info' %}
+                    {% set alert_type = 'info' %}
+                {% endif %}
+                
+                <div class="alert alert-{{ alert_type }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}

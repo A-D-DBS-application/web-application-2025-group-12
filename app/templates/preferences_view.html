@@ -1,51 +1,63 @@
-{% extends "base.html" %}
+{% extends "base_new.html" %}
 {% block content %}
-<div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-        <div>
-            <h1 style="margin:0">Client Preferences</h1>
-            <div class="muted">View preferences for {{ client.name }}</div>
-        </div>
-        <a href="{{ url_for('preferences_list') }}" class="btn">Back to List</a>
+<div class="container py-3">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">Client Preferences</h1>
+      <p class="text-muted mb-0">View preferences for <strong>{{ client.name }}</strong></p>
     </div>
+    <a href="{{ url_for('preferences_list') }}" class="btn btn-outline-secondary">Back to List</a>
+  </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
-        <div>
-            <div style="margin-bottom:16px">
-                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Preferred Location</label>
-                <div style="padding:10px;background:#f6fbf8;border-radius:6px">{{ pref.location or 'Not specified' }}</div>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="mb-4">
+            <small class="text-muted fw-semibold d-block mb-2">PREFERRED LOCATION</small>
+            <div class="p-3 bg-light rounded">
+              <span class="text-dark fw-semibold">{{ pref.location or 'Not specified' }}</span>
             </div>
-            <div style="margin-bottom:16px">
-                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Subdivision Type</label>
-                <div style="padding:10px;background:#f6fbf8;border-radius:6px">{{ pref.subdivision_type.replace('_', ' ').title() if pref.subdivision_type else 'Not specified' }}</div>
+          </div>
+          <div class="mb-4">
+            <small class="text-muted fw-semibold d-block mb-2">SUBDIVISION TYPE</small>
+            <div class="p-3 bg-light rounded">
+              <span class="text-dark fw-semibold">{{ pref.subdivision_type.replace('_', ' ').title() if pref.subdivision_type else 'Not specified' }}</span>
             </div>
+          </div>
         </div>
-        <div>
-            <div style="margin-bottom:16px">
-                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Surface Area Range (m²)</label>
-                <div style="padding:10px;background:#f6fbf8;border-radius:6px">
-                    {% if pref.min_m2 or pref.max_m2 %}
-                        {{ pref.min_m2|format_number }} - {{ pref.max_m2|format_number }} m²
-                    {% else %}
-                        Not specified
-                    {% endif %}
-                </div>
+        <div class="col-md-6">
+          <div class="mb-4">
+            <small class="text-muted fw-semibold d-block mb-2">SURFACE AREA RANGE (m²)</small>
+            <div class="p-3 bg-light rounded">
+              <span class="text-dark fw-semibold">
+                {% if pref.min_m2 or pref.max_m2 %}
+                  {{ pref.min_m2|format_number }} - {{ pref.max_m2|format_number }} m²
+                {% else %}
+                  Not specified
+                {% endif %}
+              </span>
             </div>
-            <div style="margin-bottom:16px">
-                <label style="display:block;font-weight:600;margin-bottom:6px;color:#193127">Budget Range (€)</label>
-                <div style="padding:10px;background:#f6fbf8;border-radius:6px">
-                    {% if pref.min_budget or pref.max_budget %}
-                        €{{ pref.min_budget|format_price if pref.min_budget else '?' }} - €{{ pref.max_budget|format_price if pref.max_budget else '?' }}
-                    {% else %}
-                        Not specified
-                    {% endif %}
-                </div>
+          </div>
+          <div class="mb-4">
+            <small class="text-muted fw-semibold d-block mb-2">BUDGET RANGE (€)</small>
+            <div class="p-3 bg-light rounded">
+              <span class="text-dark fw-semibold">
+                {% if pref.min_budget or pref.max_budget %}
+                  €{{ pref.min_budget|format_price if pref.min_budget else '?' }} - €{{ pref.max_budget|format_price if pref.max_budget else '?' }}
+                {% else %}
+                  Not specified
+                {% endif %}
+              </span>
             </div>
+          </div>
         </div>
-    </div>
+      </div>
 
-    <div style="margin-top:24px;padding:12px;background:#fff3cd;border-radius:6px;border-left:4px solid #ffc107">
+      <div class="alert alert-info border-start border-4 mt-4 mb-0">
         <strong>Note:</strong> Only clients can edit their own preferences. You can view them here but cannot make changes.
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}

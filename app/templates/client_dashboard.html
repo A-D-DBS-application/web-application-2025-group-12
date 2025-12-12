@@ -1,55 +1,111 @@
-{% extends "base.html" %}
+{% extends "base_new.html" %}
+
+{% block title %}Client Dashboard - {{ client.name }}{% endblock %}
+
 {% block content %}
-<h1>Client Dashboard - {{ client.name }}</h1>
+<div class="container py-4">
+    <!-- Page Header -->
+    <h1 class="display-5 fw-bold mb-4">Welcome, {{ client.name }}</h1>
 
-<div class="card">
-    <h2>Your Preferences</h2>
-    {% if preferences %}
-    <p><strong>Location:</strong> {{ preferences.location or 'Not set' }}</p>
-    <p><strong>Budget:</strong> €{{ preferences.min_budget|format_price if preferences.min_budget else '?' }} - €{{ preferences.max_budget|format_price if preferences.max_budget else '?' }}</p>
-    <p><strong>Size:</strong> {{ preferences.min_m2|format_number }} - {{ preferences.max_m2|format_number }} m²</p>
-    <p><strong>Subdivision Type:</strong> {{ (preferences.subdivision_type.replace('_', ' ').title()) if preferences.subdivision_type else 'Not set' }}</p>
-    <a href="{{ url_for('client_preferences_edit') }}" class="btn">Edit Preferences</a>
-    {% else %}
-    <p>No preferences set yet.</p>
-    <a href="{{ url_for('client_preferences_edit') }}" class="btn btn-success">Set Preferences</a>
-    {% endif %}
-</div>
-
-<div class="card">
-    <h2>Your Matches ({{ matches|length }})</h2>
-    {% if matches %}
-        <div class="client-matches-grid">
-            {% for match in matches %}
-            <div class="client-match-card">
-                <div class="client-match-image-container">
-                    <img src="{% if match.ground.photo_url %}{{ match.ground.photo_url }}{% elif match.ground.image_url %}{{ match.ground.image_url }}{% else %}{{ url_for('ground_image', ground_id=match.ground.id) }}{% endif %}" alt="{{ match.ground.location }}" class="client-match-image">
+    <!-- Preferences Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Your Preferences</h5>
+            {% if preferences %}
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <strong class="me-2">Location:</strong>
+                            <span class="text-muted">{{ preferences.location or 'Not set' }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <strong class="me-2">Budget:</strong>
+                            <span class="text-muted">
+                                €{{ preferences.min_budget|format_price if preferences.min_budget else '?' }} - 
+                                €{{ preferences.max_budget|format_price if preferences.max_budget else '?' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <strong class="me-2">Size:</strong>
+                            <span class="text-muted">
+                                {{ preferences.min_m2|format_number }} - {{ preferences.max_m2|format_number }} m²
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <strong class="me-2">Type:</strong>
+                            <span class="text-muted">
+                                {{ (preferences.subdivision_type.replace('_', ' ').title()) if preferences.subdivision_type else 'Not set' }}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div class="client-match-info">
-                    <div class="client-match-location">{{ match.ground.location }}</div>
-                    <div class="client-match-meta">
-                        <div class="meta-item">{{ match.ground.m2|format_number }} m²</div>
-                        <div class="meta-item">€{{ match.ground.budget|format_price }}</div>
-                    </div>
-                    <div class="client-match-meta-secondary">
-                        <div class="meta-item">{{ match.ground.subdivision_type.replace('_', ' ').title() }}</div>
-                        <div class="meta-item">{{ match.ground.owner }}</div>
-                    </div>
-                    <div class="client-match-score">
-                        <strong>Score: {{ match|match_percent }}%</strong>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
+                <a href="{{ url_for('client_preferences_edit') }}" class="btn btn-outline-primary">Edit Preferences</a>
+            {% else %}
+                <p class="text-muted mb-3">No preferences set yet.</p>
+                <a href="{{ url_for('client_preferences_edit') }}" class="btn btn-primary">Set Preferences</a>
+            {% endif %}
         </div>
-    {% else %}
-    <p>No matches yet. Ask your company to run the matching algorithm.</p>
-    {% endif %}
-</div>
+    </div>
 
-<div class="card">
-    <h2>Quick Links</h2>
-    <a href="{{ url_for('matches_list') }}" class="btn">View All My Matches</a>
-    <a href="{{ url_for('client_preferences_edit') }}" class="btn">Update My Preferences</a>
+    <!-- Matches Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-4">
+                Your Matches 
+                <span class="badge bg-secondary">{{ matches|length }}</span>
+            </h5>
+            {% if matches %}
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    {% for match in matches %}
+                    <div class="col">
+                        <div class="card ground-card h-100 shadow-sm">
+                            <img src="{{ match.ground.image_url or url_for('ground_image', ground_id=match.ground.id) }}" 
+                                 class="card-img-top" 
+                                 alt="{{ match.ground.location }}">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ match.ground.location }}</h6>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">{{ match.ground.m2|format_number }} m²</span>
+                                    <span class="text-success fw-bold small">€{{ match.ground.budget|format_price }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="badge bg-info small">
+                                        {{ match.ground.subdivision_type.replace('_', ' ').title() }}
+                                    </span>
+                                    <span class="text-muted small">{{ match.ground.owner }}</span>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <strong class="text-success">Match Score: {{ match|match_percent }}%</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h5>No matches yet</h5>
+                    <p class="text-muted">Ask your company to run the matching algorithm.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Quick Actions</h5>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ url_for('matches_list') }}" class="btn btn-outline-primary">View All My Matches</a>
+                <a href="{{ url_for('client_preferences_edit') }}" class="btn btn-outline-secondary">Update My Preferences</a>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

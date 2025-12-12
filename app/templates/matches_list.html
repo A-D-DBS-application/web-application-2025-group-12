@@ -1,89 +1,156 @@
-{% extends "base.html" %}
+{% extends "base_new.html" %}
+
+{% block title %}Matches{% endblock %}
+
 {% block content %}
-<div class="card">
-    <div class="matches-header">
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
-            <h1>Matches</h1>
-            <div class="muted">View matches grouped by client — top results first</div>
+            <h1 class="display-6 fw-bold mb-0">Matches</h1>
+            <small class="text-muted">Client-ground matching results</small>
         </div>
-        <div class="matches-actions">
+        <div class="d-flex gap-2">
             {% if session.role == 'company' %}
-            <a href="{{ url_for('dashboard') }}" class="btn">Back to dashboard</a>
-            <form action="{{ url_for('match_run') }}" method="post" class="inline-form">
-                <button type="submit" class="btn primary">Run matching</button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
+            <form action="{{ url_for('match_run') }}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-success">▶ Run Matching Algorithm</button>
             </form>
             {% elif session.role == 'client' %}
-            <a href="{{ url_for('client_dashboard') }}" class="btn">Back to dashboard</a>
+            <a href="{{ url_for('client_dashboard') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
             {% endif %}
         </div>
     </div>
 
+    <!-- Company Contact Info (for Clients) -->
     {% if session.role == 'client' and client and client.company %}
-    <div class="company-info-box">
-        <strong>Company Contact Information:</strong><br>
-        <small>Email: {{ client.company.email or 'Not available' }}</small>
+    <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+        <strong>Your Company Contact:</strong>
+        <div class="mt-2">
+            <strong>{{ client.company.name }}</strong><br>
+            <small>Email: <a href="mailto:{{ client.company.email }}">{{ client.company.email }}</a></small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endif %}
 
-    {% if session.role == 'company' and clients %}
-    <form method="GET" class="client-filter-form">
-        <label>Filter per klant:</label>
-        <select name="client_id" onchange="this.form.submit()">
-            <option value="">Alle klanten</option>
-            {% for c in clients %}
-            <option value="{{ c.id }}" {% if client_filter and c.id == client_filter|int %}selected{% endif %}>{{ c.name }}</option>
-            {% endfor %}
-        </select>
-        {% if client_filter %}
-        <a href="{{ url_for('matches_list') }}" class="btn btn-small">Toon alles</a>
-        {% endif %}
+    <!-- Filter Form -->
+    <form method="GET" class="card shadow-sm mb-4 border-0">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Filter by Client</label>
+                    <select name="client_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Clients</option>
+                        {% for c in clients %}
+                        <option value="{{ c.id }}" {% if client_filter and c.id == client_filter|int %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if client_filter %}
+                <div class="col-auto">
+                    <a href="{{ url_for('matches_list') }}" class="btn btn-outline-secondary">Clear Filter</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </form>
-    {% endif %}
 
-    <div class="matches-container">
-        {# Group matches by client (A → Z) and show top 10 per client #}
-        {% set seen_clients = [] %}
-        {% for match in matches|sort(attribute='client.name') %}
-            {% if match.client and (match.client.name not in seen_clients) %}
-                {% set _ = seen_clients.append(match.client.name) %}
-                <div class="card matches-group">
-                    <div class="matches-group-header">
-                        <h4>{{ match.client.name }}</h4>
-                        <div class="muted">Top {{ matches|selectattr('client.name','equalto', match.client.name)|list|length }} matches</div>
+    <!-- Matches by Client -->
+    {% if matches %}
+    {% set seen_clients = [] %}
+    {% for cm in matches %}
+        {% if cm.client and (cm.client.name not in seen_clients) %}
+            {% set _ = seen_clients.append(cm.client.name) %}
+            <div class="card shadow-sm mb-5 border-0">
+                <!-- Client Header -->
+                <div class="card-header bg-light border-bottom">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h4 class="mb-0 fw-bold">{{ cm.client.name }}</h4>
+                            <small class="text-muted">{{ matches|selectattr('client.name','equalto', cm.client.name)|list|length }} total matches</small>
+                        </div>
                     </div>
-                    <div class="match-cards-grid">
-                        {% set client_matches = matches|selectattr('client.name','equalto', match.client.name)|list %}
-                        {% for cm in client_matches[:10] %}
-                            <a href="{{ url_for('ground_detail', ground_id=cm.ground.id) }}" class="match-card-link">
-                                <div class="card match-card">
-                                    <div class="match-card-content">
-                                        <img src="{% if cm.ground.photo_url %}{{ cm.ground.photo_url }}{% elif cm.ground.image_url %}{{ cm.ground.image_url }}{% else %}{{ url_for('ground_image', ground_id=cm.ground.id) }}{% endif %}" alt="{{ cm.ground.location }}" class="match-card-image">
-                                        <div class="match-card-info">
-                                            <div class="match-card-location">{{ cm.ground.location }}</div>
-                                            <div class="muted">{{ cm.ground.m2|format_number }} m² • €{{ cm.ground.budget|format_price }} • {{ cm.ground.subdivision_type.replace('_', ' ').title() }}</div>
-                                        </div>
-                                        <div class="match-card-actions">
-                                            <div class="tag info match-score">{{ cm|match_percent }}%</div>
-                                            {% set s = (cm.status or '')|lower %}
+                </div>
+
+                <!-- Matches Grid -->
+                <div class="card-body p-3">
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                        {% for m in matches if m.client and m.client.name == cm.client.name %}
+                        <div class="col">
+                            <a href="{{ url_for('ground_detail', ground_id=m.ground.id) }}" class="text-decoration-none">
+                                <div class="card h-100 shadow-sm hover-lift" style="transition: transform 0.2s;">
+                                    <!-- Image -->
+                                    <div class="position-relative overflow-hidden" style="height: 180px;">
+                                        <img src="{{ m.ground.image_url or url_for('ground_image', ground_id=m.ground.id) }}" 
+                                             alt="{{ m.ground.location }}" 
+                                             class="card-img-top" 
+                                             style="height: 100%; object-fit: cover;">
+                                    </div>
+                                    
+                                    <!-- Content -->
+                                    <div class="card-body">
+                                        <h6 class="card-title fw-bold text-dark mb-1">{{ m.ground.location }}</h6>
+                                        <small class="text-muted d-block mb-2">{{ m.ground.address or 'Address not specified' }}</small>
+                                        
+                                        <small class="text-muted d-block mb-3">
+                                            {{ m.ground.m2|format_number }} m² • 
+                                            €{{ m.ground.budget|format_price }} • 
+                                            <span class="badge bg-info text-dark">{{ m.ground.subdivision_type.replace('_', ' ').title() }}</span>
+                                        </small>
+                                        
+                                        <!-- Score and Status -->
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-success fs-6">{{ m|match_percent }}%</span>
+                                            {% set s = (m.status or '')|lower %}
                                             {{ s|status_badge }}
-                                            {% if session.role == 'company' %}
-                                                <form method="post" action="{{ url_for('match_toggle', match_id=cm.id, client_id=client_filter) }}" class="match-action-form">
-                                                    {% if s == 'pending' %}
-                                                        <button type="submit" name="action" value="approve" class="btn btn-small" onclick="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseup="event.stopPropagation();">Approve</button>
-                                                    {% elif s in ['approved','accepted'] %}
-                                                        <button type="submit" name="action" value="pending" class="btn btn-small" onclick="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseup="event.stopPropagation();">Set pending</button>
-                                                    {% endif %}
-                                                </form>
-                                            {% endif %}
                                         </div>
                                     </div>
+                                    
+                                    <!-- Action (for companies) -->
+                                    {% if session.role == 'company' %}
+                                    <div class="card-footer bg-light border-top">
+                                        <form method="post" action="{{ url_for('match_delete', match_id=m.id, client_id=client_filter) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Remove this match?')">Remove Match</button>
+                                        </form>
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </a>
+                        </div>
                         {% endfor %}
                     </div>
                 </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body text-center py-5">
+            <h5 class="text-muted mb-3">No matches found</h5>
+            <p class="text-muted mb-4">
+                {% if session.role == 'company' %}
+                No matches have been generated yet. Run the matching algorithm to find ideal grounds for your clients.
+                {% else %}
+                Your assigned company hasn't generated matches for your preferences yet. Please contact them to run the matching algorithm.
+                {% endif %}
+            </p>
+            {% if session.role == 'company' %}
+            <form action="{{ url_for('match_run') }}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-success btn-lg">▶ Run Matching Algorithm</button>
+            </form>
             {% endif %}
-        {% endfor %}
+        </div>
     </div>
+    {% endif %}
 </div>
+
+<style>
+    .hover-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
+    }
+</style>
 {% endblock %}

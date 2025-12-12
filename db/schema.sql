@@ -27,7 +27,6 @@ CREATE TABLE public.ground (
   image_url text,
   address character varying,
   provider character varying,
-  photo_url text,
   CONSTRAINT ground_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.match (

@@ -2,20 +2,37 @@ from flask import render_template, request, redirect, url_for, flash, session, R
 import os
 import uuid
 from werkzeug.utils import secure_filename
+from functools import wraps
+from sqlalchemy.orm import joinedload
+
 from .models import db, Company, Client, Ground, Preferences, Match
 from .matching import compute_match_scores
-from functools import wraps
+from .helpers import (
+    get_subdivision_types,
+    get_subdivision_types_display,
+    normalize_subdivision_type,
+    parse_int_filter,
+    parse_float_filter
+)
 
-# Configuration for file uploads
+# ============================================================================
+# CONFIGURATION
+# ============================================================================
+
 UPLOAD_FOLDER = 'app/static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
+# ============================================================================
+# UTILITY FUNCTIONS
+# ============================================================================
+
 def allowed_file(filename):
+    """Check if uploaded file has allowed extension"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def get_subdivision_types():
-    """Return list of valid subdivision types"""
-    return ['detached', 'semi_detached', 'terraced', 'apartment', 'development_plot']
+# ============================================================================
+# DECORATORS - Access control
+# ============================================================================
 
 def requires_company(f):
     @wraps(f)
@@ -35,7 +52,9 @@ def requires_client(f):
         return f(*args, **kwargs)
     return decorated
 
-# Helper functions to reduce code duplication
+# ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
 
 def check_ground_ownership(ground):
     """Check if current company owns the ground. Returns True if authorized."""
@@ -52,7 +71,7 @@ def check_client_ownership(client):
     return client.company_id == session['company_id']
 
 def handle_photo_upload():
-    """Handle photo upload from request.files. Returns photo_url or None."""
+    """Handle photo upload from request.files. Returns image_url or None."""
     if 'photo' not in request.files:
         return None
     
@@ -150,13 +169,30 @@ def download_ground_image(plot_data, ground_id):
         return False
 
 def init_routes(app):
+    """Initialize all application routes"""
+    
+    # ========================================================================
+    # PUBLIC ROUTES - Accessible to all users
+    # ========================================================================
     
     @app.route('/')
     def home():
-        return render_template('home.html')
+        """Landing page showing available building plots"""
+        try:
+            # Fetch recent grounds for display (order by id descending for most recent)
+            grounds = Ground.query.order_by(Ground.id.desc()).limit(6).all()
+        except:
+            grounds = []
+        
+        return render_template('home.html', grounds=grounds)
+    
+    # ========================================================================
+    # AUTHENTICATION ROUTES - Registration and login
+    # ========================================================================
     
     @app.route('/company/register', methods=['GET', 'POST'])
     def company_register():
+        """Register a new company account"""
         if request.method == 'POST':
             name = request.form.get('name', '').strip()
             email = request.form.get('email', '').strip()
@@ -185,6 +221,7 @@ def init_routes(app):
     
     @app.route('/company/login', methods=['GET', 'POST'])
     def company_login():
+        """Login for company users"""
         if request.method == 'POST':
             email = request.form.get('email')
             company = Company.query.filter_by(email=email).first()
@@ -201,6 +238,7 @@ def init_routes(app):
     
     @app.route('/client/login', methods=['GET', 'POST'])
     def client_login():
+        """Login for client users"""
         if request.method == 'POST':
             email = request.form.get('email')
             client = Client.query.filter_by(email=email).first()
@@ -216,9 +254,14 @@ def init_routes(app):
         
         return render_template('client_login.html')
     
+    # ========================================================================
+    # COMPANY DASHBOARD ROUTES
+    # ========================================================================
+    
     @app.route('/dashboard')
     @requires_company
     def dashboard():
+        """Company dashboard showing overview of clients, grounds, and matches"""
         company_id = session['company_id']
         clients = Client.query.filter_by(company_id=company_id).all()
         grounds = Ground.query.all()
@@ -230,9 +273,14 @@ def init_routes(app):
                              grounds=grounds, 
                              matches=matches)
     
+    # ========================================================================
+    # CLIENT DASHBOARD & PROFILE ROUTES
+    # ========================================================================
+    
     @app.route('/client/dashboard')
     @requires_client
     def client_dashboard():
+        """Client dashboard showing preferences and approved matches"""
         client = Client.query.get(session['client_id'])
         matches = [m for m in client.matches if m.status == 'approved']
         
@@ -241,9 +289,14 @@ def init_routes(app):
                              preferences=client.preferences,
                              matches=get_sorted_matches(matches))
     
+    # ========================================================================
+    # CLIENT CRUD ROUTES - Manage clients
+    # ========================================================================
+    
     @app.route('/clients')
     @requires_company
     def clients_list():
+        """List all clients with search filtering"""
         search = request.args.get('search', '')
         query = Client.query.filter_by(company_id=session['company_id'])
         if search:
@@ -303,9 +356,12 @@ def init_routes(app):
             client.email = request.form.get('email')
             client.location = request.form.get('location', '')
             client.address = request.form.get('address', '')
-            db.session.commit()
-            
-            flash('Client updated!', 'success')
+            try:
+                db.session.commit()
+                flash('Client updated!', 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Failed to update client: {str(e)}', 'danger')
             return redirect(url_for('clients_list'))
         
         return render_template('client_form.html', client=client)
@@ -319,14 +375,30 @@ def init_routes(app):
             flash('Access denied', 'danger')
             return redirect(url_for('clients_list'))
         
-        db.session.delete(client)
+        try:
+            db.session.delete(client)
+            db.session.commit()
+            flash('Client deleted!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Failed to delete client: {str(e)}', 'danger')
         db.session.commit()
         
         flash('Client deleted!', 'success')
         return redirect(url_for('clients_list'))
     
+    # ========================================================================
+    # GROUND CRUD ROUTES - Manage building plots
+    # ========================================================================
+    
     @app.route('/grounds')
     def grounds_list():
+        """List all building plots with filtering (location, price, m2, subdivision_type)"""
+        # Collect distinct values for quick-select filters
+        available_locations = [row[0] for row in db.session.query(Ground.location).filter(Ground.location != None).distinct().order_by(Ground.location).all()]
+        available_subdivision_types = [row[0] for row in db.session.query(Ground.subdivision_type).filter(Ground.subdivision_type != None).distinct().order_by(Ground.subdivision_type).all()]
+        merged_subdivision_types = sorted({t for t in (available_subdivision_types + get_subdivision_types()) if t})
+
         query = Ground.query
         
         # Filter grounds for clients: only their company's grounds + scraped grounds
@@ -353,7 +425,23 @@ def init_routes(app):
         query = apply_ground_filters(query, filters)
         
         grounds = query.all()
-        return render_template('grounds_list.html', grounds=grounds, user_company=get_user_company_name(), subdivision_types=get_subdivision_types())
+
+        # Sort: own company's grounds first, then the rest
+        user_company = get_user_company_name()
+        if user_company:
+            try:
+                uc_norm = user_company.strip().lower()
+                grounds = sorted(grounds, key=lambda g: (0 if (getattr(g, 'provider', None) or '').strip().lower() == uc_norm else 1, g.id or 0))
+            except Exception:
+                pass
+
+        return render_template(
+            'grounds_list.html',
+            grounds=grounds,
+            user_company=user_company,
+            subdivision_types=merged_subdivision_types,
+            available_locations=available_locations
+        )
 
     @app.route('/grounds/<int:ground_id>/image')
     def ground_image(ground_id):
@@ -408,7 +496,7 @@ def init_routes(app):
                 address = request.form.get('address', '').strip()
                 m2 = int(request.form.get('m2', 0))
                 budget = float(request.form.get('budget', 0))
-                subdivision_type = request.form.get('subdivision_type', '').strip()
+                subdivision_type = normalize_subdivision_type(request.form.get('subdivision_type', '')) or 'development_plot'
                 owner = request.form.get('owner', '').strip()
                 
                 # Get company name as provider
@@ -418,18 +506,18 @@ def init_routes(app):
                 # Validation
                 if not location or not subdivision_type or not owner:
                     flash('Location, type and owner are required', 'danger')
-                    return render_template('ground_form.html', ground=None, subdivision_types=get_subdivision_types())
+                    return render_template('ground_form.html', ground=None, subdivision_types=get_subdivision_types(), is_edit=False)
                 
                 if m2 <= 0 or budget <= 0:
                     flash('Size and budget must be positive', 'danger')
-                    return render_template('ground_form.html', ground=None, subdivision_types=get_subdivision_types())
+                    return render_template('ground_form.html', ground=None, subdivision_types=get_subdivision_types(), is_edit=False)
                 
-                # Handle photo upload
-                photo_url = handle_photo_upload()
+                # Handle image upload
+                image_url = handle_photo_upload()
                 
-                # If no photo uploaded, use random placeholder
-                if not photo_url:
-                    photo_url = f"https://picsum.photos/seed/{uuid.uuid4()}/800/400"
+                # If no image uploaded, use random placeholder
+                if not image_url:
+                    image_url = f"https://picsum.photos/seed/{uuid.uuid4()}/800/400"
                 
                 ground = Ground(
                     location=location,
@@ -439,7 +527,7 @@ def init_routes(app):
                     subdivision_type=subdivision_type,
                     owner=owner,
                     provider=provider,
-                    photo_url=photo_url
+                    image_url=image_url
                 )
                 db.session.add(ground)
                 db.session.commit()
@@ -448,13 +536,13 @@ def init_routes(app):
                 return redirect(url_for('grounds_list'))
             except ValueError:
                 flash('Invalid number format', 'danger')
-                return render_template('ground_form.html', ground=None, subdivision_types=get_subdivision_types())
+                return render_template('ground_form.html', ground=None, subdivision_types=get_subdivision_types(), is_edit=False)
             except Exception as e:
                 db.session.rollback()
                 flash(f'Failed to add ground: {str(e)}', 'danger')
-                return render_template('ground_form.html', ground=None, subdivision_types=get_subdivision_types())
+                return render_template('ground_form.html', ground=None, subdivision_types=get_subdivision_types(), is_edit=False)
         
-        return render_template('ground_form.html', ground=None, subdivision_types=get_subdivision_types())
+        return render_template('ground_form.html', ground=None, subdivision_types=get_subdivision_types(), is_edit=False)
     
     @app.route('/grounds/<int:ground_id>')
     def ground_detail(ground_id):
@@ -475,20 +563,24 @@ def init_routes(app):
             ground.address = request.form.get('address')
             ground.m2 = int(request.form.get('m2'))
             ground.budget = float(request.form.get('budget'))
-            ground.subdivision_type = request.form.get('subdivision_type')
+            ground.subdivision_type = normalize_subdivision_type(request.form.get('subdivision_type')) or ground.subdivision_type
             ground.owner = request.form.get('owner')
             
-            # Handle photo upload
-            photo_url = handle_photo_upload()
-            if photo_url:
-                ground.photo_url = photo_url
+            # Handle image upload
+            image_url = handle_photo_upload()
+            if image_url:
+                ground.image_url = image_url
             
-            db.session.commit()
-            
-            flash('Ground updated!', 'success')
+            try:
+                db.session.commit()
+                flash('Ground updated!', 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Failed to update ground: {str(e)}', 'danger')
+                return render_template('ground_form.html', ground=ground, subdivision_types=get_subdivision_types(), is_edit=True)
             return redirect(url_for('grounds_list'))
         
-        return render_template('ground_form.html', ground=ground, subdivision_types=get_subdivision_types())
+        return render_template('ground_form.html', ground=ground, subdivision_types=get_subdivision_types(), is_edit=True)
     
     @app.route('/grounds/<int:ground_id>/delete', methods=['POST'])
     @requires_company
@@ -499,14 +591,22 @@ def init_routes(app):
             flash('You can only delete grounds added by your company', 'danger')
             return redirect(url_for('grounds_list'))
         
-        db.session.delete(ground)
-        db.session.commit()
-        
-        flash('Ground deleted!', 'success')
+        try:
+            db.session.delete(ground)
+            db.session.commit()
+            flash('Ground deleted!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Failed to delete ground: {str(e)}', 'danger')
         return redirect(url_for('grounds_list'))
+    
+    # ========================================================================
+    # PREFERENCES ROUTES - Manage client search criteria
+    # ========================================================================
     
     @app.route('/preferences')
     def preferences_list():
+        """List all client preferences (company view) or redirect to client preferences"""
         if session.get('role') == 'company':
             clients = Client.query.filter_by(company_id=session['company_id']).all()
             client_ids = [c.id for c in clients]
@@ -564,55 +664,151 @@ def init_routes(app):
             pref.min_budget = float(request.form.get('min_budget')) if request.form.get('min_budget') else None
             pref.max_budget = float(request.form.get('max_budget')) if request.form.get('max_budget') else None
             
-            db.session.commit()
+            try:
+                db.session.commit()
+                flash('Preferences updated!', 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error updating preferences: {str(e)}', 'danger')
+                return render_template('client_preferences_form.html', client=client, pref=pref, subdivision_types=get_subdivision_types())
             
-            flash('Preferences updated!', 'success')
             return redirect(url_for('client_dashboard'))
         
         return render_template('client_preferences_form.html', client=client, pref=pref, subdivision_types=get_subdivision_types())
     
+    # ========================================================================
+    # MATCHING ROUTES - Run algorithm and review matches
+    # ========================================================================
+    
     @app.route('/match/review', methods=['GET', 'POST'])
     @requires_company
     def match_review():
-        """Review and approve matches for clients after running algorithm"""
+        """Review and approve computed matches (in-memory); save only approved to DB"""
         if request.method == 'POST':
-            approved_ids = [int(mid) for mid in request.form.getlist('approved_matches')]
-            displayed_match_ids = [int(mid) for mid in request.form.getlist('displayed_matches')]
+            # Parse approved match keys (client_id:ground_id)
+            approved_keys = request.form.getlist('approved_matches')
             
-            # Only update matches that were displayed in the form
-            for match in Match.query.filter(Match.id.in_(displayed_match_ids)).all():
-                match.status = 'approved' if match.id in approved_ids else 'pending'
+            # Retrieve computed matches from session
+            computed = session.get('computed_matches', [])
+            if not computed:
+                flash('No computed matches in session. Please run matching again.', 'warning')
+                return redirect(url_for('dashboard'))
             
-            db.session.commit()
-            flash(f'{len(approved_ids)} matches approved for clients to view!', 'success')
+            # Build dict for quick lookup
+            match_dict = {f"{m['client_id']}:{m['ground_id']}": m for m in computed}
+            
+            # Save only approved matches to DB
+            saved_count = 0
+            for key in approved_keys:
+                match_data = match_dict.get(key)
+                if not match_data:
+                    continue
+                
+                # Check if already exists
+                existing = Match.query.filter_by(
+                    client_id=match_data['client_id'],
+                    ground_id=match_data['ground_id']
+                ).first()
+                
+                if existing:
+                    # Update to approved if was pending (shouldn't happen now, but safeguard)
+                    existing.status = 'approved'
+                    existing.budget_score = match_data['budget_score']
+                    existing.m2_score = match_data['m2_score']
+                    existing.location_score = match_data['location_score']
+                    existing.type_score = match_data['type_score']
+                else:
+                    # Insert new approved match
+                    new_match = Match(
+                        client_id=match_data['client_id'],
+                        ground_id=match_data['ground_id'],
+                        budget_score=match_data['budget_score'],
+                        m2_score=match_data['m2_score'],
+                        location_score=match_data['location_score'],
+                        type_score=match_data['type_score'],
+                        status='approved'
+                    )
+                    db.session.add(new_match)
+                saved_count += 1
+            
+            try:
+                db.session.commit()
+                # Clear session matches
+                session.pop('computed_matches', None)
+                flash(f'{saved_count} matches approved and saved!', 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error saving matches: {str(e)}', 'danger')
+                return redirect(url_for('match_review'))
             return redirect(url_for('matches_list'))
         
-        # Get all clients and their top 10 matches
-        clients = Client.query.filter_by(company_id=session['company_id']).all()
+        # GET: Build preview from session-stored computed matches
+        computed = session.get('computed_matches', [])
+        if not computed:
+            flash('No matches to review. Run the matching algorithm first.', 'info')
+            return redirect(url_for('dashboard'))
+        
+        clients = Client.query.options(
+            joinedload(Client.preferences)
+        ).filter_by(company_id=session['company_id']).all()
         client_matches = {}
         
         for client in clients:
-            matches = Match.query.filter_by(client_id=client.id).all()
-            matches = get_sorted_matches(matches)[:10]
-            if matches:
-                client_matches[client] = matches
+            # Filter computed matches for this client
+            client_computed = [m for m in computed if m['client_id'] == client.id]
+            if not client_computed:
+                continue
+            
+            # Build pseudo-Match objects with score for sorting
+            pseudo_matches = []
+            for mc in client_computed:
+                ground = Ground.query.get(mc['ground_id'])
+                if not ground:
+                    continue
+                # Create a dict resembling Match attributes
+                pm = type('obj', (object,), {
+                    'client_id': mc['client_id'],
+                    'ground_id': mc['ground_id'],
+                    'ground': ground,
+                    'client': client,
+                    'budget_score': mc['budget_score'],
+                    'm2_score': mc['m2_score'],
+                    'location_score': mc['location_score'],
+                    'type_score': mc['type_score'],
+                    'total_score': (mc['budget_score'] + mc['m2_score'] + mc['location_score'] + mc['type_score']) / 4.0,
+                    'status': 'computed',  # not in DB yet
+                    'match_key': f"{mc['client_id']}:{mc['ground_id']}"
+                })()
+                pseudo_matches.append(pm)
+            
+            # Sort and take top 10
+            pseudo_matches = get_sorted_matches(pseudo_matches)[:10]
+            if pseudo_matches:
+                client_matches[client] = pseudo_matches
         
-        return render_template('match_review.html', client_matches=client_matches)
+        return render_template('match_review.html', client_matches=client_matches, is_preview=True)
     
     @app.route('/matches')
     def matches_list():
         client_filter = request.args.get('client_id', '')
         
         if session.get('role') == 'company':
-            query = Match.query.join(Client).filter(Client.company_id == session['company_id'])
+            # Show only approved matches
+            query = Match.query.options(
+                joinedload(Match.client),
+                joinedload(Match.ground)
+            ).join(Client).filter(Client.company_id == session['company_id'], Match.status == 'approved')
             
             if client_filter:
-                query = query.filter(Match.client_id == int(client_filter))
+                query = query.filter_by(client_id=int(client_filter))
             
             clients = Client.query.filter_by(company_id=session['company_id']).order_by(Client.name).all()
             client = None
         elif session.get('role') == 'client':
-            query = Match.query.filter_by(client_id=session['client_id'], status='approved')
+            query = Match.query.options(
+                joinedload(Match.client),
+                joinedload(Match.ground)
+            ).filter_by(client_id=session['client_id'], status='approved')
             clients = []
             client = Client.query.get(session['client_id'])
         else:
@@ -620,25 +816,23 @@ def init_routes(app):
         
         return render_template('matches_list.html', matches=get_sorted_matches(query.all()), client_filter=client_filter, clients=clients, client=client)
 
-    @app.route('/matches/<int:match_id>/toggle', methods=['POST'])
+    @app.route('/matches/<int:match_id>/delete', methods=['POST'])
     @requires_company
-    def match_toggle(match_id):
+    def match_delete(match_id):
+        """Delete (unapprove) a match"""
         match = Match.query.get_or_404(match_id)
         if not check_client_ownership(match.client):
             flash('Access denied', 'danger')
             return redirect(url_for('matches_list'))
-
-        action = (request.form.get('action') or '').lower()
-        if action == 'approve':
-            match.status = 'approved'
-        elif action == 'pending':
-            match.status = 'pending'
-        else:
-            flash('Unsupported action', 'warning')
-            return redirect(url_for('matches_list'))
-
-        db.session.commit()
-        flash('Match updated', 'success')
+        
+        try:
+            db.session.delete(match)
+            db.session.commit()
+            flash('Match removed', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error removing match: {str(e)}', 'danger')
+        
         # Preserve client filter if present
         client_filter = request.args.get('client_id')
         if client_filter:
@@ -653,30 +847,31 @@ def init_routes(app):
         clients = Client.query.filter_by(company_id=session['company_id']).all()
         grounds = Ground.query.all()
         
-        count = 0
+        # Compute matches in-memory; store in session for review
+        computed_matches = []
+        
         for client in clients:
             if not client.preferences:
                 continue
             
             for ground in grounds:
-                if Match.query.filter_by(client_id=client.id, ground_id=ground.id).first():
+                # Skip if already approved
+                if Match.query.filter_by(client_id=client.id, ground_id=ground.id, status='approved').first():
                     continue
                 
                 scores = compute_match_scores(ground, client.preferences)
-                match = Match(
-                    client_id=client.id,
-                    ground_id=ground.id,
-                    budget_score=scores['budget_score'],
-                    m2_score=scores['m2_score'],
-                    location_score=scores.get('location_score', 0),
-                    type_score=scores.get('type_score', 0),
-                    status='pending'
-                )
-                db.session.add(match)
-                count += 1
+                computed_matches.append({
+                    'client_id': client.id,
+                    'ground_id': ground.id,
+                    'budget_score': scores['budget_score'],
+                    'm2_score': scores['m2_score'],
+                    'location_score': scores.get('location_score', 0),
+                    'type_score': scores.get('type_score', 0),
+                })
         
-        db.session.commit()
-        flash(f'{count} matches created!', 'success')
+        # Store computed matches in session
+        session['computed_matches'] = computed_matches
+        flash(f'{len(computed_matches)} potential matches computed. Review and approve below.', 'success')
         return redirect(url_for('match_review'))
     
     @app.route('/scrape', methods=['POST'])
@@ -692,7 +887,7 @@ def init_routes(app):
                     location=plot.get('location', 'Unknown'),
                     m2=plot.get('m2', 0),
                     budget=plot.get('budget', 0),
-                    subdivision_type=plot.get('subdivision_type', 'Unknown'),
+                    subdivision_type=normalize_subdivision_type(plot.get('subdivision_type')) or 'development_plot',
                     owner='Vansweevelt'
                 )
                 db.session.add(ground)
@@ -741,8 +936,13 @@ def init_routes(app):
 
         return redirect(url_for('grounds_list'))
     
+    # ========================================================================
+    # AUTHENTICATION & USER MANAGEMENT
+    # ========================================================================
+    
     @app.route('/logout')
     def logout():
+        """Clear session and log out user"""
         session.clear()
         return redirect(url_for('home'))
 
@@ -755,8 +955,13 @@ def init_routes(app):
             company.email = request.form['email']
             company.address = request.form.get('address')
             company.phone = request.form.get('phone')
-            db.session.commit()
-            flash('Profile updated successfully!', 'success')
+            try:
+                db.session.commit()
+                flash('Profile updated successfully!', 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error updating profile: {str(e)}', 'danger')
+                return render_template('company_profile.html', company=company)
             return redirect(url_for('dashboard'))
         return render_template('company_profile.html', company=company)
 
@@ -770,7 +975,12 @@ def init_routes(app):
             client.location = request.form.get('location')
             client.address = request.form.get('address')
             client.phone = request.form.get('phone')
-            db.session.commit()
-            flash('Profile updated successfully!', 'success')
+            try:
+                db.session.commit()
+                flash('Profile updated successfully!', 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error updating profile: {str(e)}', 'danger')
+                return render_template('client_profile.html', client=client)
             return redirect(url_for('client_dashboard'))
         return render_template('client_profile.html', client=client)

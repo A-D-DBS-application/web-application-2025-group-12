@@ -1,33 +1,36 @@
-{% extends "base.html" %}
-{% from 'macros/forms.html' import form_actions %}
+{% extends "base_new.html" %}
 
 {% block content %}
-<div class="card">
-    <h2>{% if client %}Edit{% else %}Add{% endif %} Client</h2>
-    <form method="POST" class="client-form">
-        <div class="form-row" style="flex-direction:column;gap:12px">
-            <div>
-                <label class="client-label">Name</label>
-                <input type="text" name="name" placeholder="Name" required value="{{ client.name if client else '' }}">
-            </div>
-            <div>
-                <label class="client-label">Email</label>
-                <input type="email" name="email" class="gm-input" placeholder="Email" required value="{{ client.email if client else '' }}">
-            </div>
-            <div>
-                <label class="client-label">Gemeente</label>
-                <input type="text" name="location" placeholder="Bijv. Antwerpen" value="{{ client.location if client else '' }}">
-            </div>
-            <div>
-                <label class="client-label">Straat + Nummer</label>
-                <input type="text" name="address" placeholder="Bijv. Groenplaats 1" value="{{ client.address if client else '' }}">
-            </div>
-        </div>
+<div class="container py-3">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="h4 mb-3">{% if client %}Edit{% else %}Add{% endif %} Client</h2>
+            <form method="POST">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="Name" required value="{{ client.name if client else '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="Email" required value="{{ client.email if client else '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Gemeente</label>
+                        <input type="text" name="location" class="form-control" placeholder="Bijv. Antwerpen" value="{{ client.location if client else '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Straat + Nummer</label>
+                        <input type="text" name="address" class="form-control" placeholder="Bijv. Groenplaats 1" value="{{ client.address if client else '' }}">
+                    </div>
+                </div>
 
-        <div style="display:flex;gap:12px;margin-top:12px">
-            <button type="submit" class="btn">{% if client %}Update{% else %}Add{% endif %}</button>
-            <a href="{{ url_for('clients_list') }}" class="btn">Cancel</a>
+                <div class="d-flex gap-2 mt-3">
+                    <button type="submit" class="btn btn-success">✓ {% if client %}Update Client{% else %}Add Client{% endif %}</button>
+                    <a href="{{ url_for('clients_list') }}" class="btn btn-outline-secondary">← Back to Clients</a>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
 {% endblock %}

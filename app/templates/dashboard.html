@@ -1,52 +1,90 @@
-{% extends "base.html" %}
+{% extends "base_new.html" %}
+
+{% block title %}Company Dashboard{% endblock %}
+
 {% block content %}
-<div class="card">
-    <div class="dashboard-header">
-        <div>
-            <h1>Welcome back</h1>
-            <div class="muted">Here's an overview of your platform</div>
+<div class="container py-4">
+    <!-- Welcome Header -->
+    <div class="mb-4">
+        <h1 class="display-5 fw-bold">Welcome back</h1>
+        <p class="text-muted">Here's an overview of your platform</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm text-center h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-2">Total Clients</p>
+                    <h2 class="display-4 fw-bold text-primary mb-0">{{ clients|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm text-center h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-2">Building Plots</p>
+                    <h2 class="display-4 fw-bold text-success mb-0">{{ grounds|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm text-center h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-2">Active Matches</p>
+                    <h2 class="display-4 fw-bold text-info mb-0">{{ matches|length }}</h2>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="dashboard-stats">
-        <div class="card stat-card"><div class="muted">Total Clients</div><div class="stat-value">{{ clients|length }}</div></div>
-        <div class="card stat-card"><div class="muted">Building Plots</div><div class="stat-value">{{ grounds|length }}</div></div>
-        <div class="card stat-card"><div class="muted">Active Matches</div><div class="stat-value">{{ matches|length }}</div></div>
-    </div>
-
-    <div class="dashboard-actions">
-        <a href="{{ url_for('clients_list') }}" class="btn btn-success">Manage Clients</a>
-        <a href="{{ url_for('preferences_list') }}" class="btn btn-success">View Preferences</a>
-        <a href="{{ url_for('grounds_list') }}" class="btn btn-success">Manage Grounds</a>
-        <a href="{{ url_for('matches_list') }}" class="btn btn-success">View Matches</a>
-        <form method="POST" action="{{ url_for('match_run') }}" class="inline-form">
-            <button type="submit" class="btn primary">Run Match Algorithm</button>
-        </form>
-    </div>
-</div>
-
-<div class="card">
-    <h2>Recent Building Plots</h2>
-    <div class="plots-grid">
-        {% for ground in grounds|sort(attribute='id', reverse=true) %}
-        {% if loop.index <= 5 %}
-            <div class="plot-item">
-                <div class="plot-image-container">
-                    <img src="{% if ground.photo_url %}{{ ground.photo_url }}{% elif ground.image_url %}{{ ground.image_url }}{% else %}{{ url_for('ground_image', ground_id=ground.id) }}{% endif %}" alt="{{ ground.location }}" class="plot-image">
-                </div>
-                <div class="plot-details">
-                    <div class="plot-location">{{ ground.location }}</div>
-                    <div class="plot-meta">
-                        <span>{{ ground.m2|format_number }} m²</span>
-                        <span>€{{ ground.budget|format_price }}</span>
-                    </div>
-                    <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn btn-small">View Details</a>
-                </div>
+    <!-- Quick Actions -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Quick Actions</h5>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('clients_list') }}" class="btn btn-primary">Manage Clients</a>
+                <a href="{{ url_for('preferences_list') }}" class="btn btn-primary">View Preferences</a>
+                <a href="{{ url_for('grounds_list') }}" class="btn btn-primary">Manage Grounds</a>
+                <a href="{{ url_for('matches_list') }}" class="btn btn-primary">View Matches</a>
+                <form method="POST" action="{{ url_for('match_run') }}" class="d-inline">
+                    <button type="submit" class="btn btn-success">Run Match Algorithm</button>
+                </form>
             </div>
-        {% endif %}
-        {% endfor %}
+        </div>
     </div>
-    <div class="see-all-link"><a href="{{ url_for('grounds_list') }}" class="btn">See All Plots</a></div>
-</div>
 
+    <!-- Recent Building Plots -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-4">Recent Building Plots</h5>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for ground in grounds|sort(attribute='id', reverse=true) %}
+                {% if loop.index <= 6 %}
+                <div class="col">
+                    <div class="card ground-card h-100 shadow-sm">
+                        <img src="{{ ground.image_url or url_for('ground_image', ground_id=ground.id) }}" 
+                             class="card-img-top" 
+                             alt="{{ ground.location }}">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ ground.location }}</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">{{ ground.m2|format_number }} m²</span>
+                                <span class="text-success fw-bold small">€{{ ground.budget|format_price }}</span>
+                            </div>
+                            <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn btn-sm btn-outline-primary w-100">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+            <div class="text-center mt-4">
+                <a href="{{ url_for('grounds_list') }}" class="btn btn-outline-primary">See All Plots</a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

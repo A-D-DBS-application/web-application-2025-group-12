@@ -1,135 +1,179 @@
-{% extends "base.html" %}
+{% extends "base_new.html" %}
+
+{% block title %}Building Plots{% endblock %}
+
 {% block content %}
-<div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px">
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 style="margin:0">
+            <h1 class="mb-1">
                 Building Plots
                 {% if grounds is defined %}
-                    <span class="badge">{{ grounds|length }}</span>
+                    <span class="badge bg-secondary">{{ grounds|length }}</span>
                 {% endif %}
             </h1>
-            <div class="muted">Browse and search available building plots</div>
+            <p class="text-muted mb-0">Browse and search available building plots</p>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
-            {% if session.role == 'company' %}
-                <a href="{{ url_for('dashboard') }}" class="btn">Back to dashboard</a>
-            {% endif %}
-            {% if session.role == 'company' %}
-                <a href="{{ url_for('ground_add') }}" class="btn btn-success">Add Ground</a>
-            {% endif %}
+        {% if session.role == 'company' %}
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
+            <a href="{{ url_for('ground_add') }}" class="btn btn-primary">+ Add Building Plot</a>
         </div>
+        {% endif %}
     </div>
 
-    <form method="GET" class="card" style="margin-bottom:18px">
-        <div class="form-row">
-            <input type="text"
-                   name="location"
-                   placeholder="Search by location"
-                   value="{{ request.args.get('location', '') }}">
+    <!-- Filter Section -->
+    <div class="filter-section mb-4">
+        <form method="GET" class="row g-3">
+            <div class="col-md-6">
+                <label for="location" class="form-label">Location</label>
+                <input type="text" 
+                       class="form-control" 
+                       id="location"
+                       name="location" 
+                       list="location-options"
+                       placeholder="Search by location"
+                       value="{{ request.args.get('location', '') }}">
+                <datalist id="location-options">
+                    {% for loc in available_locations %}
+                    <option value="{{ loc }}">{{ loc }}</option>
+                    {% endfor %}
+                </datalist>
+            </div>
+            
+            <div class="col-md-6">
+                <label for="subdivision_type" class="form-label">Subdivision Type</label>
+                <input type="text" 
+                       class="form-control" 
+                       id="subdivision_type"
+                       name="subdivision_type" 
+                       list="subdivision-type-options"
+                       placeholder="e.g., Detached, Terraced"
+                       value="{{ request.args.get('subdivision_type', '') }}">
+                <datalist id="subdivision-type-options">
+                    {% for type in subdivision_types %}
+                    <option value="{{ type }}">{{ type.replace('_', ' ').title() }}</option>
+                    {% endfor %}
+                </datalist>
+            </div>
+            
+            <div class="col-md-3">
+                <label for="min_m2" class="form-label">Min Surface (m²)</label>
+                <input type="number" 
+                       class="form-control" 
+                       id="min_m2"
+                       name="min_m2" 
+                       step="1"
+                       placeholder="Min m²"
+                       value="{{ request.args.get('min_m2', '') }}">
+            </div>
+            
+            <div class="col-md-3">
+                <label for="max_m2" class="form-label">Max Surface (m²)</label>
+                <input type="number" 
+                       class="form-control" 
+                       id="max_m2"
+                       name="max_m2" 
+                       step="1"
+                       placeholder="Max m²"
+                       value="{{ request.args.get('max_m2', '') }}">
+            </div>
+            
+            <div class="col-md-3">
+                <label for="min_price" class="form-label">Min Budget (€)</label>
+                <input type="number" 
+                       class="form-control" 
+                       id="min_price"
+                       name="min_price" 
+                       step="1"
+                       placeholder="Min €"
+                       value="{{ request.args.get('min_price', '') }}">
+            </div>
+            
+            <div class="col-md-3">
+                <label for="max_price" class="form-label">Max Budget (€)</label>
+                <input type="number" 
+                       class="form-control" 
+                       id="max_price"
+                       name="max_price" 
+                       step="1"
+                       placeholder="Max €"
+                       value="{{ request.args.get('max_price', '') }}">
+            </div>
+            
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <a href="{{ url_for('grounds_list') }}" class="btn btn-outline-secondary">Clear Filters</a>
+            </div>
+        </form>
+    </div>
 
-            <select name="subdivision_type">
-                <option value="">All Subdivision Types</option>
-                {% for type in subdivision_types %}
-                <option value="{{ type }}"
-                        {% if request.args.get('subdivision_type') == type %}selected{% endif %}>
-                    {{ type.replace('_', ' ').title() }}
-                </option>
-                {% endfor %}
-            </select>
-
-            <input type="number" step="1"
-                   name="min_m2"
-                   placeholder="Min Surface Area (m²)"
-                   value="{{ request.args.get('min_m2', '') }}">
-            <input type="number" step="1"
-                   name="max_m2"
-                   placeholder="Max Surface Area (m²)"
-                   value="{{ request.args.get('max_m2', '') }}">
-            <input type="number" step="1"
-                   name="min_price"
-                   placeholder="Min Budget"
-                   value="{{ request.args.get('min_price', '') }}">
-            <input type="number" step="1"
-                   name="max_price"
-                   placeholder="Max Budget"
-                   value="{{ request.args.get('max_price', '') }}">
-
-            <button type="submit" class="btn btn-success">Filter</button>
-        </div>
-    </form>
-
+    <!-- Grounds Grid -->
     <div>
         {% if grounds is defined %}
             {% if grounds|length > 0 %}
-                <div class="grounds-grid"
-                     style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin-bottom:20px">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
                     {% for ground in grounds %}
-                    <div style="display:flex;flex-direction:column;border-radius:10px;overflow:hidden;
-                                box-shadow:0 6px 18px rgba(31,111,74,0.06);background:#fff;
-                                transition:transform 0.2s,box-shadow 0.2s;cursor:pointer"
-                         onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 10px 24px rgba(31,111,74,0.1)'"
-                         onmouseout="this.style.transform='none';this.style.boxShadow='0 6px 18px rgba(31,111,74,0.06)'">
-
-                        <a href="{{ url_for('ground_detail', ground_id=ground.id) }}"
-                           style="display:block;text-decoration:none;color:inherit;flex:1">
-                            <img
-                                src="{{ ground.image_url or ground.photo_url or url_for('ground_image', ground_id=ground.id) }}"
-                                alt="{{ ground.location }}"
-                                style="width:100%;height:200px;object-fit:cover;display:block">
-                            <div style="padding:14px;border-top:1px solid rgba(25,49,39,0.04)">
-                                <div style="font-size:1rem;font-weight:600;margin-bottom:6px;color:#193127">
-                                    {{ ground.location }}
+                    <div class="col">
+                        <div class="card ground-card h-100 shadow-sm">
+                            <a href="{{ url_for('ground_detail', ground_id=ground.id) }}" class="text-decoration-none">
+                                <img src="{{ ground.image_url or url_for('ground_image', ground_id=ground.id) }}" 
+                                     class="card-img-top" 
+                                     alt="{{ ground.location }}">
+                            </a>
+                            
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="{{ url_for('ground_detail', ground_id=ground.id) }}" class="text-decoration-none text-dark">
+                                        {{ ground.location }}
+                                    </a>
+                                </h5>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">{{ ground.m2|format_number }} m²</span>
+                                    <span class="text-success fw-bold">€{{ ground.budget|format_price }}</span>
                                 </div>
-                                <div style="font-size:1.1rem;font-weight:700;color:#1f6f4a">
-                                    €{{ ground.budget|format_price }}
+                                <div class="d-flex justify-content-between">
+                                    <span class="badge badge-subdivision bg-info">
+                                        {{ ground.subdivision_type.replace('_',' ').title() }}
+                                    </span>
+                                    <span class="text-muted small">{{ ground.provider or 'Scraped' }}</span>
                                 </div>
                             </div>
-                        </a>
 
-                        {% if session.role == 'company' %}
-                        <div style="padding:12px;display:flex;gap:8px;border-top:1px solid rgba(25,49,39,0.04)">
-                            {# Show Edit/Delete only for grounds owned by this company #}
-                            {% if user_company and ground.provider == user_company %}
-                                <a href="{{ url_for('ground_edit', ground_id=ground.id) }}"
-                                   class="btn"
-                                   style="flex:1;text-align:center;font-size:0.9rem">
-                                    Edit
-                                </a>
-                                <form method="POST"
-                                      action="{{ url_for('ground_delete', ground_id=ground.id) }}"
-                                      style="flex:1">
-                                    <button type="submit"
-                                            class="btn"
-                                            style="width:100%;font-size:0.9rem"
-                                            onclick="return confirm('Delete this ground?')">
-                                        Delete
-                                    </button>
-                                </form>
-                            {% else %}
-                                <div style="flex:1;text-align:center;color:#6b7a71;font-size:0.85rem;padding:8px">
-                                    View only
-                                </div>
+                            {% if session.role == 'company' %}
+                            <div class="card-footer bg-light">
+                                {% if user_company and ground.provider and ground.provider|trim|lower == user_company|trim|lower %}
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn btn-sm btn-outline-primary flex-fill">Edit</a>
+                                        <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}" class="flex-fill">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Delete this ground?')">Delete</button>
+                                        </form>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center text-muted small">View only</div>
+                                {% endif %}
+                            </div>
                             {% endif %}
                         </div>
-                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="card" style="text-align:center;padding:24px">
-                    <p class="muted">No building plots found matching your filters.</p>
-                    <p class="muted" style="font-size:0.9rem">
-                        Try adjusting your search criteria or add a new building plot to get started.
-                    </p>
+                <div class="empty-state">
+                    <h4>No building plots found</h4>
+                    <p class="text-muted">No building plots match your current filters. Try adjusting your search criteria.</p>
                     {% if session.role == 'company' %}
-                        <a href="{{ url_for('ground_add') }}" class="btn btn-success">Add First Building Plot</a>
+                        <a href="{{ url_for('ground_add') }}" class="btn btn-primary mt-3">Add First Building Plot</a>
                     {% endif %}
                 </div>
             {% endif %}
         {% else %}
-            <div class="card" style="text-align:center;padding:24px">
-                <p class="muted">Loading building plots...</p>
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-muted mt-3">Loading building plots...</p>
             </div>
         {% endif %}
     </div>

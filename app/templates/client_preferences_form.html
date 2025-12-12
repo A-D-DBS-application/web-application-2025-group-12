@@ -8,4 +8,10 @@
    This file is kept for backwards compatibility but simply includes the
    unified preferences_form.html template.
    =========================================================================== #}
-{% include 'preferences_form.html' %}
+{% extends "base_new.html" %}
+
+{% block title %}Edit Preferences{% endblock %}
+
+{% block content %}
+   {% include 'preferences_form.html' %}
+{% endblock %}

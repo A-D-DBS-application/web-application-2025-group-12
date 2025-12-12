@@ -1,0 +1,89 @@
+{# Navigation bar partial - adapts based on user role and auth state #}
+
+{% set auth_endpoints = ['company_login', 'client_login', 'company_register', 'home'] %}
+{% set is_auth_page = request.endpoint in auth_endpoints %}
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-sm" style="background-color: var(--primary-color);">
+    <div class="container-fluid">
+        {# Logo/Brand #}
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') if is_auth_page else (url_for('dashboard') if session.role == 'company' else url_for('client_dashboard')) }}">
+            <img src="{{ url_for('static', filename='images/logo-full.svg') }}" alt="GroundMatch" height="40" class="d-inline-block align-text-top">
+        </a>
+
+        {# Only show navigation for authenticated users #}
+        {% if not is_auth_page %}
+        {# Mobile toggle button #}
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        {# Navigation links #}
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                {# Home/Dashboard #}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path.startswith('/dashboard') or request.path.startswith('/client/dashboard') %}active{% endif %}" 
+                       href="{{ url_for('dashboard') if session.role == 'company' else url_for('client_dashboard') }}">
+                        <i class="bi bi-house-door-fill"></i> Home
+                    </a>
+                </li>
+                
+                {# Clients (company only) #}
+                {% if session.role == 'company' %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path.startswith('/clients') %}active{% endif %}" 
+                       href="{{ url_for('clients_list') }}">
+                        <i class="bi bi-people-fill"></i> Clients
+                    </a>
+                </li>
+                {% endif %}
+                
+                {# Preferences #}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path.startswith('/preferences') or request.path.startswith('/client/preferences') %}active{% endif %}" 
+                       href="{{ url_for('preferences_list') if session.role == 'company' else url_for('client_preferences_view') }}">
+                        <i class="bi bi-sliders"></i> Preferences
+                    </a>
+                </li>
+                
+                {# Building Plots (company only) #}
+                {% if session.role == 'company' %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path.startswith('/grounds') %}active{% endif %}" 
+                       href="{{ url_for('grounds_list') }}">
+                        <i class="bi bi-geo-alt-fill"></i> Building Plots
+                    </a>
+                </li>
+                {% endif %}
+                
+                {# Matches #}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path.startswith('/matches') or request.path.startswith('/match') %}active{% endif %}" 
+                       href="{{ url_for('matches_list') }}">
+                        <i class="bi bi-heart-fill"></i> Matches
+                    </a>
+                </li>
+            </ul>
+
+            {# Right side - user info and logout #}
+            <div class="d-flex align-items-center">
+                {# User profile link #}
+                {% if session.role == 'company' %}
+                <a href="{{ url_for('company_profile') }}" class="btn btn-outline-light btn-sm me-2">
+                    <i class="bi bi-person-circle"></i> {{ current_user_name or 'Profile' }}
+                </a>
+                {% elif session.role == 'client' %}
+                <a href="{{ url_for('client_profile') }}" class="btn btn-outline-light btn-sm me-2">
+                    <i class="bi bi-person-circle"></i> {{ current_user_name or 'Profile' }}
+                </a>
+                {% endif %}
+                
+                {# Logout button #}
+                <a href="{{ url_for('logout') }}" class="btn btn-light btn-sm">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</nav>

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    {# Page title with default #}
+    <title>{% block title %}GroundMatch{% endblock %}</title>
+    
+    {# Favicon #}
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    
+    {# Bootstrap 5 CSS #}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    {# Bootstrap Icons #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    {# Google Fonts #}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    {# Custom CSS - now includes Bootstrap overrides and custom styles #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {# Optional: page-specific additional CSS #}
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {# Include navbar partial #}
+    {% include 'partials/_navbar.html' %}
+
+    {# Main content area #}
+    <main class="container my-4">
+        {# Flash messages partial #}
+        {% include 'partials/_flash_messages.html' %}
+        
+        {# Page content block #}
+        {% block content %}{% endblock %}
+    </main>
+
+    {# Footer #}
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            {% if session.role == 'client' and client is defined and client.company %}
+            <div class="mb-2">
+                <strong>Company Contact:</strong>
+                <small class="text-muted">{{ client.company.email or 'Not available' }}</small>
+            </div>
+            {% endif %}
+            <small class="text-muted">© {% block year %}{{ current_year if current_year is defined else 2025 }}{% endblock %} GroundMatch — MVP</small>
+        </div>
+    </footer>
+
+    {# Bootstrap JS Bundle (includes Popper) #}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {# Optional: page-specific JavaScript #}
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
