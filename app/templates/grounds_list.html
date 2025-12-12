@@ -124,10 +124,8 @@
                             </a>
                             
                             <div class="card-body">
-                                <h5 class="card-title">
-                                    <a href="{{ url_for('ground_detail', ground_id=ground.id) }}" class="text-decoration-none text-dark">
-                                        {{ ground.location }}
-                                    </a>
+                                <h5 class="card-title text-dark">
+                                    {{ ground.location }}
                                 </h5>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="text-muted">{{ ground.m2|format_number }} m²</span>

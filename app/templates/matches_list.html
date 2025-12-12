@@ -34,7 +34,8 @@
     </div>
     {% endif %}
 
-    <!-- Filter Form -->
+    {% if session.role == 'company' %}
+    <!-- Filter Form (company only) -->
     <form method="GET" class="card shadow-sm mb-4 border-0">
         <div class="card-body">
             <div class="row g-3 align-items-end">
@@ -55,6 +56,7 @@
             </div>
         </div>
     </form>
+    {% endif %}
 
     <!-- Matches by Client -->
     {% if matches %}

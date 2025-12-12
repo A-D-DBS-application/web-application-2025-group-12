@@ -54,7 +54,7 @@
         </div>
     </div>
 
-    <!-- Recent Building Plots -->
+    <!-- Recent Building Plots (click image to view details; removed button) -->
     <div class="card shadow-sm">
         <div class="card-body">
             <h5 class="card-title mb-4">Recent Building Plots</h5>
@@ -63,19 +63,40 @@
                 {% if loop.index <= 6 %}
                 <div class="col">
                     <div class="card ground-card h-100 shadow-sm">
-                        <img src="{{ ground.image_url or url_for('ground_image', ground_id=ground.id) }}" 
-                             class="card-img-top" 
-                             alt="{{ ground.location }}">
+                        <a href="{{ url_for('ground_detail', ground_id=ground.id) }}" class="text-decoration-none">
+                            <img src="{{ ground.image_url or url_for('ground_image', ground_id=ground.id) }}" 
+                                 class="card-img-top" 
+                                 alt="{{ ground.location }}">
+                        </a>
                         <div class="card-body">
-                            <h6 class="card-title">{{ ground.location }}</h6>
+                            <h5 class="card-title text-dark">{{ ground.location }}</h5>
                             <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted small">{{ ground.m2|format_number }} m²</span>
-                                <span class="text-success fw-bold small">€{{ ground.budget|format_price }}</span>
+                                <span class="text-muted">{{ ground.m2|format_number }} m²</span>
+                                <span class="text-success fw-bold">€{{ ground.budget|format_price }}</span>
                             </div>
-                            <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn btn-sm btn-outline-primary w-100">
-                                View Details
-                            </a>
+                            <div class="d-flex justify-content-between">
+                                <span class="badge badge-subdivision bg-info">
+                                    {{ ground.subdivision_type.replace('_',' ').title() }}
+                                </span>
+                                <span class="text-muted small">{{ ground.provider or 'Scraped' }}</span>
+                            </div>
                         </div>
+
+                        {% if session.role == 'company' %}
+                        <div class="card-footer bg-light">
+                            {% if user_company and ground.provider and ground.provider|trim|lower == user_company|trim|lower %}
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn btn-sm btn-outline-primary flex-fill">Edit</a>
+                                    <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}" class="flex-fill">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Delete this ground?')">Delete</button>
+                                    </button>
+                                    </form>
+                                </div>
+                            {% else %}
+                                <div class="text-center text-muted small">View only</div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 {% endif %}

@@ -267,11 +267,12 @@ def init_routes(app):
         grounds = Ground.query.all()
         # Get all matches for clients of this company
         matches = Match.query.join(Client).filter(Client.company_id == company_id).all()
-        
+        user_company = get_user_company_name()
         return render_template('dashboard.html', 
                              clients=clients, 
                              grounds=grounds, 
-                             matches=matches)
+                             matches=matches,
+                             user_company=user_company)
     
     # ========================================================================
     # CLIENT DASHBOARD & PROFILE ROUTES
@@ -800,7 +801,8 @@ def init_routes(app):
             ).join(Client).filter(Client.company_id == session['company_id'], Match.status == 'approved')
             
             if client_filter:
-                query = query.filter_by(client_id=int(client_filter))
+                # Explicitly filter on Match.client_id to avoid namespace ambiguity
+                query = query.filter(Match.client_id == int(client_filter))
             
             clients = Client.query.filter_by(company_id=session['company_id']).order_by(Client.name).all()
             client = None
