@@ -1,51 +1,46 @@
 # Groundmatch – Group 12
 
-Intelligent matchingsysteem dat bouwbedrijven koppelt aan ideale bouwpercelen die voldoen aan de voorkeuren van hun klanten.
-
+Intelligent matching system that connects construction companies with ideal building plots that meet their clients' preferences.
 ![GroundMatch logo](app/static/images/logo-full.svg)
 
-## Hoe gebruik je de app?
+## How to use the app?
 
-### Inleiding
-GroundMatch ondersteunt bouwbedrijven bij het efficiënt beheren, selecteren en opvolgen van geschikte bouwgronden voor hun klanten. Dankzij automatische data-scraping en een intelligent matchalgoritme beschikt uw bedrijf altijd over een actueel en volledig overzicht van geschikte gronden per klant.
+### Introduction
+GroundMatch helps construction companies efficiently manage, select, and track suitable building plots for their clients. Thanks to automatic data scraping and an intelligent matching algorithm, your company always has an up-to-date and comprehensive overview of the best plots for each client.
 
-U behoudt daarbij de volledige controle: u bepaalt zelf welke gronden u aan welke klant voorstelt, terwijl u automatisch meldingen ontvangt zodra er nieuwe, relevante bouwgronden beschikbaar komen.
+You retain full control: you decide which plots to present to each client, while automatically receiving notifications as soon as new, relevant building plots become available.
 
-Klanten zien uitsluitend de door u geselecteerde top 10 grondmatches en kunnen hun voorkeuren eenvoudig aanpassen. Zo speelt u sneller en gerichter in op hun behoeften, verhoogt u de efficiëntie binnen uw bedrijf én versterkt u met GroundMatch de kwaliteit van uw service.
+Clients see only the top 10 plot matches you select for them and can easily adjust their preferences. This allows you to respond to their needs more quickly and accurately, increase efficiency within your company, and enhance the quality of your service with GroundMatch.
 
-### Wat u kunt doen als bouwbedrijf:
-- Registreren en inloggen om toegang te krijgen tot uw bedrijfsdashboard.
-- Klanten beheren: klanten toevoegen, gegevens bekijken en hun voorkeuren opvolgen.
-- Gronden beheren:
-- eigen gronden toevoegen,
-- externe gescrapte gronden raadplegen,
-- gronden filteren op m², prijs, locatie, …
-- Meldingen ontvangen wanneer een nieuwe grond beschikbaar komt.
-- Matchscores bekijken tussen klantvoorkeuren en beschikbare gronden.
-- Matches accepteren of afwijzen om te bepalen of de grond zichtbaar wordt voor de klant.
-- Top 10 matches instellen: u beslist welke gronden de klant te zien krijgt.
-- Voorkeuren van klanten opvolgen en nieuwe matches activeren wanneer een klant zijn voorkeuren wijzigt.
+### What you can do as a building company:
+- Register and log in to access your company dashboard.
+- Manage clients: add clients, view their information, and track their preferences. 
+- Manage building plots: add your own plots, consult externally scraped plots, and filter plots. 
+- Receive notifications when a new plot becomes available. 
+- View match scores between client preferences and available plots.
+- Accept or reject matches to decide whether a plot becomes visible to the client.
+- Set the Top 10 matches: you decide which plots the client will see.
+- Track client preferences and activate new matches when a client updates their preferences. 
 
-### Wat uw klant kan doen:
-- Inloggen via de client-login (geen registratie nodig).
-- Zijn persoonlijke dashboard bekijken met uitsluitend matchscores.
-- Top 10 beste matches bekijken die door uw bouwbedrijf geselecteerd zijn.
-- Matchdetails bekijken: locatie, prijs, oppervlakte, foto’s, totale score.
-- Voorkeuren aanpassen (budget, m², locatie, verkavelingstype, …).
-- Een gefilterd en volledig gepersonaliseerd aanbod zien van de 10 best passende gronden.
+### What your client can do:
+- Log in through the client login.
+- View their personal dashboard with match scores per plot. 
+- See the Top 10 best matches selected by your building company. 
+- View match details: location, price, area, photos, total score.
+- Adjust their preferences (budget, m², location, subdivision type, …).
 
-## Link naar UI-prototype
+## Link to UI-prototype
 
 https://www.figma.com/make/L7uPvepWneJHBqlXnq6imX/Web-Application-UI-Design?t=2i4nlD2i9Nq9FXR6-20&fullscreen=1
 
-## Link naar Kanban-bord
+## Link to Kanban-board
 
 https://miro.com/app/board/uXjVJ0CcO8w=/
 
-## Link naar audio-/video-opnames van feedback-sessies met partner
+## Link to audio/video recording of feedback sessions with partner 
 
-- Eerste feedbackmoment: 
-- Tweede feedbackmoment: 
+- First meeting: 
+- Second meeting: 
 
 ## Team
 
