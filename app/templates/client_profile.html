@@ -36,9 +36,9 @@
                             <input type="text" name="address" class="form-control" placeholder="e.g., Groenplaats 1" value="{{ client.address if client else '' }}">
                         </div>
                         
-                        <div class="d-flex gap-3 mt-4">
-                            <button type="submit" class="btn btn-success">✓ Update Profile</button>
-                            <a href="{{ url_for('client_dashboard') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
+                        <div class="d-flex gap-3 mt-4 profile-actions">
+                            <button type="submit" class="btn btn-success main-action">✓ Update Profile</button>
+                            <a href="{{ url_for('client_dashboard') }}" class="btn btn-outline-secondary main-action">← Back to Dashboard</a>
                         </div>
                     </form>
                 </div>

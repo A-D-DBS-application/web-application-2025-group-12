@@ -681,29 +681,52 @@ def init_routes(app):
     def client_preferences_edit():
         client = Client.query.get(session['client_id'])
         pref = Preferences.query.filter_by(client_id=client.id).first()
-        
-        if not pref:
-            pref = Preferences(client_id=client.id)
-            db.session.add(pref)
-        
+
+        # On POST we construct or update the Preferences with values populated
+        # before adding to the session. This avoids creating a partially-filled
+        # Preferences row and prevents premature autoflush INSERTs that can
+        # violate DB NOT NULL constraints.
         if request.method == 'POST':
-            pref.location = request.form.get('location')
-            pref.subdivision_type = request.form.get('subdivision_type')
-            pref.min_m2 = int(request.form.get('min_m2')) if request.form.get('min_m2') else None
-            pref.max_m2 = int(request.form.get('max_m2')) if request.form.get('max_m2') else None
-            pref.min_budget = float(request.form.get('min_budget')) if request.form.get('min_budget') else None
-            pref.max_budget = float(request.form.get('max_budget')) if request.form.get('max_budget') else None
-            
+            # Read and normalize incoming values
+            location = request.form.get('location') or ''
+            subdivision_type = request.form.get('subdivision_type') or None
+            min_m2 = int(request.form.get('min_m2')) if request.form.get('min_m2') else None
+            max_m2 = int(request.form.get('max_m2')) if request.form.get('max_m2') else None
+            min_budget = float(request.form.get('min_budget')) if request.form.get('min_budget') else None
+            max_budget = float(request.form.get('max_budget')) if request.form.get('max_budget') else None
+
             try:
+                if not pref:
+                    # Create a fully-populated Preferences instance then add it
+                    pref = Preferences(
+                        client_id=client.id,
+                        location=location,
+                        subdivision_type=subdivision_type,
+                        min_m2=min_m2,
+                        max_m2=max_m2,
+                        min_budget=min_budget,
+                        max_budget=max_budget,
+                    )
+                    db.session.add(pref)
+                else:
+                    # Update existing
+                    pref.location = location
+                    pref.subdivision_type = subdivision_type
+                    pref.min_m2 = min_m2
+                    pref.max_m2 = max_m2
+                    pref.min_budget = min_budget
+                    pref.max_budget = max_budget
+
                 db.session.commit()
                 flash('Preferences updated!', 'success')
             except Exception as e:
                 db.session.rollback()
                 flash(f'Error updating preferences: {str(e)}', 'danger')
                 return render_template('client_preferences_form.html', client=client, pref=pref, subdivision_types=get_subdivision_types())
-            
+
             return redirect(url_for('client_dashboard'))
-        
+
+        # GET: render form (pref may be None if not yet created)
         return render_template('client_preferences_form.html', client=client, pref=pref, subdivision_types=get_subdivision_types())
     
     # ========================================================================

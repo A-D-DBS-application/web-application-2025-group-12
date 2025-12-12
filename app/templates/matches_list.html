@@ -10,14 +10,14 @@
             <h1 class="display-6 fw-bold mb-0">Matches</h1>
             <small class="text-muted">Client-ground matching results</small>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 page-actions">
             {% if session.role == 'company' %}
-            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
-            <form action="{{ url_for('match_run') }}" method="post" class="d-inline">
-                <button type="submit" class="btn btn-success">▶ Run Matching Algorithm</button>
-            </form>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary main-action">← Back to Dashboard</a>
+          <form action="{{ url_for('match_run') }}" method="post" class="d-inline">
+              <button type="submit" class="btn btn-success main-action">▶ Run Matching Algorithm</button>
+          </form>
             {% elif session.role == 'client' %}
-            <a href="{{ url_for('client_dashboard') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
+            <a href="{{ url_for('client_dashboard') }}" class="btn btn-outline-secondary main-action">← Back to Dashboard</a>
             {% endif %}
         </div>
     </div>
@@ -81,13 +81,12 @@
                         {% for m in matches if m.client and m.client.name == cm.client.name %}
                         <div class="col">
                             <a href="{{ url_for('ground_detail', ground_id=m.ground.id) }}" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm hover-lift" style="transition: transform 0.2s;">
+                                <div class="card h-100 shadow-sm hover-lift">
                                     <!-- Image -->
-                                    <div class="position-relative overflow-hidden" style="height: 180px;">
+                                    <div class="position-relative overflow-hidden match-image-wrapper">
                                         <img src="{{ m.ground.image_url or url_for('ground_image', ground_id=m.ground.id) }}" 
                                              alt="{{ m.ground.location }}" 
-                                             class="card-img-top" 
-                                             style="height: 100%; object-fit: cover;">
+                                             class="card-img-top match-card-img">
                                     </div>
                                     
                                     <!-- Content -->
@@ -141,7 +140,7 @@
             </p>
             {% if session.role == 'company' %}
             <form action="{{ url_for('match_run') }}" method="post" class="d-inline">
-                <button type="submit" class="btn btn-success btn-lg">▶ Run Matching Algorithm</button>
+                 <button type="submit" class="btn btn-outline-secondary btn-lg main-action">▶ Run Matching Algorithm</button>
             </form>
             {% endif %}
         </div>
@@ -149,10 +148,4 @@
     {% endif %}
 </div>
 
-<style>
-    .hover-lift:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
-    }
-</style>
 {% endblock %}

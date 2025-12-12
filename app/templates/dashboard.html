@@ -43,12 +43,12 @@
         <div class="card-body">
             <h5 class="card-title mb-3">Quick Actions</h5>
             <div class="d-flex flex-wrap gap-2">
-                <a href="{{ url_for('clients_list') }}" class="btn btn-primary">Manage Clients</a>
-                <a href="{{ url_for('preferences_list') }}" class="btn btn-primary">View Preferences</a>
-                <a href="{{ url_for('grounds_list') }}" class="btn btn-primary">Manage Grounds</a>
-                <a href="{{ url_for('matches_list') }}" class="btn btn-primary">View Matches</a>
-                <form method="POST" action="{{ url_for('match_run') }}" class="d-inline">
-                    <button type="submit" class="btn btn-success">Run Match Algorithm</button>
+                <a href="{{ url_for('clients_list') }}" class="{{ 'btn btn-success' if session.role == 'company' else 'btn btn-primary' }}">Manage Clients</a>
+                <a href="{{ url_for('preferences_list') }}" class="{{ 'btn btn-success' if session.role == 'company' else 'btn btn-primary' }}">View Preferences</a>
+                <a href="{{ url_for('grounds_list') }}" class="{{ 'btn btn-success' if session.role == 'company' else 'btn btn-primary' }}">Manage Grounds</a>
+                <a href="{{ url_for('matches_list') }}" class="{{ 'btn btn-success' if session.role == 'company' else 'btn btn-primary' }}">View Matches</a>
+                    <form method="POST" action="{{ url_for('match_run') }}" class="d-inline">
+                    <button type="submit" class="btn btn-success">Run matching algorithm</button>
                 </form>
             </div>
         </div>
@@ -92,7 +92,7 @@
                         <div class="card-footer bg-light">
                             {% if user_company and ground.provider and ground.provider|trim|lower == user_company|trim|lower %}
                                 <div class="d-flex gap-2">
-                                    <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn btn-sm btn-outline-primary flex-fill">Edit</a>
+                                    <a href="{{ url_for('ground_edit', ground_id=ground.id) }}" class="btn btn-sm btn-edit-outline flex-fill">Edit</a>
                                     <form method="POST" action="{{ url_for('ground_delete', ground_id=ground.id) }}" class="flex-fill">
                                         <button type="submit" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Delete this ground?')">Delete</button>
                                     </button>

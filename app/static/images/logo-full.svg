@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 300" width="1400" height="300">
-  <!-- Background matching navbar color #2E7D32 -->
-  <rect width="1400" height="300" fill="#2E7D32"/>
-  
+  <!-- Background removed so SVG is transparent and will blend with navbar background -->
   <!-- Location Pin Icon (left side) - More rounded design (moved slightly right) -->
   <g transform="translate(120, 80)">
     <!-- Outer pin shape with smooth rounded corners -->

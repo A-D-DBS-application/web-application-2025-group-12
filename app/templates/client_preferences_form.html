@@ -1,17 +1,9 @@
-{# ===========================================================================
-   CLIENT PREFERENCES FORM REDIRECT
-   
-   This template has been unified with preferences_form.html to eliminate
-   duplication. Both company and client users now use the same template,
-   which adapts based on session.role.
-   
-   This file is kept for backwards compatibility but simply includes the
-   unified preferences_form.html template.
-   =========================================================================== #}
-{% extends "base_new.html" %}
+{# Client wrapper that reuses the unified preferences template.
+   Instead of extending base again and including a full page (which caused
+   the navbar to appear twice), we extend `preferences_form.html` so the
+   template inheritance chain remains single (client -> preferences -> base).
+#}
+{% extends "preferences_form.html" %}
 
-{% block title %}Edit Preferences{% endblock %}
-
-{% block content %}
-   {% include 'preferences_form.html' %}
-{% endblock %}
+{# No additional blocks needed; we inherit the title and content from
+   preferences_form.html which already adapts based on session.role. #}
