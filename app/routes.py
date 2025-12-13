@@ -120,10 +120,19 @@ def handle_photo_upload():
     return url
 
 def get_sorted_matches(matches):
-    """Soort_key(m):
+    """Sort matches with approved first, then by score (highest first)."""
+    def score_of(m):
+        try:
+            if getattr(m, 'total_score', None) is not None:
+                return float(m.total_score)
+        except Exception:
+            pass
+        # Fallback: sum existing component scores if present
+        return float((getattr(m, 'budget_score', 0) or 0) + (getattr(m, 'm2_score', 0) or 0) + (getattr(m, 'location_score', 0) or 0) + (getattr(m, 'type_score', 0) or 0))
+
+    def sort_key(m):
         status = (m.status or '').lower()
         approved_first = 0 if status in ('approved', 'accepted') else 1
-        return (approved_first, -get_match_score'approved', 'accepted') else 1
         return (approved_first, -score_of(m))
 
     return sorted(matches, key=sort_key)
@@ -922,6 +931,7 @@ def init_routes(app):
     @app.route('/scrape', methods=['POST'])
     @requires_company
     def scrape():
+        """Run the Vansweevelt scraper to fetch and save ground plots."""
         try:
             try:
                 from scraper_vansweevelt import scrape_vansweevelt
