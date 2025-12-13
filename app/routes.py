@@ -923,8 +923,15 @@ def init_routes(app):
     @requires_company
     def scrape():
         try:
-            import scraper
-            plots = scraper.scrape_vansweevelt()
+            try:
+                from scraper_vansweevelt import scrape_vansweevelt
+            except Exception:
+                # Fallback import name for different module placement
+                scrape_vansweevelt = None
+            if not scrape_vansweevelt:
+                raise ImportError('scraper_vansweevelt not found. Ensure scraper_vansweevelt.py exists and is importable.')
+
+            plots = scrape_vansweevelt()
 
             count = 0
             for plot in plots:
@@ -958,8 +965,14 @@ def init_routes(app):
     def grounds_fetch_images():
         """Fetch images for existing grounds using the scraper's image URLs."""
         try:
-            import scraper
-            plots = scraper.scrape_vansweevelt()
+            try:
+                from scraper_vansweevelt import scrape_vansweevelt
+            except Exception:
+                scrape_vansweevelt = None
+            if not scrape_vansweevelt:
+                raise ImportError('scraper_vansweevelt not found. Ensure scraper_vansweevelt.py exists and is importable.')
+
+            plots = scrape_vansweevelt()
             saved = 0
             failed = 0
 
