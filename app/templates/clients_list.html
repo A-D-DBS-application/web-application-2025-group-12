@@ -42,11 +42,10 @@
                     <div class="flex-grow-1">
                         <h5 class="card-title mb-1">{{ client.name }}</h5>
                         <div class="text-muted">{{ client.email }}</div>
-                        {% if client.address or client.location %}
                         <div class="text-muted small">
-                            {% if client.address %}{{ client.address }}{% endif %}{% if client.address and client.location %}, {% endif %}{% if client.location %}{{ client.location }}{% endif %}
+                            {# Show address and location; if a field is missing display an example placeholder #}
+                            {{ client.address if client.address else 'e.g., Groenplaats 1' }}{% if client.address and client.location %}, {% endif %}{{ client.location if client.location else 'e.g., Antwerpen' }}
                         </div>
-                        {% endif %}
                     </div>
                 </div>
                 <div class="card-footer bg-light">
