@@ -16,12 +16,12 @@
                         <input type="email" name="email" class="form-control" placeholder="Email" required value="{{ client.email if client else '' }}">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Gemeente</label>
-                        <input type="text" name="location" class="form-control" placeholder="Bijv. Antwerpen" value="{{ client.location if client else '' }}">
+                        <label class="form-label">Location (Municipality)</label>
+                        <input type="text" name="location" class="form-control" placeholder="e.g., Antwerpen" value="{{ client.location if client else '' }}">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Straat + Nummer</label>
-                        <input type="text" name="address" class="form-control" placeholder="Bijv. Groenplaats 1" value="{{ client.address if client else '' }}">
+                        <label class="form-label">Street + Number</label>
+                        <input type="text" name="address" class="form-control" placeholder="e.g., Groenplaats 1" value="{{ client.address if client else '' }}">
                     </div>
                 </div>
 

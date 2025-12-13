@@ -265,6 +265,21 @@ body {
     background-color: var(--background);
 }
 
+/* Make the page use a column flex layout so footer can stick to the bottom
+   even when the page content is short. We keep previous .mt-auto utility
+   but ensure the overall document is full-height and main expands. */
+html, body {
+    height: 100%;
+}
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+main {
+    flex: 1 0 auto;
+}
+
 h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
     line-height: 1.2;
