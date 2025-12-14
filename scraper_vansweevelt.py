@@ -1,4 +1,5 @@
 import os
+import re
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
@@ -40,11 +41,41 @@ URL = (
 # Helper-functies
 # -----------------------------
 def parse_m2(surface_text: Optional[str]) -> Optional[int]:
-    """Haalt de m² als integer uit bv. '975m²' of '975 m2'."""
+    """
+    Haalt de m² als integer uit oppervlakte tekst.
+
+    Belangrijk voor jullie bron:
+    - '9.752 m²' betekent 975,2 m² (dus *100 scaling) -> 975
+    - '8.102 m²' -> 810,2 -> 810
+    - '140,0 m²' -> 140
+    - '7222 m²' -> 7222
+    """
     if not surface_text:
         return None
-    digits = "".join(ch for ch in surface_text if ch.isdigit())
-    return int(digits) if digits else None
+
+    # Pak het eerste "nummerachtige" stuk (digits met . of ,)
+    m = re.search(r"(\d+(?:[.,]\d+)*)", surface_text)
+    if not m:
+        return None
+
+    token = m.group(1).strip()
+
+    # Case 1: patroon zoals 9.752 (1 punt, exact 3 cijfers erna) => interpreteer als float * 100
+    if token.count(".") == 1 and "," not in token:
+        left, right = token.split(".", 1)
+        if right.isdigit() and len(right) == 3 and left.isdigit():
+            try:
+                return int(float(token) * 100)
+            except ValueError:
+                return None
+
+    # Case 2: normale EU-decimaal met komma: 140,0 -> 140.0
+    token = token.replace(",", ".")
+
+    try:
+        return int(float(token))
+    except ValueError:
+        return None
 
 
 def parse_budget(price_text: Optional[str]) -> Optional[int]:
@@ -224,6 +255,8 @@ if __name__ == "__main__":
         print(p)
 
     save_to_supabase(plots)
+
+
 
 
 
