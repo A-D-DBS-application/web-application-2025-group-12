@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask_login import UserMixin
-from sqlalchemy import func, Numeric
+from sqlalchemy import func, Numeric, CheckConstraint, Enum
 
 from . import db
 
@@ -14,9 +14,7 @@ class Company(UserMixin, db.Model):
     name = db.Column(db.String(200), nullable=False, unique=True)
     email = db.Column(db.String(320), nullable=False)
 
-    # relaties
     clients = db.relationship("Client", back_populates="company", cascade="all, delete-orphan")
-    # removed matches relationship: access matches via company.clients -> each client.matches
 
     def __repr__(self):
         return f"<Company {self.id} {self.name}>"
@@ -31,20 +29,11 @@ class Client(db.Model):
     company_id = db.Column(db.Integer, db.ForeignKey("public.company.id"), nullable=False)
     name = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(320), nullable=False)
-    location = db.Column(db.String(200), nullable=False)  # city/municipality
+    location = db.Column(db.String(200), nullable=False)  # city
     address = db.Column(db.String(300), nullable=False)   # street + number
 
     company = db.relationship("Company", back_populates="clients")
-
-    # 1-op-1 met Preferences (elk clientprofiel heeft precies één voorkeurenrecord)
-    preferences = db.relationship(
-        "Preferences",
-        back_populates="client",
-        uselist=False,
-        cascade="all, delete-orphan",
-    )
-
-    # matches: link between client and ground
+    preferences = db.relationship("Preferences", back_populates="client", uselist=False, cascade="all, delete-orphan")
     matches = db.relationship("Match", back_populates="client", cascade="all, delete-orphan")
 
     def __repr__(self):
@@ -54,19 +43,21 @@ class Client(db.Model):
 # ---------- Ground ----------
 class Ground(db.Model):
     __tablename__ = "ground"
-    __table_args__ = {"schema": "public"}
+    __table_args__ = (
+        CheckConstraint("m2 >= 0", name="ck_ground_m2_nonnegative"),
+        CheckConstraint("budget >= 0", name="ck_ground_budget_nonnegative"),
+        {"schema": "public"},
+    )
 
     id = db.Column(db.Integer, primary_key=True)
-
-    # columns from db/schema.sql (no 'soil' column)
-    location = db.Column(db.String(200), nullable=False)  # city/municipality
+    location = db.Column(db.String(200), nullable=False)  # city
     address = db.Column(db.String(300), nullable=False)    # street + number
     m2 = db.Column(db.Integer, nullable=False)              # area in m2
     budget = db.Column(db.Numeric(12, 2), nullable=False)
     subdivision_type = db.Column(db.String(120), nullable=False)
-    owner = db.Column(db.String(200), nullable=False)
+    owner = db.Column(db.String(200), nullable=False) #owner of the ground
     provider = db.Column(db.String(200), nullable=False)   # company name that added this ground
-    image_url = db.Column(db.String(1024), nullable=False)  # uploaded or scraped image path/url
+    image_url = db.Column(db.Text, nullable=False)  # uploaded or scraped image path/url
 
     matches = db.relationship("Match", back_populates="ground", cascade="all, delete-orphan")
 
@@ -77,25 +68,22 @@ class Ground(db.Model):
 # ---------- Preferences (1-op-1 met Client) ----------
 class Preferences(db.Model):
     __tablename__ = "preferences"
-    __table_args__ = {"schema": "public"}
+    __table_args__ = (
+        CheckConstraint("min_m2 <= max_m2", name="ck_preferences_m2_range"),
+        CheckConstraint("min_budget <= max_budget", name="ck_preferences_budget_range"),
+        {"schema": "public"},
+    )
 
     id = db.Column(db.Integer, primary_key=True)
-
-    # link naar client (uniek -> één voorkeurenrecord per client)
     client_id = db.Column(db.Integer, db.ForeignKey("public.client.id", ondelete="CASCADE"), nullable=False, unique=True)
-    client = db.relationship("Client", back_populates="preferences")
-
-    # gewenste kenmerken
     location = db.Column(db.String(200), nullable=False)
     subdivision_type = db.Column(db.String(120), nullable=False)
-
     min_m2 = db.Column(db.Integer, nullable=False)
     max_m2 = db.Column(db.Integer, nullable=False)
-
     min_budget = db.Column(db.Numeric(12, 2), nullable=False)
     max_budget = db.Column(db.Numeric(12, 2), nullable=False)
 
-    # removed matches relationship: a Match is between ground and client; access from preferences through preferences.client.matches
+    client = db.relationship("Client", back_populates="preferences")
 
     def __repr__(self):
         return f"<Preferences client={self.client_id}>"
@@ -107,30 +95,23 @@ class Match(db.Model):
     __table_args__ = {"schema": "public"}
 
     id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(db.Integer, db.ForeignKey("public.client.id", ondelete="CASCADE"), nullable=False)
+    ground_id = db.Column(db.Integer, db.ForeignKey("public.ground.id", ondelete="CASCADE"), nullable=False)
+    status = db.Column(Enum("pending", "approved", "rejected", name="match_status", create_type=False), nullable=False, server_default="pending")
 
-    # link to client instead of company or preferences
-    client_id = db.Column(db.Integer, db.ForeignKey("public.client.id", ondelete="CASCADE"), nullable=False, unique=True)
-    ground_id = db.Column(db.Integer, db.ForeignKey("public.ground.id", ondelete="CASCADE"), nullable=False, unique=True)
-
-    # status & (sub)scores zoals in ERD
-    status = db.Column(db.String(30), nullable=False, default="pending")
     m2_score = db.Column(db.Float, nullable=False)
     budget_score = db.Column(db.Float, nullable=False)
     location_score = db.Column(db.Float, nullable=False)
     type_score = db.Column(db.Float, nullable=False)
-
-    # Average of four component scores to yield 0-100 percentage
-    total_score = db.column_property(
-        (func.coalesce(m2_score, 0) + func.coalesce(budget_score, 0) + func.coalesce(location_score, 0) + func.coalesce(type_score, 0)) / 4.0
+    total_score = db.column_property( # Average of four component scores to yield 0-100 percentage
+        (func.coalesce(m2_score, 0)
+         + func.coalesce(budget_score, 0)
+         + func.coalesce(location_score, 0)
+         + func.coalesce(type_score, 0)) / 4.0
     )
 
     client = db.relationship("Client", back_populates="matches")
     ground = db.relationship("Ground", back_populates="matches")
-
-    __table_args__ = (
-        db.UniqueConstraint("client_id", "ground_id", name="uq_match_pair"),
-        {"schema": "public"},
-    )
 
     def __repr__(self):
         return f"<Match {self.id} client={self.client_id} ground={self.ground_id}>"
