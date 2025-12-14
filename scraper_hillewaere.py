@@ -166,7 +166,7 @@ def normalize_hillewaere_item(item: Dict) -> Optional[Dict]:
         "budget": budget_val,
         "subdivision_type": "development_plot",  # alles is grond
         "owner": "Hillewaere",
-        "provider": None,
+        "provider": "Hillewaere",
         #"detail_url": url,
         "image_url": item.get("img"),
         "image_url": item.get("img"),

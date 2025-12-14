@@ -189,7 +189,7 @@ def scrape_vansweevelt() -> List[Dict]:
             "budget": budget_val,
             "subdivision_type": subdivision_val,
             "owner": "Vansweevelt",
-            "provider": None,        # Scraped grounds not tied to a company
+            "provider": "Vansweevelt",        # Scraped grounds not tied to a company
             # "detail_url": detail_url,  # niet in DB -> uitgelaten
             "image_url": image_url,
         }
