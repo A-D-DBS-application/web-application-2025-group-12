@@ -2,7 +2,7 @@
 
 Intelligent matching system that connects construction companies with ideal building plots that meet their clients' preferences.
 
-![GroundMatch logo](app/static/images/nav/loginpage.jpeg)
+![GroundMatch logo](app/static/images/nav/login-page.jpeg)
 
 ## How to use the app?
 
