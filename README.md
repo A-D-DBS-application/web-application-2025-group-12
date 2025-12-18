@@ -37,6 +37,7 @@ Clients see only the top 10 plot matches you select for them and can easily adju
     git clone
     https://github.com/A-D-DBS-application/web-application-2025-group-12.git
     cd web-application-2025-group-12
+    ```
 
 2) Virtual environment:
 
@@ -50,17 +51,20 @@ Clients see only the top 10 plot matches you select for them and can easily adju
     ```text
      python -m venv .venv
      .\.venv\Scripts\Activate.ps1
+    ```
 
 3) Install dependencies:
     ```text
     pip3 install --upgrade pip
     pip3 install -r requirements.txt
+    ```
 
 4) Create env. manually:
     ```text
     Contents: 
     DATABASE_URL=postgresql://postgres.dkqipvoxinwkvqawxkmx:ProjectGroundMD2%21@aws-1-eu-central-1.pooler.supabase.com:5432/postgres
     SECRET_KEY=supersecret-for-dev
+    ```
 
 5) VS Code setup (one-time):
 
@@ -75,11 +79,11 @@ Clients see only the top 10 plot matches you select for them and can easily adju
      python3 run.py
     ```
 
-
     - Windows:
     ```text
      python run.py
- 
+    ```
+
 
 ## Link to UI-prototype
 
