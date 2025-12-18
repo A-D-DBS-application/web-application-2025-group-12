@@ -30,6 +30,14 @@ Clients see only the top 10 plot matches you select for them and can easily adju
 - View match details: location, price, area, photos, total score.
 - Adjust their preferences (budget, m², location, subdivision type, …).
 
+## How to install the app?
+
+1) Clone repository:
+git clone
+https://github.com/A-D-DBS-application/web-application-2025-group-12.git
+cd web-application-2025-group-12
+ 
+
 ## Link to UI-prototype
 
 https://www.figma.com/make/L7uPvepWneJHBqlXnq6imX/Web-Application-UI-Design?t=2i4nlD2i9Nq9FXR6-20&fullscreen=1
