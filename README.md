@@ -33,13 +33,10 @@ Clients see only the top 10 plot matches you select for them and can easily adju
 ## How to install the app?
 
 1) Clone repository:
-   ```text
-
-    git clone
-
-    https://github.com/A-D-DBS-application/web-application-2025-group-12.git
-
-    cd web-application-2025-group-12
+```text
+git clone
+https://github.com/A-D-DBS-application/web-application-2025-group-12.git
+cd web-application-2025-group-12
 
 3) Virtual environment:
 
