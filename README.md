@@ -33,9 +33,54 @@ Clients see only the top 10 plot matches you select for them and can easily adju
 ## How to install the app?
 
 1) Clone repository:
+
 git clone
+
 https://github.com/A-D-DBS-application/web-application-2025-group-12.git
+
 cd web-application-2025-group-12
+
+2) Virtual environment:
+
+- macOS / Linux:
+
+python3 -m venv .venv
+
+source .venv/bin/activate
+
+- Windows (PowerShell):
+
+python -m venv .venv
+
+.\.venv\Scripts\Activate.ps1
+
+3) Install dependencies:
+
+pip3 install --upgrade pip
+
+pip3 install -r requirements.txt
+
+4) Create env. manually:
+
+Contents: 
+DATABASE_URL=postgresql://postgres.dkqipvoxinwkvqawxkmx:ProjectGroundMD2%21@aws-1-eu-central-1.pooler.supabase.com:5432/postgres
+SECRET_KEY=supersecret-for-dev
+
+5) VS Code setup (one-time):
+
+- Command Palette → “Python: Select Interpreter” → choose .venv.
+
+- Install the Python extension if someone doesn’t have it yet.
+
+6) Run the app:
+
+- macOS / Linux:
+
+python3 run.py
+
+- Windows:
+
+python run.py
  
 
 ## Link to UI-prototype
