@@ -100,7 +100,7 @@ https://miro.com/app/board/uXjVJ0CcO8w=/
 
 ## Link to Render
 
-https://web-application-2025-group-12-6.onrender.com
+https://web-application-2025-group-12-7.onrender.com/grounds
 
 ## Team
 
