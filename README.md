@@ -33,6 +33,7 @@ Clients see only the top 10 plot matches you select for them and can easily adju
 ## How to install the app?
 
 1) Clone repository:
+   ```text
 
     git clone
 
@@ -40,7 +41,7 @@ Clients see only the top 10 plot matches you select for them and can easily adju
 
     cd web-application-2025-group-12
 
-2) Virtual environment:
+3) Virtual environment:
 
     - macOS / Linux:
 
@@ -54,25 +55,25 @@ Clients see only the top 10 plot matches you select for them and can easily adju
 
      .\.venv\Scripts\Activate.ps1
 
-3) Install dependencies:
+4) Install dependencies:
 
     pip3 install --upgrade pip
 
     pip3 install -r requirements.txt
 
-4) Create env. manually:
+5) Create env. manually:
 
     Contents: 
     DATABASE_URL=postgresql://postgres.dkqipvoxinwkvqawxkmx:ProjectGroundMD2%21@aws-1-eu-central-1.pooler.supabase.com:5432/postgres
     SECRET_KEY=supersecret-for-dev
 
-5) VS Code setup (one-time):
+6) VS Code setup (one-time):
 
      - Command Palette → “Python: Select Interpreter” → choose .venv.
 
      - Install the Python extension if someone doesn’t have it yet.
 
-6) Run the app:
+7) Run the app:
 
     - macOS / Linux:
 
