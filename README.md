@@ -98,6 +98,10 @@ https://miro.com/app/board/uXjVJ0CcO8w=/
 - First meeting: https://drive.google.com/file/d/1VDLpL4u5b6rgSiR7dWZJFgXL_Ppsf_Jd/view?usp=sharing
 - Second meeting: https://drive.google.com/file/d/1zyOU3aDmxZoA59DNjwgWavOvg83jHXea/view?usp=sharing
 
+## Link to Render
+
+https://web-application-2025-group-12-6.onrender.com
+
 ## Team
 
 - Axl Hanssen
