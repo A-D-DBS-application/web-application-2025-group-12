@@ -44,6 +44,7 @@ Clients see only the top 10 plot matches you select for them and can easily adju
     ```text
      python3 -m venv .venv
      source .venv/bin/activate
+    ```
 
     - Windows (PowerShell):
     ```text
@@ -72,6 +73,8 @@ Clients see only the top 10 plot matches you select for them and can easily adju
     - macOS / Linux:
     ```text
      python3 run.py
+    ```
+
 
     - Windows:
     ```text
