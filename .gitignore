@@ -25,8 +25,11 @@ instance/
 # Database
 *.sqlite3
 *.db
-db/dumps/*.sql
-!db/dumps/.gitkeep
+
+# Allow database dumps for assignment
+!db/dumps/
+!db/dumps/*.sql
+
 
 # User Uploads
 app/static/uploads/
