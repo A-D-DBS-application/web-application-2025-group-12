@@ -102,6 +102,10 @@ https://miro.com/app/board/uXjVJ0CcO8w=/
 
 https://web-application-2025-group-12-7.onrender.com
 
+## Link to PowerPoint
+
+https://ugentbe-my.sharepoint.com/:p:/r/personal/mariejustine_speybroeck_ugent_be/Documents/Groundmatch.pptx?d=w2e34490f6e2e4401a1a50cd36a8677c0&csf=1&web=1&e=cfjdnY
+
 ## Team
 
 - Axl Hanssen
